@@ -1,8 +1,7 @@
 /* ============================================================
-   重庆-丰都旅游攻略 - 完整样式
+   重庆-丰都旅游攻略 - 样式（新逻辑 + 旧样式）
    ============================================================ */
 
-/* ---- 全局重置 ---- */
 * {
     margin: 0;
     padding: 0;
@@ -73,7 +72,7 @@ body {
     color: #5a5a5a;
 }
 
-/* ---- 一键展开/收起按钮（独立，无需修改模式） ---- */
+/* ---- 一键展开/收起 ---- */
 #expand-collapse-bar {
     display: flex;
     gap: 10px;
@@ -90,7 +89,7 @@ body {
     font-size: 13px;
     font-weight: 500;
     color: #4a4a4a;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 }
@@ -99,10 +98,6 @@ body {
     background: #ede8e0;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-}
-
-#expand-collapse-bar .btn-ctrl .ripple {
-    background: radial-gradient(circle, rgba(74, 106, 127, 0.2) 0%, transparent 70%);
 }
 
 /* ---- 路线总览 ---- */
@@ -162,6 +157,7 @@ body {
     display: block;
 }
 
+/* 标签栏 */
 .tab-bar {
     display: flex;
     flex-wrap: wrap;
@@ -188,6 +184,7 @@ body {
     color: #fff;
 }
 
+/* 地图容器 */
 .map-wrapper {
     position: relative;
     width: 100%;
@@ -202,13 +199,13 @@ body {
     display: block;
 }
 
-/* ---- 地图原点 - 物理光效增强 ---- */
+/* ---- 地图原点 ---- */
 .map-point {
     position: absolute;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #e08a7a, #a0524a);
+    background: #a0524a;
     color: #fff;
     font-size: 13px;
     font-weight: 700;
@@ -217,75 +214,41 @@ body {
     justify-content: center;
     cursor: pointer;
     border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     transform: translate(-50%, -50%);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.4s ease,
-                width 0.4s ease,
-                height 0.4s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease,
+                width 0.3s ease,
+                height 0.3s ease;
     z-index: 10;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    will-change: transform, box-shadow;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* 原点光晕（持续脉冲） */
-.map-point::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: -8px;
-    right: -8px;
-    bottom: -8px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(160, 82, 74, 0.25), transparent 70%);
-    animation: pulseGlow 2s ease-in-out infinite;
-    z-index: -1;
-    pointer-events: none;
-}
-
-@keyframes pulseGlow {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.4); opacity: 1; }
-}
-
-/* 原点悬停 - 变大 + 发光 + 影响周围 */
 .map-point:hover {
-    transform: translate(-50%, -50%) scale(1.3);
-    box-shadow: 0 0 20px rgba(160, 82, 74, 0.6), 
-                0 0 40px rgba(160, 82, 74, 0.3),
-                0 0 60px rgba(160, 82, 74, 0.1);
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
     z-index: 20;
 }
 
-/* 原点点击波纹（光效扩散影响周围） */
+.map-point.active {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5);
+}
+
+/* 原点点击波纹 */
 .map-point .ripple {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 200, 180, 0.4) 0%, rgba(160, 82, 74, 0.2) 40%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 200, 180, 0.3) 0%, transparent 70%);
     transform: scale(0);
     pointer-events: none;
     z-index: 0;
-    animation: rippleWave 0.9s ease-out forwards;
+    animation: rippleWave 0.8s ease-out forwards;
 }
 
 @keyframes rippleWave {
-    0% {
-        transform: scale(0);
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(6);
-        opacity: 0;
-    }
-}
-
-/* 原点点击时影响周围的卡片（通过JS添加类） */
-.map-point.active {
-    transform: translate(-50%, -50%) scale(1.15);
-    box-shadow: 0 0 30px rgba(160, 82, 74, 0.5), 0 0 60px rgba(160, 82, 74, 0.2);
-    transition: all 0.3s ease;
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(5); opacity: 0; }
 }
 
 /* 图例 */
@@ -329,21 +292,17 @@ body {
 #floating-card {
     position: fixed;
     z-index: 999;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #fff;
     border-radius: 18px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     padding: 20px 24px 24px;
     width: 280px;
     max-width: 85vw;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: opacity 0.3s ease, 
-                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.3s ease;
+    border: 1px solid #e8e4de;
+    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     opacity: 0;
     pointer-events: none;
-    transform: translateY(12px) scale(0.95);
+    transform: translateY(8px) scale(0.96);
 }
 
 #floating-card.show {
@@ -353,7 +312,7 @@ body {
 }
 
 #floating-card[data-pinned="true"] {
-    box-shadow: 0 12px 40px rgba(160, 82, 74, 0.25), 0 0 0 2px #a0524a;
+    box-shadow: 0 12px 40px rgba(160, 82, 74, 0.2), 0 0 0 2px #a0524a;
 }
 
 #floating-card-close {
@@ -400,32 +359,45 @@ body {
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
-    position: relative;
-    overflow: hidden;
+    transition: background 0.2s ease;
 }
 #floating-card-jump:hover {
     background: #3a5a6f;
-    transform: scale(1.02);
 }
 
-/* ---- Day 栏目 Sticky 吸附 ---- */
+/* ---- Day 栏目 Sticky ---- */
 .day-group {
     position: relative;
     scroll-margin-top: 60px;
+    margin-top: 22px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    border: 1px solid #efedea;
 }
 
 .day-group .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    background-color: #fafaf8;
+    cursor: pointer;
+    user-select: none;
+    border-left: 5px solid #c0b0a8;
+    transition: background 0.2s ease, box-shadow 0.3s ease;
     position: sticky;
     top: 0;
     z-index: 50;
-    background-color: #fafaf8;
-    border-left: 5px solid #c0b0a8;
-    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.day-group .day-header:hover {
+    background-color: #f3f0ec;
 }
 
 .day-group .day-header.sticky {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     background-color: #ffffff;
 }
 
@@ -437,20 +409,26 @@ body {
     background-color: #f8f5f2;
 }
 
-.day-group .day-header::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
+.day-group .day-header .title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #4a4a4a;
 }
-.day-group .day-header.sticky::after {
-    opacity: 1;
+.day-group .day-header .title small {
+    font-weight: 400;
+    font-size: 15px;
+    color: #8a8a8a;
+    margin-left: 10px;
+}
+.day-group .day-header .arrow {
+    font-size: 22px;
+    color: #a0524a;
+    transition: transform 0.35s ease;
+    display: inline-block;
+    line-height: 1;
+}
+.day-group.open .day-header .arrow {
+    transform: rotate(180deg);
 }
 
 /* ---- 展开/收缩动画 ---- */
@@ -459,9 +437,9 @@ body {
     overflow: hidden;
     opacity: 0;
     padding: 0 20px;
-    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s ease,
-                padding 0.4s ease;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s ease,
+                padding 0.3s ease;
 }
 
 .day-group.open .day-body {
@@ -483,6 +461,7 @@ body {
     font-weight: 500;
 }
 
+/* ---- 三餐 ---- */
 .meal-bar {
     display: flex;
     flex-wrap: wrap;
@@ -499,6 +478,7 @@ body {
     gap: 4px;
 }
 
+/* ---- 时间表 ---- */
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
@@ -543,7 +523,7 @@ body {
     padding: 16px 18px 18px;
     margin-top: 16px;
     border: 1px solid #efedea;
-    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    transition: box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease, transform 0.6s ease;
     opacity: 0;
     transform: translateY(30px);
     scroll-margin-top: 20px;
@@ -557,66 +537,24 @@ body {
 }
 
 .place-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-    border-color: #d0c8c0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    background: #fcfbf9;
 }
 
-/* 卡片悬浮光效 - 跟随鼠标 */
-.place-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-                rgba(160, 82, 74, 0.06) 0%, 
-                rgba(74, 106, 127, 0.03) 40%,
-                transparent 70%);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.place-card:hover::before {
-    opacity: 1;
-}
-
-/* 卡片点击波纹 - 物理光效影响周围 */
+/* 卡片点击波纹 */
 .place-card .ripple {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(160, 82, 74, 0.3) 0%, rgba(74, 106, 127, 0.1) 40%, transparent 70%);
+    background: radial-gradient(circle, rgba(160, 82, 74, 0.15) 0%, transparent 70%);
     transform: scale(0);
     pointer-events: none;
     z-index: 10;
-    animation: cardRipple 0.8s ease-out forwards;
+    animation: cardRipple 0.7s ease-out forwards;
 }
 
 @keyframes cardRipple {
-    0% {
-        transform: scale(0);
-        opacity: 1;
-    }
-    60% {
-        opacity: 0.6;
-    }
-    100% {
-        transform: scale(5);
-        opacity: 0;
-    }
-}
-
-/* 卡片内容在光效上层 */
-.place-card .place-name,
-.place-card .place-image,
-.place-card .place-desc,
-.place-card .meta,
-.place-card .btn-group {
-    position: relative;
-    z-index: 1;
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(4); opacity: 0; }
 }
 
 .place-card .place-name {
@@ -628,6 +566,8 @@ body {
     flex-wrap: wrap;
     gap: 8px 12px;
     margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
 }
 .place-card .place-name .tag {
     font-size: 12px;
@@ -641,6 +581,8 @@ body {
     font-size: 15px;
     color: #4a4a4a;
     margin: 8px 0 10px;
+    position: relative;
+    z-index: 1;
 }
 .place-card .meta {
     font-size: 14px;
@@ -651,8 +593,11 @@ body {
     margin-bottom: 12px;
     display: inline-block;
     border: 1px solid #e6e2db;
+    position: relative;
+    z-index: 1;
 }
 
+/* 景点图片 */
 .place-image {
     width: 100%;
     height: 170px;
@@ -713,7 +658,7 @@ body {
     background: #edebe7;
     color: #4a4a4a;
     border: 1px solid #ddd9d2;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.2s ease;
     cursor: pointer;
     min-height: 44px;
     line-height: 1.2;
@@ -722,8 +667,8 @@ body {
     overflow: hidden;
 }
 .btn:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
 }
 .btn .ripple {
     background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
@@ -737,7 +682,6 @@ body {
 .btn-nav:hover {
     background: #3a5a6f;
     border-color: #3a5a6f;
-    box-shadow: 0 6px 20px rgba(74, 106, 127, 0.3);
 }
 
 .btn-dp {
@@ -828,14 +772,13 @@ body {
     background: #f0ede8;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 }
 
 #admin-panel .admin-row .btn-ctrl:hover {
     background: #e5e0d8;
-    transform: translateY(-1px);
 }
 
 #admin-panel .admin-row input {
@@ -935,6 +878,12 @@ body {
         height: 56px;
         font-size: 26px;
     }
+    .day-group .day-header .title {
+        font-size: 22px;
+    }
+    .day-group .day-header .title small {
+        font-size: 16px;
+    }
 }
 
 @media (max-width: 420px) {
@@ -980,13 +929,13 @@ body {
         font-size: 20px;
     }
     .map-point {
-        width: 26px;
-        height: 26px;
+        width: 24px;
+        height: 24px;
         font-size: 11px;
     }
 }
 
-/* ---- 淡入动画 ---- */
+/* ---- 动画 ---- */
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
