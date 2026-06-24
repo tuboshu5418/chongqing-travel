@@ -1,9 +1,13 @@
 // ============================================================
-// 重庆旅游攻略 - Cloudflare Workers API
+// 重庆-丰都旅游攻略 - Cloudflare Workers API
 // ============================================================
 
-// 高德地图 API Key（请替换为你自己的）
-const AMAP_KEY = 'YOUR_AMAP_KEY_HERE';
+// 图片仓库基础URL（优先使用Cloudflare Pages，被屏蔽时切换至GitHub）
+const CDN_BASE = 'https://chongqing-travel.pages.dev/images';  // 你的Pages域名
+const GITHUB_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
+
+// 高德导航URI前缀（不需要Key）
+const AMAP_URI_BASE = 'https://uri.amap.com/marker';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -42,21 +46,40 @@ export default {
 
         try {
             // ============================================================
-            // 高德地图 Key
+            // 1. 高德导航链接（无需Key，直接返回URI）
             // ============================================================
-            if (path === '/api/amap-key') {
-                return jsonResponse({ key: AMAP_KEY });
+            if (path === '/api/amap-link') {
+                const params = url.searchParams;
+                const lng = params.get('lng');
+                const lat = params.get('lat');
+                const name = params.get('name') || '目的地';
+                if (!lng || !lat) {
+                    return jsonResponse({ error: '缺少经纬度参数' }, 400);
+                }
+                return jsonResponse({
+                    link: `${AMAP_URI_BASE}?position=${lng},${lat}&name=${encodeURIComponent(name)}`
+                });
             }
 
             // ============================================================
-            // 行程 API
+            // 2. 图片Base URL（用于前端fallback）
+            // ============================================================
+            if (path === '/api/images/base') {
+                return jsonResponse({
+                    cdn: CDN_BASE,
+                    github: GITHUB_BASE,
+                });
+            }
+
+            // ============================================================
+            // 3. 行程API
             // ============================================================
             if (path.startsWith('/api/itinerary')) {
                 const parts = path.split('/');
                 const dayParam = parts[parts.length - 1];
                 const dayNumber = parseInt(dayParam);
 
-                // GET - 查询
+                // GET
                 if (method === 'GET') {
                     if (!isNaN(dayNumber) && dayNumber > 0) {
                         const result = await db.prepare(
@@ -93,7 +116,7 @@ export default {
                     }
 
                     const body = await request.json();
-                    const { title, subtitle, walk_badge, rest_note, lunch_recommendation, schedule, places } = body;
+                    const { title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, schedule, places } = body;
 
                     const existing = await db.prepare(
                         'SELECT id FROM itinerary WHERE day = ?'
@@ -110,7 +133,9 @@ export default {
                     if (subtitle !== undefined) { updates.push('subtitle = ?'); values.push(subtitle); }
                     if (walk_badge !== undefined) { updates.push('walk_badge = ?'); values.push(walk_badge); }
                     if (rest_note !== undefined) { updates.push('rest_note = ?'); values.push(rest_note); }
-                    if (lunch_recommendation !== undefined) { updates.push('lunch_recommendation = ?'); values.push(lunch_recommendation); }
+                    if (breakfast !== undefined) { updates.push('breakfast = ?'); values.push(breakfast); }
+                    if (lunch !== undefined) { updates.push('lunch = ?'); values.push(lunch); }
+                    if (dinner !== undefined) { updates.push('dinner = ?'); values.push(dinner); }
                     if (schedule !== undefined) { updates.push('schedule = ?'); values.push(JSON.stringify(schedule)); }
                     if (places !== undefined) { updates.push('places = ?'); values.push(JSON.stringify(places)); }
 
@@ -136,22 +161,17 @@ export default {
             }
 
             // ============================================================
-            // 静态页面 - 返回 index.html
+            // 4. 静态页面
             // ============================================================
             if (path === '/' || path === '') {
-                // 直接返回 HTML 字符串，或者你可以把 HTML 放到 KV 中
-                // 这里简单返回提示，实际使用时建议把 HTML 放在 public 目录或绑定到 KV
                 return new Response(
-                    `请访问 /index.html 查看页面，或将 HTML 内容直接放在这里返回。`,
+                    `请访问 /index.html 查看页面。如果页面未出现，请检查您的Cloudflare Pages部署。`,
                     {
-                        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+                        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
                     }
                 );
             }
 
-            // ============================================================
-            // 404
-            // ============================================================
             return jsonResponse({ error: 'Not found' }, 404);
 
         } catch (error) {
