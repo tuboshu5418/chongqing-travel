@@ -923,3 +923,226 @@ body {
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* ============================================================
+   Day 栏目滚动置顶（Sticky 吸附）
+   ============================================================ */
+.day-group {
+    position: relative;
+    scroll-margin-top: 60px; /* 为 sticky 留出空间 */
+}
+
+.day-group .day-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: #fafaf8;
+    border-left: 5px solid #c0b0a8;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.day-group .day-header.sticky {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
+}
+
+.day-group.open .day-header {
+    border-left-color: #a0524a;
+    background-color: #f8f5f2;
+}
+
+.day-group.open .day-header.sticky {
+    background-color: #f8f5f2;
+}
+
+/* 吸附时的顶部阴影指示 */
+.day-group .day-header::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.day-group .day-header.sticky::after {
+    opacity: 1;
+}
+
+/* ============================================================
+   展开/收缩动画（修复）
+   ============================================================ */
+.day-body {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 20px;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s ease 0.1s,
+                padding 0.3s ease;
+}
+
+.day-group.open .day-body {
+    max-height: 2000px;  /* 足够大 */
+    opacity: 1;
+    padding: 6px 20px 24px;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.5s ease 0.15s,
+                padding 0.3s ease;
+}
+
+/* ============================================================
+   物理光效 - 点击波纹
+   ============================================================ */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 82, 74, 0.3) 0%, rgba(74, 106, 127, 0.1) 50%, transparent 70%);
+    transform: scale(0);
+    animation: rippleAnim 0.8s ease-out forwards;
+    pointer-events: none;
+    z-index: 5;
+}
+
+@keyframes rippleAnim {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* 卡片点击光效触发区域 */
+.place-card {
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.place-card.clickable {
+    cursor: pointer;
+}
+
+/* 卡片悬浮光效（柔和） */
+.place-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                rgba(255, 255, 255, 0.08) 0%, 
+                transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.place-card:hover::before {
+    opacity: 1;
+}
+
+/* 地图点光效（悬停发光） */
+.map-point {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #d47a6a, #a0524a);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    transform: translate(-50%, -50%);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease;
+    z-index: 10;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.map-point::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 82, 74, 0.2), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.map-point:hover {
+    transform: translate(-50%, -50%) scale(1.25);
+    box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.map-point:hover::after {
+    opacity: 1;
+}
+
+/* 悬浮卡片光效 */
+#floating-card {
+    position: fixed;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    padding: 20px 24px 24px;
+    width: 280px;
+    max-width: 85vw;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px) scale(0.96);
+}
+
+#floating-card.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+#floating-card[data-pinned="true"] {
+    box-shadow: 0 12px 40px rgba(160, 82, 74, 0.25), 0 0 0 2px #a0524a;
+}
+
+/* 按钮点击波纹 */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn .ripple {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+}
+
+.btn-nav .ripple {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+}
+
+.btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
