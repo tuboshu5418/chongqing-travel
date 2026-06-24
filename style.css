@@ -1,5 +1,5 @@
 /* ============================================================
-   重庆-丰都旅游攻略 - 样式（新逻辑 + 旧样式）
+   重庆-丰都旅游攻略 - 完整样式（清理重复）
    ============================================================ */
 
 * {
@@ -42,6 +42,8 @@ body {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     position: relative;
     margin-top: 8px;
+    /* 确保 sticky 在容器内工作 */
+    overflow-y: visible;
 }
 
 /* ---- 头部 ---- */
@@ -79,7 +81,6 @@ body {
     margin: 12px 0 8px;
     flex-wrap: wrap;
 }
-
 #expand-collapse-bar .btn-ctrl {
     padding: 6px 18px;
     border-radius: 30px;
@@ -93,11 +94,9 @@ body {
     position: relative;
     overflow: hidden;
 }
-
 #expand-collapse-bar .btn-ctrl:hover {
     background: #ede8e0;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 /* ---- 路线总览 ---- */
@@ -157,7 +156,6 @@ body {
     display: block;
 }
 
-/* 标签栏 */
 .tab-bar {
     display: flex;
     flex-wrap: wrap;
@@ -184,7 +182,6 @@ body {
     color: #fff;
 }
 
-/* 地图容器 */
 .map-wrapper {
     position: relative;
     width: 100%;
@@ -217,25 +214,19 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     transform: translate(-50%, -50%);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.3s ease,
-                width 0.3s ease,
-                height 0.3s ease;
+                box-shadow 0.3s ease;
     z-index: 10;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
-
 .map-point:hover {
     transform: translate(-50%, -50%) scale(1.2);
     box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
     z-index: 20;
 }
-
 .map-point.active {
     transform: translate(-50%, -50%) scale(1.15);
     box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5);
 }
-
-/* 原点点击波纹 */
 .map-point .ripple {
     position: absolute;
     border-radius: 50%;
@@ -245,13 +236,11 @@ body {
     z-index: 0;
     animation: rippleWave 0.8s ease-out forwards;
 }
-
 @keyframes rippleWave {
     0% { transform: scale(0); opacity: 1; }
     100% { transform: scale(5); opacity: 0; }
 }
 
-/* 图例 */
 .route-legend {
     display: flex;
     flex-wrap: wrap;
@@ -304,17 +293,14 @@ body {
     pointer-events: none;
     transform: translateY(8px) scale(0.96);
 }
-
 #floating-card.show {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0) scale(1);
 }
-
 #floating-card[data-pinned="true"] {
     box-shadow: 0 12px 40px rgba(160, 82, 74, 0.2), 0 0 0 2px #a0524a;
 }
-
 #floating-card-close {
     position: absolute;
     top: 10px;
@@ -365,7 +351,10 @@ body {
     background: #3a5a6f;
 }
 
-/* ---- Day 栏目 Sticky ---- */
+/* ============================================================
+   Day 栏目 Sticky 置顶 + 展开/收缩动画
+   ============================================================ */
+
 .day-group {
     position: relative;
     scroll-margin-top: 60px;
@@ -377,6 +366,7 @@ body {
     border: 1px solid #efedea;
 }
 
+/* 关键：day-header 使用 sticky 吸附 */
 .day-group .day-header {
     display: flex;
     justify-content: space-between;
@@ -390,14 +380,17 @@ body {
     position: sticky;
     top: 0;
     z-index: 50;
+    /* 确保 sticky 生效 */
+    will-change: transform;
 }
 
 .day-group .day-header:hover {
     background-color: #f3f0ec;
 }
 
+/* 吸附时加阴影 */
 .day-group .day-header.sticky {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     background-color: #ffffff;
 }
 
@@ -431,6 +424,23 @@ body {
     transform: rotate(180deg);
 }
 
+/* 吸附时的底部阴影指示条 */
+.day-group .day-header::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.day-group .day-header.sticky::after {
+    opacity: 1;
+}
+
 /* ---- 展开/收缩动画 ---- */
 .day-body {
     max-height: 0;
@@ -441,14 +451,13 @@ body {
                 opacity 0.4s ease,
                 padding 0.3s ease;
 }
-
 .day-group.open .day-body {
     max-height: 5000px;
     opacity: 1;
     padding: 6px 20px 24px;
 }
 
-/* ---- 步行难度 ---- */
+/* ---- 其他组件（步行难度、三餐、时间表、景点卡片等） ---- */
 .walk-badge {
     display: inline-block;
     background: #e8f0f5;
@@ -460,8 +469,6 @@ body {
     border: 1px solid #d4e0e8;
     font-weight: 500;
 }
-
-/* ---- 三餐 ---- */
 .meal-bar {
     display: flex;
     flex-wrap: wrap;
@@ -477,8 +484,6 @@ body {
     align-items: center;
     gap: 4px;
 }
-
-/* ---- 时间表 ---- */
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
@@ -516,7 +521,6 @@ body {
     color: #a0524a;
 }
 
-/* ---- 景点卡片 ---- */
 .place-card {
     background: #f9f8f6;
     border-radius: 16px;
@@ -530,18 +534,14 @@ body {
     position: relative;
     overflow: visible;
 }
-
 .place-card.visible {
     opacity: 1;
     transform: translateY(0);
 }
-
 .place-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     background: #fcfbf9;
 }
-
-/* 卡片点击波纹 */
 .place-card .ripple {
     position: absolute;
     border-radius: 50%;
@@ -551,12 +551,10 @@ body {
     z-index: 10;
     animation: cardRipple 0.7s ease-out forwards;
 }
-
 @keyframes cardRipple {
     0% { transform: scale(0); opacity: 1; }
     100% { transform: scale(4); opacity: 0; }
 }
-
 .place-card .place-name {
     font-size: 18px;
     font-weight: 600;
@@ -596,8 +594,6 @@ body {
     position: relative;
     z-index: 1;
 }
-
-/* 景点图片 */
 .place-image {
     width: 100%;
     height: 170px;
@@ -636,7 +632,6 @@ body {
     margin-bottom: 4px;
 }
 
-/* ---- 按钮 ---- */
 .btn-group {
     display: flex;
     flex-wrap: wrap;
@@ -673,7 +668,6 @@ body {
 .btn .ripple {
     background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
 }
-
 .btn-nav {
     background: #4a6a7f;
     border-color: #4a6a7f;
@@ -683,7 +677,6 @@ body {
     background: #3a5a6f;
     border-color: #3a5a6f;
 }
-
 .btn-dp {
     background: #f0ede8;
     border-color: #ccc6bd;
@@ -692,7 +685,6 @@ body {
 .btn-dp:hover {
     background: #e5e0d8;
 }
-
 .btn-mt {
     background: #f0f0e8;
     border-color: #c8c8b8;
@@ -701,7 +693,6 @@ body {
 .btn-mt:hover {
     background: #e5e5d8;
 }
-
 .btn-dy {
     background: #f0e8f0;
     border-color: #c8b8d0;
@@ -710,7 +701,6 @@ body {
 .btn-dy:hover {
     background: #e5dce8;
 }
-
 .btn-fav {
     background: #f5f0ea;
     border-color: #ddd6cd;
@@ -739,7 +729,6 @@ body {
     border-radius: 14px;
     border-left: 3px solid #c0b0a8;
 }
-
 .footer {
     margin-top: 40px;
     text-align: center;
@@ -749,7 +738,7 @@ body {
     padding-top: 22px;
 }
 
-/* ---- 修改模式面板 ---- */
+/* ---- 修改模式 ---- */
 #admin-panel {
     margin-top: 20px;
     padding: 16px;
@@ -757,14 +746,12 @@ body {
     border-radius: 16px;
     border: 1px solid #e0dbd3;
 }
-
 #admin-panel .admin-row {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
 }
-
 #admin-panel .admin-row .btn-ctrl {
     padding: 8px 20px;
     border-radius: 30px;
@@ -776,11 +763,9 @@ body {
     position: relative;
     overflow: hidden;
 }
-
 #admin-panel .admin-row .btn-ctrl:hover {
     background: #e5e0d8;
 }
-
 #admin-panel .admin-row input {
     padding: 8px 14px;
     border-radius: 30px;
@@ -789,7 +774,6 @@ body {
     width: 160px;
     background: #fff;
 }
-
 #admin-panel .admin-row .btn-login {
     padding: 8px 20px;
     border-radius: 30px;
@@ -803,19 +787,16 @@ body {
 #admin-panel .admin-row .btn-login:hover {
     background: #3a5a6f;
 }
-
 #admin-panel .admin-row .status {
     font-size: 13px;
     color: #a0524a;
 }
-
 #admin-panel .admin-row .edit-area {
     display: none;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
 }
-
 #admin-panel .admin-row .edit-area .badge {
     font-size: 13px;
     color: #4a6a7f;
@@ -885,7 +866,6 @@ body {
         font-size: 16px;
     }
 }
-
 @media (max-width: 420px) {
     .app-container {
         padding: 16px 12px 30px;
@@ -935,77 +915,7 @@ body {
     }
 }
 
-/* ---- 动画 ---- */
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
-}
-
-/* ============================================================
-   Day 栏目 Sticky 置顶 + 展开/收缩动画（新增）
-   ============================================================ */
-
-/* 每个 day-group 作为滚动容器 */
-.day-group {
-    position: relative;
-    scroll-margin-top: 60px;
-}
-
-/* Day header 吸附在顶部 */
-.day-group .day-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background-color: #fafaf8;
-    border-left: 5px solid #c0b0a8;
-    transition: box-shadow 0.3s ease, background-color 0.3s ease;
-}
-
-/* 吸附时加阴影 */
-.day-group .day-header.sticky {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    background-color: #ffffff;
-}
-
-/* 展开状态下 header 样式 */
-.day-group.open .day-header {
-    border-left-color: #a0524a;
-    background-color: #f8f5f2;
-}
-.day-group.open .day-header.sticky {
-    background-color: #f8f5f2;
-}
-
-/* 吸附时的底部阴影指示条 */
-.day-group .day-header::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-.day-group .day-header.sticky::after {
-    opacity: 1;
-}
-
-/* ---- 展开/收缩动画 ---- */
-.day-body {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    padding: 0 20px;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.4s ease,
-                padding 0.3s ease;
-}
-
-.day-group.open .day-body {
-    max-height: 5000px;
-    opacity: 1;
-    padding: 6px 20px 24px;
 }
