@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
     <title>重庆-丰都家庭游 · 6天5晚</title>
     <style>
-        /* ============================================================
-           完整样式 - Sticky 已修复
-           ============================================================ */
+        /* ====== 样式已整合，包含所有修复 ====== */
         * {
             margin: 0;
             padding: 0;
@@ -50,6 +48,7 @@
             margin-top: 8px;
         }
 
+        /* ---- Header ---- */
         .header {
             text-align: center;
             padding-bottom: 20px;
@@ -77,6 +76,7 @@
             color: #5a5a5a;
         }
 
+        /* ---- 展开/收起 ---- */
         #expand-collapse-bar {
             display: flex;
             gap: 10px;
@@ -98,6 +98,7 @@
             background: #ede8e0;
         }
 
+        /* ---- 路线总览 ---- */
         .overview-group {
             margin-top: 16px;
             border-radius: 18px;
@@ -210,8 +211,7 @@
             border: 2px solid #fff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             transform: translate(-50%, -50%);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        box-shadow 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
             z-index: 10;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
@@ -261,6 +261,7 @@
             display: inline-block;
         }
 
+        /* ---- 悬浮卡片 ---- */
         #floating-card {
             position: fixed;
             z-index: 999;
@@ -334,15 +335,7 @@
             background: #3a5a6f;
         }
 
-        /* ============================================================
-           Day 栏目 Sticky 置顶 - 关键修复
-           ============================================================ */
-        /* 为 sticky 提供滚动容器 */
-        #day-groups-container {
-            position: relative;
-            /* 确保子元素的 sticky 相对于此容器生效 */
-        }
-
+        /* ---- Day 栏目 Sticky ---- */
         .day-group {
             position: relative;
             scroll-margin-top: 60px;
@@ -351,10 +344,7 @@
             background: #ffffff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
             border: 1px solid #efedea;
-            /* 关键：不能有 overflow: hidden，否则 sticky 失效 */
             overflow: visible;
-            /* 确保内容不会溢出到容器外 */
-            clear: both;
         }
 
         .day-group .day-header {
@@ -367,14 +357,10 @@
             user-select: none;
             border-left: 5px solid #c0b0a8;
             transition: background 0.2s ease, box-shadow 0.3s ease;
-            /* 关键：sticky 定位 */
             position: sticky;
             top: 0;
             z-index: 50;
-            /* 确保粘性定位生效 */
             will-change: transform;
-            /* 修复：防止 sticky 被父容器裁剪 */
-            margin: 0;
         }
 
         .day-group .day-header:hover {
@@ -437,9 +423,7 @@
             overflow: hidden;
             opacity: 0;
             padding: 0 20px;
-            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.4s ease,
-                        padding 0.3s ease;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, padding 0.3s ease;
         }
         .day-group.open .day-body {
             max-height: 5000px;
@@ -511,6 +495,7 @@
             color: #a0524a;
         }
 
+        /* ---- 景点卡片 & 图片框优化 ---- */
         .place-card {
             background: #f9f8f6;
             border-radius: 16px;
@@ -532,6 +517,48 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
             background: #fcfbf9;
         }
+
+        /* 图片框优化：根据宽度调整高度，最高 1:1 */
+        .place-image {
+            width: 100%;
+            /* 高度由 aspect-ratio 控制，最高 1:1 */
+            aspect-ratio: 16 / 10;
+            max-height: 400px;
+            background: #e8e4de;
+            border-radius: 14px;
+            margin: 6px 0 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0dbd3;
+            position: relative;
+            z-index: 1;
+        }
+        .place-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            background: #f6f4f1;
+        }
+        .place-image .placeholder-text {
+            color: #9a9a9a;
+            font-size: 14px;
+            text-align: center;
+            background: #e8e4de;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .place-image .placeholder-text span {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+
         .place-card .place-name {
             font-size: 18px;
             font-weight: 600;
@@ -570,43 +597,6 @@
             border: 1px solid #e6e2db;
             position: relative;
             z-index: 1;
-        }
-        .place-image {
-            width: 100%;
-            height: 170px;
-            background: #e8e4de;
-            border-radius: 14px;
-            margin: 6px 0 12px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #e0dbd3;
-            position: relative;
-            z-index: 1;
-        }
-        .place-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            background: #f6f4f1;
-        }
-        .place-image .placeholder-text {
-            color: #9a9a9a;
-            font-size: 14px;
-            text-align: center;
-            background: #e8e4de;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        .place-image .placeholder-text span {
-            font-size: 32px;
-            margin-bottom: 4px;
         }
 
         .btn-group {
@@ -712,6 +702,7 @@
             padding-top: 22px;
         }
 
+        /* ---- 修改模式面板 (修复) ---- */
         #admin-panel {
             margin-top: 20px;
             padding: 16px;
@@ -809,11 +800,6 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
         }
 
-        /* ---- 测试用：显示 sticky 状态 ---- */
-        .day-group .day-header.sticky {
-            border-left-color: #4a6a7f !important;
-        }
-
         @media (min-width: 768px) {
             body {
                 padding: 30px 40px;
@@ -824,7 +810,8 @@
                 border-radius: 36px;
             }
             .place-image {
-                height: 220px;
+                aspect-ratio: 16 / 9;
+                max-height: 500px;
             }
             #back-to-top {
                 right: 40px;
@@ -870,7 +857,8 @@
                 min-height: 38px;
             }
             .place-image {
-                height: 130px;
+                aspect-ratio: 4 / 3;
+                max-height: 200px;
             }
             .header h1 {
                 font-size: 22px;
@@ -958,34 +946,229 @@
 
     <script>
         // ============================================================
-        // 完整 JavaScript - Sticky 已修复
+        // 完整 JavaScript (数据 + 逻辑)
         // ============================================================
 
         const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
         const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
 
+        // ---- 数据 ----
         const DAY_POINTS = {
             1: [{ id: 'day1_1', name: '江北机场', x: 8, y: 15, placeIndex: 0 }, { id: 'day1_2', name: '解放碑', x: 30, y: 55,
                     placeIndex: 1 }, { id: 'day1_3', name: '八一好吃街', x: 35, y: 60, placeIndex: 2 }, { id: 'day1_4',
                     name: '白象居', x: 45, y: 65, placeIndex: 3 }, { id: 'day1_5', name: '长江索道', x: 50, y: 70,
                     placeIndex: 4 }, { id: 'day1_6', name: 'WFC会仙楼', x: 38, y: 50, placeIndex: 5 }, { id: 'day1_7',
-                    name: '洪崖洞', x: 42, y: 48, placeIndex: 6 }],
+                    name: '洪崖洞', x: 42, y: 48, placeIndex: 6 }, { id: 'day1_8', name: '周公馆', x: 28, y: 45,
+                    placeIndex: 7 }],
             2: [{ id: 'day2_1', name: '李子坝', x: 20, y: 40, placeIndex: 0 }, { id: 'day2_2', name: '鹅岭二厂', x: 25, y: 35,
                     placeIndex: 1 }, { id: 'day2_3', name: '山城步道', x: 40, y: 50, placeIndex: 2 }, { id: 'day2_4',
                     name: '十八梯', x: 45, y: 55, placeIndex: 3 }, { id: 'day2_5', name: '观音桥', x: 30, y: 20,
                     placeIndex: 4 }],
-            3: [{ id: 'day3_1', name: '重庆动物园', x: 15, y: 60, placeIndex: 0 }, { id: 'day3_2', name: '三峡博物馆', x: 40,
-                    y: 45, placeIndex: 1 }, { id: 'day3_3', name: '观音桥', x: 45, y: 25, placeIndex: 2 }],
+            3: [{ id: 'day3_1', name: '重庆动物园', x: 15, y: 60, placeIndex: 0 }, { id: 'day3_2', name: '红岩革命纪念馆',
+                    x: 35, y: 35, placeIndex: 1 }, { id: 'day3_3', name: '观音桥', x: 45, y: 25, placeIndex: 2 }],
             4: [{ id: 'day4_1', name: '弹子石老街', x: 55, y: 65, placeIndex: 0 }, { id: 'day4_2', name: '盘龙立交', x: 60,
                     y: 50, placeIndex: 1 }, { id: 'day4_3', name: '龙门浩老街', x: 50, y: 70, placeIndex: 2 },
-                { id: 'day4_4', name: '来福士云端乐园', x: 40, y: 55, placeIndex: 3 }],
-            5: [{ id: 'day5_1', name: '重庆北站', x: 15, y: 20, placeIndex: 0 }, { id: 'day5_2', name: '丰都站', x: 70, y: 50,
-                    placeIndex: 1 }, { id: 'day5_3', name: '丰都鬼城', x: 80, y: 60, placeIndex: 2 }],
+                { id: 'day4_4', name: '丰都站', x: 85, y: 70, placeIndex: 3 }],
+            5: [{ id: 'day5_1', name: '家乡', x: 50, y: 50, placeIndex: 0 }, { id: 'day5_2', name: '慢车', x: 70, y: 20,
+                    placeIndex: 1 }],
             6: [{ id: 'day6_1', name: '丰都县城', x: 20, y: 40, placeIndex: 0 }, { id: 'day6_2', name: '双桂山', x: 35, y: 55,
                     placeIndex: 1 }, { id: 'day6_3', name: '丰都码头', x: 60, y: 70, placeIndex: 2 }]
         };
 
-        let allDaysData = [];
+        const allDaysData = [{
+            day: 1,
+            title: 'Day 1',
+            subtitle: '抵达 · 渝中经典',
+            walk_badge: '🚶 步行难度 ★★☆ (索道代步)',
+            rest_note: '☕ 休息点：解放碑周边商场咖啡馆、WFC观景台休息区',
+            breakfast: '酒店自理或机场简餐',
+            lunch: '八一好吃街（酸辣粉、山城小汤圆、豌杂面）',
+            dinner: '解放碑周边居民楼老火锅',
+            schedule: [{ time: '10:00-11:30', activity: '江北机场 → 解放碑附近酒店' }, { time: '11:30-13:00',
+                    activity: '🥘 午餐：八一好吃街' }, { time: '13:00-14:30', activity: '解放碑步行街' }, { time: '14:30-16:00',
+                    activity: '白象居' }, { time: '16:00-17:30', activity: '长江索道' }, { time: '17:30-19:00',
+                    activity: '🌆 WFC会仙楼观景台' }, { time: '19:00-21:00', activity: '洪崖洞夜景' }],
+            places: [{ name: '江北机场', tag: '起点', desc: '抵达重庆，乘坐轨道交通10号线或打车前往市区酒店。', meta: '🚇 轨道交通10号线 · 约1小时',
+                    imageUrl: '', navLink: 'https://uri.amap.com/marker?position=106.656124,29.710728&name=重庆江北国际机场T3A航站楼',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '解放碑', tag: '地标', desc: '重庆精神地标，商业中心。适合打卡拍照。', meta: '🎫 免费 · 全天开放',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/jiefangbei.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.575329,29.557253&name=解放碑步行街',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456789',
+                        meituan: 'https://www.meituan.com/search/解放碑',
+                        douyin: 'https://www.douyin.com/search/解放碑',
+                        street: 'https://uri.amap.com/street?position=106.575329,29.557253' } },
+                { name: '八一好吃街', tag: '美食', desc: '酸辣粉、山城小汤圆、豌杂面，小吃集中。', meta: '🌶️ 辣度可选 · 有冰粉解辣',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/bayihaochijie.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.576343,29.555061&name=八一广场',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/987654321',
+                        meituan: 'https://www.meituan.com/search/八一好吃街',
+                        douyin: 'https://www.douyin.com/search/八一好吃街', street: '' } },
+                { name: '白象居', tag: '魔幻居民楼', desc: '24层无电梯老居民楼，可拍长江索道穿楼。', meta: '🎫 免费 · 平路步行10分钟',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/baixiangju.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.585193,29.556103&name=白象居',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '长江索道', tag: '空中巴士', desc: '横跨长江的索道，单程30元。建议提前小程序购票。', meta: '🕐 08:00-22:00 · 单程30元',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/changjiangsuodao.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.582889,29.557845&name=重庆长江索道北站',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: 'WFC会仙楼观景台', tag: '顶楼观景', desc: '位于WFC环球金融中心75层，海拔590米，360度俯瞰两江。', meta: '🎫 门票约120元 · 09:00-22:00',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/wfc.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.574325,29.558132&name=WFC会仙楼观景台',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456780',
+                        meituan: 'https://www.meituan.com/search/WFC观景台',
+                        douyin: 'https://www.douyin.com/search/WFC观景台', street: '' } },
+                { name: '洪崖洞', tag: '夜景', desc: '吊脚楼夜景，推荐去千厮门大桥或江对岸拍摄。', meta: '🎫 免费 · 亮灯19:00-23:00',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/hongyadong.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.579027,29.562204&name=洪崖洞民俗风貌区',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '周公馆', tag: '红色文化', desc: '周恩来重庆办公地，南方局旧址。需在红岩联线公众号预约。', meta: '🎫 免费 · 09:00-19:00',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/zhougongguan.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.571944,29.563611&name=周公馆',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456785',
+                        meituan: 'https://www.meituan.com/search/周公馆',
+                        douyin: 'https://www.douyin.com/search/周公馆', street: '' } }]
+        }, {
+            day: 2,
+            title: 'Day 2',
+            subtitle: '魔幻交通 · 山城漫步',
+            walk_badge: '🚶 步行难度 ★★★ (有上坡，可打车)',
+            rest_note: '☕ 休息点：二厂文创园咖啡馆、山城步道中途歇脚处',
+            breakfast: '解放碑周边老面馆（豌杂面、重庆小面）',
+            lunch: '鹅岭二厂周边（推荐「二厂食堂」或「李子坝梁山鸡」）',
+            dinner: '观音桥好吃街（酸辣粉、油茶、鬼包子等）',
+            schedule: [{ time: '09:00-10:30', activity: '李子坝轻轨穿楼' }, { time: '10:30-12:00',
+                    activity: '鹅岭二厂文创园' }, { time: '12:00-13:30', activity: '🥘 午餐：二厂周边' }, { time: '13:30-15:00',
+                    activity: '山城步道' }, { time: '15:30-17:30', activity: '十八梯老街' }, { time: '18:00-20:00',
+                    activity: '🥘 晚餐：观音桥好吃街' }],
+            places: [{ name: '李子坝', tag: '奇观', desc: '轻轨2号线穿居民楼而过。观景台免费，可坐2号线体验。', meta: '🎫 免费',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/liziba.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.537916,29.553629&name=李子坝单轨穿楼观景平台',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '鹅岭二厂', tag: '文艺', desc: '旧印刷厂改造，可俯瞰渝中半岛。老人建议打车。', meta: '🎫 免费 · 有咖啡馆',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/erling.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.540183,29.551101&name=TESTBED2贰厂文创公园',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456781',
+                        meituan: 'https://www.meituan.com/search/鹅岭二厂',
+                        douyin: 'https://www.douyin.com/search/鹅岭二厂', street: '' } },
+                { name: '山城步道', tag: '老重庆', desc: '从「山城巷」入口走精华下坡段，约1小时。', meta: '🎫 免费 · 精华段平缓',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/shancheng.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.565949,29.551978&name=山城巷',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '十八梯', tag: '老重庆', desc: '老重庆风貌街区，可品盖碗茶，感受新旧对比。', meta: '🎫 免费 · 盖碗茶约20元',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/shibati.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.574629,29.555033&name=十八梯',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456790',
+                        meituan: 'https://www.meituan.com/search/十八梯',
+                        douyin: 'https://www.douyin.com/search/十八梯', street: '' } }]
+        }, {
+            day: 3,
+            title: 'Day 3',
+            subtitle: '家庭日 · 红岩精神',
+            walk_badge: '🚶 步行难度 ★★☆ (有观光车代步)',
+            rest_note: '☕ 休息点：动物园凉亭、红岩革命纪念馆休息区',
+            breakfast: '酒店周边或杨家坪商圈',
+            lunch: '杨家坪万象城（众多餐饮选择，适合家庭）',
+            dinner: '观音桥居民楼老火锅（鸳鸯锅可选）',
+            schedule: [{ time: '09:00-12:00', activity: '重庆动物园（看熊猫）' }, { time: '12:00-13:30',
+                    activity: '🥘 午餐：杨家坪万象城' }, { time: '13:30-15:30', activity: '红岩革命纪念馆（红岩精神发源地）' },
+                { time: '15:30-18:00', activity: '观音桥步行街（自由活动）' }, { time: '18:00-20:00',
+                    activity: '🥘 晚餐：观音桥老火锅' }],
+            places: [{ name: '重庆动物园', tag: '熊猫', desc: '看熊猫的好去处。门票25元，65岁以上老人免费，1.2米以下儿童免费。', meta: '🕐 08:00-18:00 · 门票25元',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/panda.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.505799,29.504023&name=重庆动物园',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/555666777',
+                        meituan: 'https://www.meituan.com/search/重庆动物园',
+                        douyin: 'https://www.douyin.com/search/重庆动物园', street: '' } },
+                { name: '红岩革命纪念馆', tag: '红色文化', desc: '中共中央南方局旧址，红岩精神发源地。毛泽东重庆谈判期间在此办公。', meta: '🎫 免费 · 需公众号预约',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/hongyan.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.541944,29.566111&name=红岩革命纪念馆',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456786',
+                        meituan: 'https://www.meituan.com/search/红岩革命纪念馆',
+                        douyin: 'https://www.douyin.com/search/红岩革命纪念馆', street: '' } },
+                { name: '观音桥', tag: '商圈', desc: '晚上自由活动，可找有鸳鸯锅的火锅店用餐。', meta: '🌶️ 火锅可选鸳鸯锅',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/guanyinqiao.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.532427,29.574602&name=观音桥步行街',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/444555666',
+                        meituan: 'https://www.meituan.com/search/观音桥',
+                        douyin: 'https://www.douyin.com/search/观音桥', street: '' } }]
+        }, {
+            day: 4,
+            title: 'Day 4',
+            subtitle: '南岸魔幻 · 动车至丰都',
+            walk_badge: '🚶 步行难度 ★★☆ (动车出行)',
+            rest_note: '☕ 休息点：丰都站周边、丰都县城',
+            breakfast: '南岸区酒店周边',
+            lunch: '龙门浩老街江景餐厅（推荐「龙门九号」或「江畔寻花」）',
+            dinner: '丰都县城（鬼城麻辣鸡或长江鱼）',
+            schedule: [{ time: '09:00-11:00', activity: '弹子石老街（电梯覆盖，对老人友好）' }, { time: '11:00-12:00',
+                    activity: '途经盘龙立交（黄桷湾立交）' }, { time: '12:00-14:00', activity: '🥘 午餐：龙门浩老街' },
+                { time: '14:00-15:30', activity: '龙门浩老街（咖啡厅小憩）' }, { time: '15:30-17:30',
+                    activity: '🚄 动车：重庆北 → 丰都' }, { time: '17:30-19:00', activity: '🥘 晚餐：丰都县城' },
+                { time: '19:00-21:00', activity: '🏠 返回家乡（点击下方导航）' }],
+            places: [{ name: '弹子石老街', tag: '对老人友好', desc: '依山而建但电梯覆盖，几乎无爬坡。', meta: '🎫 免费 · 多处休息座椅',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/danzishi.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.588015,29.579709&name=长嘉汇弹子石老街',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/123456783',
+                        meituan: 'https://www.meituan.com/search/弹子石老街',
+                        douyin: 'https://www.douyin.com/search/弹子石老街', street: '' } },
+                { name: '盘龙立交', tag: '魔幻交通', desc: '世界最复杂立交之一，5层20条匝道。在黄桷湾公园观景台俯瞰。', meta: '🎫 免费 · 观景台：黄桷湾公园',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/panlong.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.589520,29.601400&name=盘龙立交',
+                    platformLinks: { dianping: '', meituan: '', douyin: 'https://www.douyin.com/search/盘龙立交',
+                        street: '' } },
+                { name: '龙门浩老街', tag: '江景午餐', desc: '江边餐厅众多，可观东水门大桥。', meta: '🎫 免费 · 咖啡厅可休憩',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/longmenhao.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=106.594746,29.555993&name=龙门浩老街',
+                    platformLinks: { dianping: 'https://www.dianping.com/shop/333222111',
+                        meituan: 'https://www.meituan.com/search/龙门浩老街',
+                        douyin: 'https://www.douyin.com/search/龙门浩老街', street: '' } },
+                { name: '🏠 家乡地址', tag: '终点', desc: '点击下方导航按钮，使用高德地图导航至家乡。', meta: '📍 丰都县',
+                    imageUrl: '',
+                    navLink: 'https://surl.amap.com/gFTg98O94Us',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } }]
+        }, {
+            day: 5,
+            title: 'Day 5',
+            subtitle: '丰都家乡 · 慢车赴武汉',
+            walk_badge: '🚶 步行难度 ★☆☆ (慢车出行)',
+            rest_note: '☕ 休息点：家乡、慢车车厢',
+            breakfast: '丰都家乡',
+            lunch: '慢车上（简餐）',
+            dinner: '慢车上（简餐）',
+            schedule: [{ time: '09:00-12:00', activity: '🏠 丰都家乡自由活动（略）' }, { time: '12:00-14:00',
+                    activity: '家乡午餐' }, { time: '14:00-15:00', activity: '前往丰都站' }, { time: '15:00-16:30',
+                    activity: '🚂 乘坐慢车（K字头）前往武汉' }, { time: '16:30-20:00', activity: '🚂 慢车途中' }],
+            places: [{ name: '🏠 丰都家乡', tag: '归乡', desc: '点击下方导航按钮，使用高德地图导航至家乡。', meta: '📍 丰都县',
+                    imageUrl: '',
+                    navLink: 'https://surl.amap.com/gFTg98O94Us',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '🚂 慢车（K字头）', tag: '归途', desc: '乘坐普速列车前往武汉，体验慢节奏的铁路旅行。', meta: '🕐 约15小时 · 建议提前购票',
+                    imageUrl: '', navLink: '', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } }]
+        }, {
+            day: 6,
+            title: 'Day 6',
+            subtitle: '丰都游览 · 码头登船',
+            walk_badge: '🚶 步行难度 ★★☆ (有电瓶车)',
+            rest_note: '☕ 休息点：丰都码头候船厅、游轮房间',
+            breakfast: '丰都县城',
+            lunch: '丰都县城（推荐「鬼城麻辣鸡」或「长江鱼」）',
+            dinner: '游轮上',
+            schedule: [{ time: '09:00-11:00', activity: '丰都县城自由活动' }, { time: '11:00-12:30',
+                    activity: '🥘 午餐：丰都县城' }, { time: '12:30-14:00', activity: '双桂山景区' }, { time: '14:00-16:00',
+                    activity: '前往丰都码头登船' }, { time: '16:00-18:00', activity: '游轮上休息' }, { time: '18:00-20:00',
+                    activity: '🚢 游轮起航' }],
+            places: [{ name: '双桂山', tag: '可选景点', desc: '与名山相望，有苏公祠、百鸟园等景点，有电瓶车。', meta: '🎫 门票约50元 · 电瓶车可选',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/shuanggui.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=107.716512,29.891234&name=双桂山国家森林公园',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+                { name: '丰都码头', tag: '终点', desc: '在此登船，游轮通常傍晚起航。', meta: '🕐 具体时间以船票为准',
+                    imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/fengdumatou.jpg',
+                    navLink: 'https://uri.amap.com/marker?position=107.731458,29.894389&name=丰都码头',
+                    platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } }]
+        }];
+
+        // ---- 状态 ----
         let currentTab = 1;
         let isAdminMode = false;
         let floatingCardPinned = false;
@@ -1000,19 +1183,72 @@
         const floatingCardDesc = document.getElementById('floating-card-desc');
         const floatingCardJump = document.getElementById('floating-card-jump');
 
-        async function loadItineraryData() {
-            try {
-                const response = await fetch('/api/itinerary');
-                if (!response.ok) throw new Error('API error');
-                const data = await response.json();
-                allDaysData = data;
-                return data;
-            } catch (error) {
-                console.error('加载行程数据失败:', error);
-                return null;
+        // ============================================================
+        // 工具函数
+        // ============================================================
+        function getImageName(name) {
+            const map = {
+                '解放碑': 'jiefangbei.jpg',
+                '八一好吃街': 'bayihaochijie.jpg',
+                '白象居': 'baixiangju.jpg',
+                '长江索道': 'changjiangsuodao.jpg',
+                '洪崖洞': 'hongyadong.jpg',
+                '李子坝': 'liziba.jpg',
+                '鹅岭二厂': 'erling.jpg',
+                '山城步道': 'shancheng.jpg',
+                '十八梯': 'shibati.jpg',
+                '重庆动物园': 'panda.jpg',
+                '红岩革命纪念馆': 'hongyan.jpg',
+                '观音桥': 'guanyinqiao.jpg',
+                '弹子石老街': 'danzishi.jpg',
+                '盘龙立交': 'panlong.jpg',
+                '龙门浩老街': 'longmenhao.jpg',
+                'WFC会仙楼': 'wfc.jpg',
+                '周公馆': 'zhougongguan.jpg',
+                '双桂山': 'shuanggui.jpg',
+                '丰都码头': 'fengdumatou.jpg'
+            };
+            for (const [key, value] of Object.entries(map)) {
+                if (name.includes(key) || key.includes(name)) return value;
             }
+            return null;
         }
 
+        function getEmoji(name) {
+            const map = {
+                '机场': '✈️',
+                '解放碑': '🏛️',
+                '好吃街': '🍜',
+                '白象居': '🏚️',
+                '索道': '🚠',
+                '洪崖洞': '🏮',
+                '李子坝': '🚇',
+                '鹅岭': '🎨',
+                '山城步道': '🚶',
+                '十八梯': '🪜',
+                '动物园': '🐼',
+                '博物馆': '🏺',
+                '观音桥': '🛍️',
+                '弹子石': '🏘️',
+                '盘龙': '🛣️',
+                '龙门浩': '🏡',
+                'WFC': '🌆',
+                '周公馆': '🏛️',
+                '红岩': '⭐',
+                '双桂山': '🌳',
+                '码头': '⚓',
+                '家乡': '🏠',
+                '慢车': '🚂'
+            };
+            for (const [key, value] of Object.entries(map)) {
+                if (name.includes(key)) return value;
+            }
+            return '📍';
+        }
+
+        // ============================================================
+        // 渲染路线总览
+        // ============================================================
         function renderOverview() {
             const tabBar = document.getElementById('tab-bar');
             tabBar.innerHTML = '';
@@ -1061,6 +1297,9 @@
             renderMap(day);
         }
 
+        // ============================================================
+        // 悬浮卡片
+        // ============================================================
         function getDayPlaceData(day, placeIndex) {
             const dayData = allDaysData.find(d => d.day === day);
             if (!dayData || !dayData.places || !dayData.places[placeIndex]) return null;
@@ -1196,42 +1435,15 @@
             }
         };
 
-        function getImageName(name) {
-            const map = {
-                '解放碑': 'jiefangbei.jpg',
-                '八一好吃街': 'bayihaochijie.jpg',
-                '白象居': 'baixiangju.jpg',
-                '长江索道': 'changjiangsuodao.jpg',
-                '洪崖洞': 'hongyadong.jpg',
-                '李子坝': 'liziba.jpg',
-                '鹅岭二厂': 'erling.jpg',
-                '山城步道': 'shancheng.jpg',
-                '南滨路': 'nanbinlu.jpg',
-                '重庆动物园': 'panda.jpg',
-                '三峡博物馆': 'sanxia.jpg',
-                '观音桥': 'guanyinqiao.jpg',
-                '弹子石老街': 'danzishi.jpg',
-                '龙门浩老街': 'longmenhao.jpg',
-                'WFC会仙楼': 'wfc.jpg',
-                '十八梯': 'shibati.jpg',
-                '盘龙立交': 'panlong.jpg',
-                '来福士云端乐园': 'laifushi.jpg',
-                '双桂山': 'shuanggui.jpg',
-                '丰都鬼城': 'fengduguicheng.jpg',
-                '丰都码头': 'fengdumatou.jpg'
-            };
-            for (const [key, value] of Object.entries(map)) {
-                if (name.includes(key) || key.includes(name)) return value;
-            }
-            return null;
-        }
-
-        function renderDays(data) {
+        // ============================================================
+        // 渲染每日行程
+        // ============================================================
+        function renderDays() {
             const container = document.getElementById('day-groups-container');
             if (!container) return;
 
             let html = '';
-            data.forEach((day, index) => {
+            allDaysData.forEach((day, index) => {
                 html += `<div class="day-group" id="day-group-${day.day}">`;
                 html += `<div class="day-header" onclick="toggleDay(this)">
                             <span class="title">${day.title} <small>${day.subtitle || ''}</small></span>
@@ -1355,39 +1567,8 @@
             setTimeout(() => { ripple.remove(); }, 900);
         }
 
-        function getEmoji(name) {
-            const map = {
-                '机场': '✈️',
-                '解放碑': '🏛️',
-                '好吃街': '🍜',
-                '白象居': '🏚️',
-                '索道': '🚠',
-                '洪崖洞': '🏮',
-                '李子坝': '🚇',
-                '鹅岭': '🎨',
-                '山城步道': '🚶',
-                '南滨路': '🌉',
-                '动物园': '🐼',
-                '博物馆': '🏺',
-                '观音桥': '🛍️',
-                '弹子石': '🏘️',
-                '龙门浩': '🏡',
-                'WFC': '🌆',
-                '十八梯': '🪜',
-                '盘龙': '🛣️',
-                '来福士': '🏗️',
-                '双桂山': '🌳',
-                '鬼城': '👻',
-                '码头': '⚓'
-            };
-            for (const [key, value] of Object.entries(map)) {
-                if (name.includes(key)) return value;
-            }
-            return '📍';
-        }
-
         // ============================================================
-        // 折叠切换 + Sticky 置顶
+        // 折叠切换 + Sticky
         // ============================================================
 
         window.toggleDay = function(header) {
@@ -1420,13 +1601,8 @@
             }
         };
 
-        // ============================================================
-        // Sticky 检测 - 使用 requestAnimationFrame 优化
-        // ============================================================
-
         function checkSticky() {
-            const headers = document.querySelectorAll('.day-group .day-header');
-            headers.forEach(header => {
+            document.querySelectorAll('.day-group .day-header').forEach(header => {
                 const rect = header.getBoundingClientRect();
                 if (rect.top <= 0) {
                     header.classList.add('sticky');
@@ -1437,23 +1613,15 @@
         }
 
         function setupStickyDays() {
-            // 滚动时检测
             window.addEventListener('scroll', function() {
                 requestAnimationFrame(checkSticky);
             }, { passive: true });
-
             window.addEventListener('resize', function() {
                 requestAnimationFrame(checkSticky);
             }, { passive: true });
-
-            // 延迟检测，确保渲染完成
             setTimeout(checkSticky, 100);
             setTimeout(checkSticky, 500);
         }
-
-        // ============================================================
-        // 一键展开/收缩
-        // ============================================================
 
         function setupExpandCollapse() {
             const expandBtn = document.getElementById('expand-all-btn');
@@ -1500,7 +1668,7 @@
         }
 
         // ============================================================
-        // 修改模式
+        // 修改模式 (修复)
         // ============================================================
 
         function setupAdminMode() {
@@ -1544,7 +1712,10 @@
 
             loginBtn.onclick = async function() {
                 const password = passwordInput.value.trim();
-                if (!password) { statusSpan.textContent = '请输入密码'; return; }
+                if (!password) {
+                    statusSpan.textContent = '请输入密码';
+                    return;
+                }
 
                 try {
                     const response = await fetch('/api/admin/verify', {
@@ -1609,8 +1780,231 @@
             });
         }
 
+        function openEditModal(day, placeIndex) {
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData || !dayData.places || !dayData.places[placeIndex]) return;
+
+            const place = dayData.places[placeIndex];
+            const modal = document.createElement('div');
+            modal.id = 'edit-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.4);
+                backdrop-filter: blur(4px);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            modal.innerHTML = `
+                <div style="background:#fff; border-radius:20px; padding:30px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:16px; color:#4a4a4a;">编辑景点: ${place.name}</h3>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">景点名称</label>
+                        <input id="edit-place-name" value="${place.name}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">标签</label>
+                        <input id="edit-place-tag" value="${place.tag || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">介绍</label>
+                        <textarea id="edit-place-desc" rows="3" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px; resize:vertical;">${place.desc || ''}</textarea>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">元信息</label>
+                        <input id="edit-place-meta" value="${place.meta || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:16px;">
+                        <button id="edit-place-save" style="padding:10px 28px; border-radius:30px; border:none; background:#4a6a7f; color:#fff; cursor:pointer; font-size:15px;">💾 保存</button>
+                        <button id="edit-place-close" style="padding:10px 28px; border-radius:30px; border:1px solid #ddd9d2; background:#f5f3f0; cursor:pointer; font-size:15px;">取消</button>
+                        <button id="edit-place-delete" style="padding:10px 28px; border-radius:30px; border:none; background:#a0524a; color:#fff; cursor:pointer; font-size:15px; margin-left:auto;">🗑️ 删除</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('#edit-place-close').onclick = () => modal.remove();
+            modal.querySelector('#edit-place-save').onclick = async function() {
+                const newName = document.getElementById('edit-place-name').value.trim();
+                const newTag = document.getElementById('edit-place-tag').value.trim();
+                const newDesc = document.getElementById('edit-place-desc').value.trim();
+                const newMeta = document.getElementById('edit-place-meta').value.trim();
+
+                if (!newName) { alert('景点名称不能为空'); return; }
+
+                const password = document.getElementById('admin-password-input').value.trim();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const places = [...dayData.places];
+                places[placeIndex] = {
+                    ...places[placeIndex],
+                    name: newName,
+                    tag: newTag,
+                    desc: newDesc,
+                    meta: newMeta
+                };
+
+                try {
+                    const response = await fetch('/api/itinerary/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            password,
+                            day: day,
+                            places: places
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ 保存成功！');
+                        modal.remove();
+                        location.reload();
+                    } else {
+                        alert('❌ 保存失败: ' + (result.error || '未知错误'));
+                    }
+                } catch (e) {
+                    alert('❌ 网络错误: ' + e.message);
+                }
+            };
+
+            modal.querySelector('#edit-place-delete').onclick = async function() {
+                if (!confirm(`确定要删除景点 "${place.name}" 吗？`)) return;
+                const password = document.getElementById('admin-password-input').value.trim();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const places = dayData.places.filter((_, i) => i !== placeIndex);
+                try {
+                    const response = await fetch('/api/itinerary/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            password,
+                            day: day,
+                            places: places
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ 已删除！');
+                        modal.remove();
+                        location.reload();
+                    } else {
+                        alert('❌ 删除失败: ' + (result.error || '未知错误'));
+                    }
+                } catch (e) {
+                    alert('❌ 网络错误: ' + e.message);
+                }
+            };
+        }
+
+        function openEditScheduleModal(day, index) {
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData || !dayData.schedule || !dayData.schedule[index]) return;
+
+            const item = dayData.schedule[index];
+            const modal = document.createElement('div');
+            modal.id = 'edit-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.4);
+                backdrop-filter: blur(4px);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            modal.innerHTML = `
+                <div style="background:#fff; border-radius:20px; padding:30px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:16px; color:#4a4a4a;">编辑时间项</h3>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">时间</label>
+                        <input id="edit-schedule-time" value="${item.time || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">活动描述</label>
+                        <input id="edit-schedule-activity" value="${item.activity || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:16px;">
+                        <button id="edit-schedule-save" style="padding:10px 28px; border-radius:30px; border:none; background:#4a6a7f; color:#fff; cursor:pointer; font-size:15px;">💾 保存</button>
+                        <button id="edit-schedule-close" style="padding:10px 28px; border-radius:30px; border:1px solid #ddd9d2; background:#f5f3f0; cursor:pointer; font-size:15px;">取消</button>
+                        <button id="edit-schedule-delete" style="padding:10px 28px; border-radius:30px; border:none; background:#a0524a; color:#fff; cursor:pointer; font-size:15px; margin-left:auto;">🗑️ 删除</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('#edit-schedule-close').onclick = () => modal.remove();
+            modal.querySelector('#edit-schedule-save').onclick = async function() {
+                const time = document.getElementById('edit-schedule-time').value.trim();
+                const activity = document.getElementById('edit-schedule-activity').value.trim();
+                if (!time || !activity) { alert('时间和活动不能为空'); return; }
+
+                const password = document.getElementById('admin-password-input').value.trim();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const schedule = [...dayData.schedule];
+                schedule[index] = { time, activity };
+
+                try {
+                    const response = await fetch('/api/itinerary/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            password,
+                            day: day,
+                            schedule: schedule
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ 保存成功！');
+                        modal.remove();
+                        location.reload();
+                    } else {
+                        alert('❌ 保存失败: ' + (result.error || '未知错误'));
+                    }
+                } catch (e) {
+                    alert('❌ 网络错误: ' + e.message);
+                }
+            };
+
+            modal.querySelector('#edit-schedule-delete').onclick = async function() {
+                if (!confirm('确定要删除此时间项吗？')) return;
+                const password = document.getElementById('admin-password-input').value.trim();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const schedule = dayData.schedule.filter((_, i) => i !== index);
+                try {
+                    const response = await fetch('/api/itinerary/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            password,
+                            day: day,
+                            schedule: schedule
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ 已删除！');
+                        modal.remove();
+                        location.reload();
+                    } else {
+                        alert('❌ 删除失败: ' + (result.error || '未知错误'));
+                    }
+                } catch (e) {
+                    alert('❌ 网络错误: ' + e.message);
+                }
+            };
+        }
+
         // ============================================================
-        // 滚动动画
+        // 其他功能
         // ============================================================
 
         function setupScrollAnimation() {
@@ -1644,32 +2038,25 @@
         }
 
         // ============================================================
-        // 页面加载
+        // 启动
         // ============================================================
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            const data = await loadItineraryData();
-            if (data && data.length > 0) {
-                allDaysData = data;
-                renderDays(data);
-                renderOverview();
-                setupStickyDays();
-                setupExpandCollapse();
-                setupAdminMode();
-                setupScrollAnimation();
-                setupBackToTop();
-                window.addEventListener('scroll', updateReadingProgress, { passive: true });
-                updateReadingProgress();
+        document.addEventListener('DOMContentLoaded', function() {
+            renderDays();
+            renderOverview();
+            setupStickyDays();
+            setupExpandCollapse();
+            setupAdminMode();
+            setupScrollAnimation();
+            setupBackToTop();
+            window.addEventListener('scroll', updateReadingProgress, { passive: true });
+            updateReadingProgress();
 
-                document.querySelectorAll('.day-group .day-body').forEach(body => {
-                    body.style.maxHeight = '0';
-                    body.style.opacity = '0';
-                    body.style.padding = '0 20px';
-                });
-            } else {
-                document.getElementById('day-groups-container').innerHTML =
-                    '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 无法加载行程数据</p>';
-            }
+            document.querySelectorAll('.day-group .day-body').forEach(body => {
+                body.style.maxHeight = '0';
+                body.style.opacity = '0';
+                body.style.padding = '0 20px';
+            });
         });
 
         window.toggleDay = window.toggleDay;
