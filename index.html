@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+  <title>重庆家庭游 · 5日攻略（优化版）</title>
+  <style>
+    /* ============================================================
+       1. 全局基础样式 & CSS 变量
+       ============================================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f0eeeb;
+      color: #333;
+      padding: 20px 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 顶部阅读进度条 */
+    #reading-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 4px;
+      background: linear-gradient(90deg, #a0524a, #4a6a7f);
+      z-index: 9999;
+      transition: width 0.15s ease-out;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* 主容器 */
+    .app-container {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      background-color: #fafaf8;
+      border-radius: 28px;
+      padding: 24px 20px 40px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      transition: box-shadow 0.3s ease;
+      position: relative;
+      margin-top: 8px;
+    }
+
+    /* ============================================================
+       2. 头部
+       ============================================================ */
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e8e4de;
+      margin-bottom: 8px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      color: #4a4a4a;
+      letter-spacing: 1.5px;
+    }
+    .header .sub {
+      font-size: 15px;
+      color: #8a8a8a;
+      margin-top: 4px;
+    }
+    .header .family-tag {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 20px;
+      background-color: #e8e4de;
+      border-radius: 30px;
+      font-size: 14px;
+      color: #5a5a5a;
+      letter-spacing: 0.3px;
+    }
+
+    /* ============================================================
+       3. 路线总览 (折叠面板) – 真实路线地图 (使用高德地图JS API)
+       ============================================================ */
+    .overview-group {
+      margin-top: 16px;
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      border: 1px solid #efedea;
+      transition: box-shadow 0.25s ease;
+    }
+    .overview-group:hover {
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    }
+
+    .overview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background-color: #fafaf8;
+      cursor: pointer;
+      user-select: none;
+      border-left: 5px solid #4a6a7f;
+      transition: background 0.2s ease, border-left-color 0.2s ease;
+    }
+    .overview-header:hover {
+      background-color: #f0f4f6;
+    }
+    .overview-header .title {
+      font-size: 19px;
+      font-weight: 600;
+      color: #4a4a4a;
+    }
+    .overview-header .title small {
+      font-weight: 400;
+      font-size: 14px;
+      color: #8a8a8a;
+      margin-left: 10px;
+    }
+    .overview-header .arrow {
+      font-size: 20px;
+      color: #4a6a7f;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: inline-block;
+      line-height: 1;
+    }
+    .overview-group.open .overview-header {
+      border-left-color: #a0524a;
+      background-color: #f5f2ef;
+    }
+    .overview-group.open .overview-header .arrow {
+      transform: rotate(180deg);
+    }
+
+    .overview-body {
+      display: none;
+      padding: 10px 20px 24px;
+      background: #ffffff;
+      animation: fadeSlideIn 0.35s ease forwards;
+    }
+    .overview-group.open .overview-body {
+      display: block;
+    }
+
+    /* 高德地图容器 */
+    #route-map-container {
+      width: 100%;
+      height: 400px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #e8e4de;
+      background: #f6f4f1;
+      margin: 6px 0 10px;
+    }
+    #route-map-container .map-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #8a8a8a;
+      font-size: 14px;
+      flex-direction: column;
+      gap: 8px;
+      background: #f6f4f1;
+    }
+    #route-map-container .map-placeholder span {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    .route-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      justify-content: center;
+      margin: 8px 0 4px;
+      font-size: 13px;
+      color: #5a5a5a;
+      border-top: 1px dashed #e0dbd3;
+      padding-top: 12px;
+    }
+    .route-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .route-legend .dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: 2px;
+    }
+    .route-hint {
+      text-align: center;
+      font-size: 13px;
+      color: #8a8a8a;
+      margin-top: 6px;
+      letter-spacing: 0.3px;
+    }
+    .route-hint span {
+      background: #e8e4de;
+      padding: 2px 12px;
+      border-radius: 30px;
+      display: inline-block;
+    }
+
+    /* ============================================================
+       4. 折叠面板 (Day Group)
+       ============================================================ */
+    .day-group {
+      margin-top: 22px;
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      border: 1px solid #efedea;
+      transition: box-shadow 0.25s ease, transform 0.2s ease;
+    }
+    .day-group:hover {
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px;
+      background-color: #fafaf8;
+      cursor: pointer;
+      user-select: none;
+      border-left: 5px solid #c0b0a8;
+      transition: background 0.2s ease, border-left-color 0.2s ease;
+    }
+    .day-header:hover {
+      background-color: #f3f0ec;
+    }
+    .day-header .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #4a4a4a;
+    }
+    .day-header .title small {
+      font-weight: 400;
+      font-size: 15px;
+      color: #8a8a8a;
+      margin-left: 10px;
+    }
+    .day-header .arrow {
+      font-size: 22px;
+      color: #a0524a;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: inline-block;
+      line-height: 1;
+    }
+    .day-group.open .day-header {
+      border-left-color: #a0524a;
+      background-color: #f8f5f2;
+    }
+    .day-group.open .day-header .arrow {
+      transform: rotate(180deg);
+    }
+
+    .day-body {
+      display: none;
+      padding: 6px 20px 24px;
+      background: #ffffff;
+      animation: fadeSlideIn 0.35s ease forwards;
+    }
+    .day-group.open .day-body {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      0% { opacity: 0; transform: translateY(-6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       5. 步行难度徽章 & 时间安排表
+       ============================================================ */
+    .walk-badge {
+      display: inline-block;
+      background: #e8f0f5;
+      color: #4a6a7f;
+      font-size: 14px;
+      padding: 4px 18px;
+      border-radius: 30px;
+      margin: 10px 0 6px;
+      border: 1px solid #d4e0e8;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* 时间安排表 */
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 10px 0 14px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e8e4de;
+    }
+    .schedule-table th {
+      background: #f0ede8;
+      color: #4a4a4a;
+      font-weight: 600;
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 2px solid #e0dbd3;
+    }
+    .schedule-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #efedea;
+      vertical-align: top;
+    }
+    .schedule-table tr:last-child td {
+      border-bottom: none;
+    }
+    .schedule-table .time-col {
+      white-space: nowrap;
+      color: #4a6a7f;
+      font-weight: 500;
+      width: 70px;
+    }
+    .schedule-table .lunch-col {
+      background: #f9f6f2;
+      font-weight: 500;
+      color: #a0524a;
+    }
+
+    /* ============================================================
+       6. 地点卡片 (Place Card) – 含滚动动画
+       ============================================================ */
+    .place-card {
+      background: #f9f8f6;
+      border-radius: 16px;
+      padding: 16px 18px 18px;
+      margin-top: 16px;
+      border: 1px solid #efedea;
+      transition: box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
+      opacity: 0;
+      transform: translateY(30px);
+      scroll-margin-top: 20px;
+    }
+    .place-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .place-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      background: #fcfbf9;
+    }
+
+    .place-card .place-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #3a3a3a;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-bottom: 4px;
+    }
+    .place-card .place-name .tag {
+      font-size: 12px;
+      background: #e8e4de;
+      color: #6a6a6a;
+      padding: 0 12px;
+      border-radius: 20px;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+    }
+    .place-card .place-desc {
+      font-size: 15px;
+      color: #4a4a4a;
+      margin: 8px 0 10px;
+    }
+
+    .place-card .meta {
+      font-size: 14px;
+      color: #6a6a6a;
+      background: #f0eee9;
+      padding: 6px 14px;
+      border-radius: 30px;
+      margin-bottom: 12px;
+      display: inline-block;
+      border: 1px solid #e6e2db;
+    }
+
+    /* ----- 图片容器 (修复大屏切割问题) ----- */
+    .place-image {
+      width: 100%;
+      height: 170px;
+      background: #e8e4de;
+      border-radius: 14px;
+      margin: 6px 0 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e0dbd3;
+      transition: border-color 0.2s ease;
+      position: relative;
+    }
+    .place-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;  /* 确保图片完整显示，不裁剪 */
+      display: block;
+      transition: transform 0.3s ease;
+      background: #f6f4f1;  /* 留白背景色 */
+    }
+    .place-image img:hover {
+      transform: scale(1.02);
+    }
+    /* 占位与降级样式 */
+    .place-image .placeholder-text,
+    .place-image .img-error-placeholder {
+      color: #9a9a9a;
+      font-size: 14px;
+      padding: 12px;
+      text-align: center;
+      background: #e8e4de;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .place-image .placeholder-text span,
+    .place-image .img-error-placeholder span {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+    .place-image .img-error-placeholder {
+      background: #f0ece6;
+      color: #b0a8a0;
+    }
+    .place-image .img-error-placeholder::before {
+      content: "🖼️";
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+
+    /* ============================================================
+       7. 按钮组 (多平台跳转)
+       ============================================================ */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 12px;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 22px;
+      border-radius: 40px;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      background: #edebe7;
+      color: #4a4a4a;
+      border: 1px solid #ddd9d2;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      min-height: 44px;
+      line-height: 1.2;
+      letter-spacing: 0.4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      position: relative;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+    }
+    .btn:active {
+      transform: translateY(0px);
+      box-shadow: none;
+    }
+
+    .btn-nav {
+      background: #4a6a7f;
+      border-color: #4a6a7f;
+      color: #fff;
+    }
+    .btn-nav:hover {
+      background: #3a5a6f;
+      border-color: #3a5a6f;
+    }
+
+    .btn-dp {
+      background: #f0ede8;
+      border-color: #ccc6bd;
+      color: #4a4a4a;
+    }
+    .btn-dp:hover {
+      background: #e5e0d8;
+      border-color: #b8b0a6;
+    }
+    .btn-dp .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      width: 180px;
+      background: #4a4a4a;
+      color: #fff;
+      text-align: center;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 400;
+      position: absolute;
+      z-index: 10;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .btn-dp .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #4a4a4a;
+    }
+    .btn-dp:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* 美团 / 抖音 / 扫街榜 按钮 */
+    .btn-mt {
+      background: #f0f0e8;
+      border-color: #c8c8b8;
+      color: #4a4a4a;
+    }
+    .btn-mt:hover {
+      background: #e5e5d8;
+    }
+    .btn-dy {
+      background: #f0e8f0;
+      border-color: #c8b8d0;
+      color: #4a3a5a;
+    }
+    .btn-dy:hover {
+      background: #e5dce8;
+    }
+    .btn-street {
+      background: #e8f0ec;
+      border-color: #b8c8c0;
+      color: #3a5a4a;
+    }
+    .btn-street:hover {
+      background: #dce8e0;
+    }
+
+    .btn-fav {
+      background: #f5f0ea;
+      border-color: #ddd6cd;
+      color: #7a6a5a;
+      min-width: 44px;
+      padding: 8px 16px;
+    }
+    .btn-fav:hover {
+      background: #efe8e0;
+    }
+    .btn-fav.is-fav {
+      background: #e8ddd0;
+      border-color: #c0b0a0;
+      color: #a0524a;
+    }
+    .btn-fav.is-fav::before {
+      content: "❤️ ";
+    }
+    .btn-fav:not(.is-fav)::before {
+      content: "🤍 ";
+    }
+
+    .btn-ticket {
+      background: #a0524a;
+      border-color: #a0524a;
+      color: #fff;
+    }
+    .btn-ticket:hover {
+      background: #8a423a;
+      border-color: #8a423a;
+    }
+
+    .btn-placeholder {
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+      filter: grayscale(0.15);
+    }
+    .btn-placeholder:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ============================================================
+       8. 第五天 游轮信息块
+       ============================================================ */
+    .ship-info {
+      background: #f0f4f6;
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-top: 18px;
+      border-left: 5px solid #4a6a7f;
+      transition: background 0.2s ease;
+    }
+    .ship-info .label {
+      font-weight: 600;
+      color: #4a6a7f;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
+    .ship-info p {
+      font-size: 15px;
+      color: #4a4a4a;
+      margin-top: 8px;
+    }
+
+    /* ============================================================
+       9. 休息点 & 底部
+       ============================================================ */
+    .rest-note {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #7a7a7a;
+      background: #f0ede8;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border-left: 3px solid #c0b0a8;
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 13px;
+      color: #b0aaa2;
+      border-top: 1px solid #e8e4de;
+      padding-top: 22px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ============================================================
+       10. 返回顶部按钮
+       ============================================================ */
+    #back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 24px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #fafaf8;
+      border: 1px solid #ddd9d2;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      color: #4a6a7f;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px);
+      z-index: 999;
+      user-select: none;
+      padding: 0;
+      line-height: 1;
+    }
+    #back-to-top.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    #back-to-top:hover {
+      background: #f5f3f0;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+    }
+    #back-to-top:active {
+      transform: translateY(0px);
+    }
+
+    /* ============================================================
+       11. 响应式优化
+       ============================================================ */
+    @media (min-width: 768px) {
+      body {
+        padding: 30px 40px;
+        background: #eae8e4;
+      }
+      .app-container {
+        padding: 36px 40px 48px;
+        border-radius: 36px;
+      }
+      .place-card {
+        padding: 20px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .place-card .place-name {
+        width: 100%;
+        font-size: 20px;
+      }
+      .place-card .place-desc {
+        width: 100%;
+        font-size: 16px;
+      }
+      .place-card .meta {
+        font-size: 14px;
+      }
+      .place-card .btn-group {
+        margin-top: 6px;
+        width: 100%;
+      }
+      .place-image {
+        height: 220px;
+      }
+      .day-header .title {
+        font-size: 22px;
+      }
+      .day-header .title small {
+        font-size: 16px;
+      }
+      #route-map-container {
+        height: 500px;
+      }
+      #back-to-top {
+        right: 40px;
+        bottom: 40px;
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+      }
+      .schedule-table {
+        font-size: 15px;
+      }
+      .schedule-table th,
+      .schedule-table td {
+        padding: 10px 16px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .app-container {
+        padding: 40px 50px 50px;
+      }
+      .place-image {
+        height: 260px;
+      }
+      .btn {
+        padding: 10px 28px;
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .app-container {
+        padding: 16px 12px 30px;
+        border-radius: 20px;
+      }
+      .day-header {
+        padding: 14px 14px;
+      }
+      .day-header .title {
+        font-size: 17px;
+      }
+      .day-header .title small {
+        font-size: 13px;
+        margin-left: 6px;
+      }
+      .day-body {
+        padding: 4px 14px 18px;
+      }
+      .place-card {
+        padding: 14px 14px 16px;
+      }
+      .place-card .place-name {
+        font-size: 16px;
+      }
+      .btn {
+        font-size: 13px;
+        padding: 6px 14px;
+        min-height: 38px;
+      }
+      .place-image {
+        height: 130px;
+      }
+      .header h1 {
+        font-size: 22px;
+      }
+      #route-map-container {
+        height: 280px;
+      }
+      #back-to-top {
+        right: 16px;
+        bottom: 20px;
+        width: 46px;
+        height: 46px;
+        font-size: 20px;
+      }
+      .schedule-table {
+        font-size: 12px;
+      }
+      .schedule-table th,
+      .schedule-table td {
+        padding: 6px 8px;
+      }
+      .schedule-table .time-col {
+        width: 50px;
+      }
+      .btn-dp .tooltip {
+        width: 140px;
+        font-size: 12px;
+        white-space: normal;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部阅读进度条 -->
+  <div id="reading-progress-bar"></div>
+
+  <!-- 返回顶部按钮 -->
+  <button id="back-to-top" aria-label="返回顶部">↑</button>
+
+  <div class="app-container" id="app">
+    <header class="header">
+      <h1>🏠 重庆家庭游</h1>
+      <div class="sub">5天4晚 · 魔幻山城 · 老少皆宜</div>
+      <div class="family-tag">👨‍👩‍👧‍👦 含老人 · 儿童 · 中年人 · 青年</div>
+    </header>
+
+    <!-- ===== 路线总览 (折叠面板) – 高德地图真实路线 ===== -->
+    <div class="overview-group open" id="overview-group">
+      <div class="overview-header" onclick="window.toggleOverview(this)">
+        <span class="title">🗺️ 路线总览 <small>真实行进路线</small></span>
+        <span class="arrow">▾</span>
+      </div>
+      <div class="overview-body">
+        <div id="route-map-container">
+          <div class="map-placeholder">
+            <span>🗺️ 高德地图路线加载中...</span>
+            <span>请确保网络连接正常</span>
+          </div>
+        </div>
+        <div class="route-legend">
+          <span><span class="dot" style="background:#4a6a7f;"></span> Day 1</span>
+          <span><span class="dot" style="background:#6a7f8a;"></span> Day 2</span>
+          <span><span class="dot" style="background:#8a7a6a;"></span> Day 3</span>
+          <span><span class="dot" style="background:#9a8a7a;"></span> Day 4</span>
+          <span><span class="dot" style="background:#a0524a;"></span> Day 5</span>
+        </div>
+        <div class="route-hint"><span>📍 从江北机场 → 朝天门码头 · 全程顺向安排</span></div>
+      </div>
+    </div>
+
+    <!-- ===== 每日行程 ===== -->
+    <div id="day-groups-container"></div>
+
+    <div class="footer">
+      📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快
+    </div>
+  </div>
+
+  <!-- ============================================================
+       JavaScript – 数据配置区 + 渲染引擎 + 高德地图
+       ============================================================ -->
+  <script>
+    (function() {
+      'use strict';
+
+      // ============================================================
+      // 1. 数据配置区 (集中管理所有景点信息)
+      //    行程从江北机场开始，到朝天门码头结束，顺向安排
+      //    已补充顶楼广场：WFC会仙楼观景台 (Day 1 下午)
+      // ============================================================
+      const CONFIG = {
+        // 高德地图JS API Key (请替换为您自己的Key)
+        amapKey: 'YOUR_AMAP_KEY_HERE',
+        defaultImagePlaceholder: {
+          text: '📷 请添加图片',
+          sub: '支持外部URL (如GitHub)'
+        },
+        days: [
+          // ---------- Day 1: 机场 → 渝中经典 ----------
+          {
+            id: 'day1',
+            title: 'Day 1',
+            subtitle: '抵达 · 渝中经典',
+            walkBadge: '🚶 步行难度 ★★☆ (索道代步)',
+            restNote: '☕ 休息点：解放碑周边商场咖啡馆、WFC观景台休息区',
+            // 时间安排 + 午饭推荐
+            schedule: [
+              { time: '10:00-11:30', activity: '江北机场 → 酒店 (轨道交通10号线或打车)' },
+              { time: '11:30-13:00', activity: '🥘 午饭：八一好吃街 (酸辣粉、山城小汤圆)' },
+              { time: '13:00-14:30', activity: '解放碑步行街 (逛街打卡)' },
+              { time: '14:30-16:00', activity: '白象居 (魔幻居民楼，拍索道)' },
+              { time: '16:00-17:30', activity: '长江索道 (单程，建议小程序购票)' },
+              { time: '17:30-19:00', activity: '🌆 WFC会仙楼观景台 (顶楼观景，俯瞰两江)' },
+              { time: '19:00-21:00', activity: '洪崖洞夜景 (千厮门大桥或江对岸拍摄)' }
+            ],
+            lunch: '八一好吃街 (酸辣粉、山城小汤圆、烤猪蹄)',
+            places: [
+              { name: '江北机场', tag: '起点', desc: '抵达重庆，乘坐轨道交通10号线或打车前往市区酒店。', meta: '🚇 轨道交通10号线 · 约1小时', imageUrl: '', navLink: 'https://uri.amap.com/marker?position=106.656124,29.710728&name=重庆江北国际机场T3A航站楼', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+              { name: '解放碑', tag: '地标', desc: '重庆精神地标，商业中心。适合打卡拍照，周边商场可休息。', meta: '🎫 免费 · 全天开放', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/jiefangbei.jpg', navLink: 'https://uri.amap.com/marker?position=106.575329,29.557253&name=解放碑步行街', platformLinks: { dianping: 'https://www.dianping.com/shop/123456789', meituan: 'https://www.meituan.com/search/解放碑', douyin: 'https://www.douyin.com/search/解放碑', street: 'https://uri.amap.com/street?position=106.575329,29.557253' } },
+              { name: '八一好吃街', tag: '美食', desc: '酸辣粉、山城小汤圆、烤猪蹄，小吃集中，午餐首选。', meta: '🌶️ 辣度可选 · 有冰粉解辣', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/bayihaochijie.jpg', navLink: 'https://uri.amap.com/marker?position=106.576343,29.555061&name=八一广场', platformLinks: { dianping: 'https://www.dianping.com/shop/987654321', meituan: 'https://www.meituan.com/search/八一好吃街', douyin: 'https://www.douyin.com/search/八一好吃街', street: '' } },
+              { name: '白象居', tag: '魔幻居民楼', desc: '无电梯老居民楼，可拍长江索道穿楼。免费参观，注意安静。', meta: '🎫 免费 · 平路步行10分钟', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/baixiangju.jpg', navLink: 'https://uri.amap.com/marker?position=106.585193,29.556103&name=白象居', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+              { name: '长江索道', tag: '空中巴士', desc: '横跨长江的索道，单程30元。建议提前在「重庆索道公司」小程序购票。', meta: '🕐 08:00-22:00 · 单程30元', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/changjiangsuodao.jpg', navLink: 'https://uri.amap.com/marker?position=106.582889,29.557845&name=重庆长江索道北站', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+              { name: 'WFC会仙楼观景台', tag: '顶楼观景', desc: '位于WFC环球金融中心75层，海拔590米，360度俯瞰重庆两江四岸，视野极佳。', meta: '🎫 门票约100元 · 开放至22:00', imageUrl: '', navLink: 'https://uri.amap.com/marker?position=106.574325,29.558132&name=WFC会仙楼观景台', platformLinks: { dianping: 'https://www.dianping.com/shop/123456780', meituan: 'https://www.meituan.com/search/WFC观景台', douyin: 'https://www.douyin.com/search/WFC观景台', street: '' } },
+              { name: '洪崖洞', tag: '夜景', desc: '吊脚楼夜景，亮灯约19:00-23:00。推荐去千厮门大桥或江对岸拍摄。', meta: '🎫 免费 · 观景点在桥面或江滩', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/hongyadong.jpg', navLink: 'https://uri.amap.com/marker?position=106.579027,29.562204&name=洪崖洞民俗风貌区', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } }
+            ]
+          },
+          // ---------- Day 2: 魔幻交通 + 南滨路 ----------
+          {
+            id: 'day2',
+            title: 'Day 2',
+            subtitle: '魔幻交通 · 江景漫步',
+            walkBadge: '🚶 步行难度 ★★★ (有上坡，可打车)' ,
+            restNote: '☕ 休息点：二厂文创园咖啡馆、南滨路江景餐厅',
+            schedule: [
+              { time: '09:00-10:30', activity: '李子坝轻轨穿楼 (观景台 + 坐2号线体验)' },
+              { time: '10:30-12:00', activity: '鹅岭二厂文创园 (打车或步行上坡，约15分钟)' },
+              { time: '12:00-13:30', activity: '🥘 午饭：二厂周边或观音桥商圈 (可选江湖菜)' },
+              { time: '13:30-15:00', activity: '山城步道 (山城巷入口，走精华下坡段)' },
+              { time: '15:30-18:00', activity: '南滨路 (南滨公园段，全平路，远眺渝中)' },
+              { time: '18:00-20:00', activity: '南滨路晚餐 (江景餐厅，看夜景)' }
+            ],
+            lunch: '鹅岭二厂周边 (推荐「二厂食堂」或「李子坝梁山鸡」)',
+            places: [
+              { name: '李子坝轻轨穿楼', tag: '奇观', desc: '轻轨2号线穿居民楼而过。观景台免费，可坐2号线亲身体验。', meta: '🎫 免费', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/liziba.jpg', navLink: 'https://uri.amap.com/marker?position=106.537916,29.553629&name=李子坝单轨穿楼观景平台', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+              { name: '鹅岭二厂文创园', tag: '文艺', desc: '旧印刷厂改造，可俯瞰渝中半岛。从李子坝步行上坡约15分钟，老人建议打车。', meta: '🎫 免费 · 有咖啡馆', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/erling.jpg', navLink: 'https://uri.amap.com/marker?position=106.540183,29.551101&name=TESTBED2贰厂文创公园', platformLinks: { dianping: 'https://www.dianping.com/shop/123456781', meituan: 'https://www.meituan.com/search/鹅岭二厂', douyin: 'https://www.douyin.com/search/鹅岭二厂', street: '' } },
+              { name: '山城步道', tag: '老重庆', desc: '从「山城巷」入口走平缓下坡段，感受老重庆市井气息，约1小时。', meta: '🎫 免费 · 精华段平缓', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/shancheng.jpg', navLink: 'https://uri.amap.com/marker?position=106.565949,29.551978&name=山城巷', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+              { name: '南滨路', tag: '江景', desc: '南滨公园段全平路，远眺渝中半岛夜景，比洪崖洞清静。', meta: '🎫 免费 · 全平路', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/nanbinlu.jpg', navLink: 'https://uri.amap.com/marker?position=106.585853,29.544303&name=重庆南滨公园', platformLinks: { dianping: 'https://www.dianping.com/shop/123456782', meituan: 'https://www.meituan.com/search/南滨路', douyin: 'https://www.douyin.com/search/南滨路', street: '' } }
+            ]
+          },
+          // ---------- Day 3: 家庭日 · 动物园 + 观音桥 ----------
+          {
+            id: 'day3',
+            title: 'Day 3',
+            subtitle: '家庭日 · 乐园与商圈',
+            walkBadge: '🚶 步行难度 ★★☆ (有观光车代步)',
+            restNote: '☕ 休息点：动物园凉亭、观音桥商圈咖啡馆',
+            schedule: [
+              { time: '09:00-12:00', activity: '重庆动物园 (看熊猫，园内有观光车)' },
+              { time: '12:00-13:30', activity: '🥘 午饭：动物园周边或杨家坪商圈 (推荐「万象城」餐饮区)' },
+              { time: '13:30-15:00', activity: '三峡博物馆 (只逛「壮丽三峡」展厅，约1.5小时，周一闭馆)' },
+              { time: '15:30-18:00', activity: '观音桥步行街 (商圈自由活动，可选购特产)' },
+              { time: '18:00-20:00', activity: '观音桥晚餐 (有鸳鸯锅的火锅店)' }
+            ],
+            lunch: '杨家坪万象城 (众多餐饮选择，适合家庭)',
+            places: [
+              { name: '重庆动物园', tag: '熊猫', desc: '看熊猫的好去处。门票25元，65岁以上老人免费，1.2米以下儿童免费。', meta: '🕐 08:00-18:00', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/panda.jpg', navLink: 'https://uri.amap.com/marker?position=106.505799,29.504023&name=重庆动物园', platformLinks: { dianping: 'https://www.dianping.com/shop/555666777', meituan: 'https://www.meituan.com/search/重庆动物园', douyin: 'https://www.douyin.com/search/重庆动物园', street: '' } },
+              { name: '三峡博物馆', tag: '人文', desc: '免费开放，周二至周日，只逛「壮丽三峡」展厅，约1.5小时。', meta: '🎫 免费 · 需公众号登记', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/sanxia.jpg', navLink: 'https://uri.amap.com/marker?position=106.550513,29.562014&name=重庆中国三峡博物馆', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } },
+              { name: '观音桥步行街', tag: '商圈', desc: '晚上自由活动，可找有鸳鸯锅的火锅店用餐，照顾全家口味。', meta: '🌶️ 火锅可选鸳鸯锅', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/guanyinqiao.jpg', navLink: 'https://uri.amap.com/marker?position=106.532427,29.574602&name=观音桥步行街', platformLinks: { dianping: 'https://www.dianping.com/shop/444555666', meituan: 'https://www.meituan.com/search/观音桥', douyin: 'https://www.douyin.com/search/观音桥', street: '' } }
+            ]
+          },
+          // ---------- Day 4: 南岸风光 · 轻松收尾 ----------
+          {
+            id: 'day4',
+            title: 'Day 4',
+            subtitle: '南岸风光 · 轻松收尾',
+            walkBadge: '🚶 步行难度 ★☆☆ (电梯覆盖，全平路)',
+            restNote: '☕ 休息点：弹子石老街座椅、龙门浩老街咖啡厅',
+            schedule: [
+              { time: '09:30-12:00', activity: '弹子石老街 (电梯覆盖，几乎无爬坡)' },
+              { time: '12:00-13:30', activity: '🥘 午饭：龙门浩老街江景餐厅 (观东水门大桥)' },
+              { time: '13:30-16:00', activity: '龙门浩老街 (咖啡厅小憩，拍照)' },
+              { time: '16:00-18:00', activity: '南滨路自由散步或回酒店休息' },
+              { time: '18:00-20:00', activity: '南滨路晚餐，可继续江景餐厅' }
+            ],
+            lunch: '龙门浩老街江景餐厅 (推荐「龙门九号」或「江畔寻花」)',
+            places: [
+              { name: '弹子石老街', tag: '对老人友好', desc: '依山而建但电梯及扶梯覆盖，几乎无爬坡。可逛王家大院。', meta: '🎫 免费 · 多处休息座椅', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/danzishi.jpg', navLink: 'https://uri.amap.com/marker?position=106.588015,29.579709&name=长嘉汇弹子石老街', platformLinks: { dianping: 'https://www.dianping.com/shop/123456783', meituan: 'https://www.meituan.com/search/弹子石老街', douyin: 'https://www.douyin.com/search/弹子石老街', street: '' } },
+              { name: '龙门浩老街', tag: '江景午餐', desc: '江边餐厅众多，可观东水门大桥。适合悠闲午餐。', meta: '🎫 免费 · 咖啡厅可休憩', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/longmenhao.jpg', navLink: 'https://uri.amap.com/marker?position=106.594746,29.555993&name=龙门浩老街', platformLinks: { dianping: 'https://www.dianping.com/shop/333222111', meituan: 'https://www.meituan.com/search/龙门浩老街', douyin: 'https://www.douyin.com/search/龙门浩老街', street: '' } }
+            ]
+          },
+          // ---------- Day 5: 登船 · 归乡 ----------
+          {
+            id: 'day5',
+            title: 'Day 5',
+            subtitle: '登船 · 归乡',
+            walkBadge: '🚶 步行难度 ★☆☆ (码头有工作人员协助)',
+            restNote: '☕ 休息点：码头候船厅、游轮房间',
+            schedule: [
+              { time: '09:00-11:00', activity: '酒店退房，购买特产 (推荐「陈麻花」)' },
+              { time: '11:00-12:00', activity: '🥘 午饭：朝天门附近商圈 (或船上简餐)' },
+              { time: '12:00-14:00', activity: '自由活动，根据船票时间前往码头' },
+              { time: '14:00-16:00', activity: '朝天门码头登船，办理入住手续' },
+              { time: '18:00-20:00', activity: '游轮起航，夜宿船上，次日抵达丰都' }
+            ],
+            lunch: '朝天门附近 (推荐「来福士广场」餐饮区)',
+            places: [
+              { name: '朝天门码头', tag: '终点', desc: '凭有效证件办理登船手续。游轮通常傍晚起航，次日抵达丰都。', meta: '🕐 具体时间以船票为准', imageUrl: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/chaotianmen.jpg', navLink: 'https://uri.amap.com/marker?position=106.587866,29.566880&name=重庆朝天门广场', platformLinks: { dianping: '', meituan: '', douyin: '', street: '' } }
+            ],
+            shipInfo: {
+              label: '🚢 游轮购票参考',
+              text: '航线：重庆朝天门 → 丰都（三峡游轮经停）<br>参考票价：普通游轮约1000-2000元/人，豪华游轮约2000-7000元/人<br>购票渠道：三峡游轮网上售票大厅、携程、美亚等<br>提前1-2周预订为佳',
+              ticketLink: 'https://www.example.com/cruise-ticket'
+            }
+          }
+        ]
+      };
+
+      // ============================================================
+      // 2. 辅助函数：图片降级处理
+      // ============================================================
+      function handleImageError(imgElement) {
+        if (!imgElement) return;
+        const container = imgElement.closest('.place-image');
+        if (!container) return;
+        const altText = imgElement.alt || '景点图片';
+        const errorHtml = `<div class="img-error-placeholder">
+                            <span>图片加载失败</span>
+                            <span>${altText}</span>
+                          </div>`;
+        container.innerHTML = errorHtml;
+      }
+      window.handleImageError = handleImageError;
+
+      // ============================================================
+      // 3. 生成图片 HTML（带降级处理，使用 object-fit: contain）
+      // ============================================================
+      function renderImage(imageUrl, altText) {
+        if (imageUrl && imageUrl.trim() !== '') {
+          // 使用 onerror 处理加载失败，并确保 object-fit 已通过 CSS 控制
+          return `<img src="${imageUrl.trim()}" alt="${altText || '景点图片'}" loading="lazy" onerror="this.onerror=null; window.handleImageError(this);" />`;
+        } else {
+          return `<div class="placeholder-text">
+                    📷 请添加图片
+                    <span>支持外部URL (如GitHub)</span>
+                  </div>`;
+        }
+      }
+
+      // ============================================================
+      // 4. 收藏功能 (localStorage)
+      // ============================================================
+      const FAV_STORAGE_KEY = 'chongqing_trip_favorites';
+
+      function getFavorites() {
+        try {
+          const data = localStorage.getItem(FAV_STORAGE_KEY);
+          return data ? JSON.parse(data) : [];
+        } catch { return []; }
+      }
+
+      function saveFavorites(list) {
+        localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(list));
+      }
+
+      function toggleFavorite(placeId) {
+        if (!placeId) return;
+        let favs = getFavorites();
+        const idx = favs.indexOf(placeId);
+        if (idx > -1) {
+          favs.splice(idx, 1);
+        } else {
+          favs.push(placeId);
+        }
+        saveFavorites(favs);
+        updateFavoriteButtons();
+        return favs;
+      }
+
+      function isFavorite(placeId) {
+        return getFavorites().includes(placeId);
+      }
+
+      function updateFavoriteButtons() {
+        const favs = getFavorites();
+        document.querySelectorAll('.btn-fav').forEach(btn => {
+          const id = btn.dataset.placeId;
+          if (id) {
+            if (favs.includes(id)) {
+              btn.classList.add('is-fav');
+            } else {
+              btn.classList.remove('is-fav');
+            }
+          }
+        });
+      }
+
+      function generatePlaceId(dayId, placeName) {
+        return `${dayId}_${placeName.replace(/\s+/g, '_')}`;
+      }
+
+      // ============================================================
+      // 5. 滚动动画
+      // ============================================================
+      function setupScrollAnimation() {
+        const cards = document.querySelectorAll('.place-card');
+        if (cards.length === 0) return;
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        }, {
+          threshold: 0.15,
+          rootMargin: '0px 0px -20px 0px'
+        });
+        cards.forEach(card => {
+          observer.observe(card);
+        });
+      }
+
+      // ============================================================
+      // 6. 阅读进度条 & 返回顶部
+      // ============================================================
+      function updateReadingProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        const bar = document.getElementById('reading-progress-bar');
+        if (bar) {
+          bar.style.width = Math.min(progress, 100) + '%';
+        }
+      }
+
+      function setupBackToTop() {
+        const btn = document.getElementById('back-to-top');
+        if (!btn) return;
+        const toggleVisibility = () => {
+          if (window.scrollY > 500) {
+            btn.classList.add('show');
+          } else {
+            btn.classList.remove('show');
+          }
+        };
+        btn.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        window.addEventListener('scroll', toggleVisibility, { passive: true });
+        toggleVisibility();
+      }
+
+      // ============================================================
+      // 7. 渲染时间安排表 + 午饭推荐
+      // ============================================================
+      function renderSchedule(day) {
+        if (!day.schedule || day.schedule.length === 0) return '';
+        let html = `<table class="schedule-table">
+                      <thead><tr><th>时间</th><th>安排</th></tr></thead>
+                      <tbody>`;
+        day.schedule.forEach(item => {
+          const isLunch = item.activity.includes('🥘') || item.activity.includes('午饭');
+          const rowClass = isLunch ? 'lunch-col' : '';
+          html += `<tr>
+                      <td class="time-col">${item.time}</td>
+                      <td class="${rowClass}">${item.activity}</td>
+                   </tr>`;
+        });
+        html += `</tbody></table>`;
+        if (day.lunch) {
+          html += `<div style="font-size:14px; color:#a0524a; background:#f9f6f2; padding:8px 14px; border-radius:30px; display:inline-block; margin-bottom:6px;">
+                    🍜 午饭推荐：${day.lunch}
+                  </div>`;
+        }
+        return html;
+      }
+
+      // ============================================================
+      // 8. 渲染路线总览 (高德地图)
+      // ============================================================
+      function renderOverviewMap() {
+        const container = document.getElementById('route-map-container');
+        if (!container) return;
+
+        // 如果已加载高德地图且存在 map 实例，则不重复加载
+        if (window._amapLoaded) return;
+
+        // 检查 Key 是否配置
+        if (!CONFIG.amapKey || CONFIG.amapKey === 'YOUR_AMAP_KEY_HERE') {
+          container.innerHTML = `<div class="map-placeholder">
+                                  <span>🗺️ 请配置高德地图 API Key</span>
+                                  <span>在 CONFIG.amapKey 中填入您的 Key</span>
+                                </div>`;
+          return;
+        }
+
+        // 收集所有景点的经纬度和名称 (按顺序)
+        const waypoints = [];
+        CONFIG.days.forEach(day => {
+          if (day.places) {
+            day.places.forEach(place => {
+              // 从 navLink 中提取经纬度 (格式: position=经度,纬度)
+              const match = place.navLink && place.navLink.match(/position=([^&]+)/);
+              if (match) {
+                const coords = match[1].split(',');
+                if (coords.length === 2) {
+                  waypoints.push({
+                    lng: parseFloat(coords[0]),
+                    lat: parseFloat(coords[1]),
+                    name: place.name,
+                    day: day.id.replace('day', '')
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        if (waypoints.length < 2) {
+          container.innerHTML = `<div class="map-placeholder">
+                                  <span>🗺️ 路线数据不足</span>
+                                  <span>请确保景点包含正确的经纬度</span>
+                                </div>`;
+          return;
+        }
+
+        // 动态加载高德地图 JS API
+        const script = document.createElement('script');
+        script.src = `https://webapi.amap.com/maps?v=2.0&key=${CONFIG.amapKey}&callback=window.initOverviewMap`;
+        script.async = true;
+        document.head.appendChild(script);
+
+        // 暴露初始化函数到全局
+        window.initOverviewMap = function() {
+          const map = new AMap.Map('route-map-container', {
+            zoom: 13,
+            center: [waypoints[0].lng, waypoints[0].lat],
+            mapStyle: 'amap://styles/whitesmoke',
+            viewMode: '2D',
+            pitch: 0
+          });
+
+          // 添加标记点和连线
+          const markers = [];
+          const lineArr = [];
+
+          waypoints.forEach((wp, index) => {
+            const pos = [wp.lng, wp.lat];
+            lineArr.push(pos);
+
+            // 自定义标记
+            const marker = new AMap.Marker({
+              position: pos,
+              label: {
+                content: `<div style="background:#4a6a7f; color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.2);">${index+1}</div>`,
+                direction: 'center'
+              },
+              title: `${index+1}. ${wp.name}`
+            });
+            markers.push(marker);
+            map.add(marker);
+
+            // 点击标记时，跳转到对应景点卡片
+            const placeId = generatePlaceId(`day${wp.day}`, wp.name);
+            marker.on('click', () => {
+              window.jumpToPlace(placeId);
+            });
+          });
+
+          // 绘制路线
+          if (lineArr.length > 1) {
+            const polyline = new AMap.Polyline({
+              path: lineArr,
+              strokeColor: '#a0524a',
+              strokeWeight: 4,
+              strokeStyle: 'solid',
+              strokeOpacity: 0.8,
+              lineJoin: 'round',
+              lineCap: 'round'
+            });
+            map.add(polyline);
+          }
+
+          // 自动适配视野
+          map.setFitView([...markers, polyline], false, [60, 60, 60, 60]);
+
+          window._amapLoaded = true;
+        };
+
+        // 如果脚本已加载完成但未初始化（例如重复加载），直接调用
+        if (window.AMap) {
+          window.initOverviewMap();
+        }
+      }
+
+      // ============================================================
+      // 9. 跳转至景点卡片
+      // ============================================================
+      window.jumpToPlace = function(placeId) {
+        const card = document.querySelector(`.place-card[data-place-id="${placeId}"]`);
+        if (card) {
+          const group = card.closest('.day-group');
+          if (group && !group.classList.contains('open')) {
+            group.classList.add('open');
+          }
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.transition = 'box-shadow 0.3s ease, background 0.3s ease';
+          card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 16px rgba(160,82,74,0.2)';
+          card.style.background = '#f8f3ef';
+          setTimeout(() => {
+            card.style.boxShadow = '';
+            card.style.background = '';
+          }, 1800);
+        } else {
+          alert('未找到对应的景点卡片，请确认页面已完整加载。');
+        }
+      };
+
+      // ============================================================
+      // 10. 折叠切换函数
+      // ============================================================
+      window.toggleOverview = function(headerElement) {
+        const group = headerElement.closest('.overview-group');
+        if (group) {
+          group.classList.toggle('open');
+        }
+      };
+
+      window.toggleDay = function(headerElement) {
+        const group = headerElement.closest('.day-group');
+        if (group) {
+          group.classList.toggle('open');
+          setTimeout(setupScrollAnimation, 200);
+        }
+      };
+
+      window.toggleFavorite = function(placeId) {
+        toggleFavorite(placeId);
+        setTimeout(setupScrollAnimation, 50);
+      };
+
+      // ============================================================
+      // 11. 渲染每日行程
+      // ============================================================
+      function renderDays() {
+        const container = document.getElementById('day-groups-container');
+        if (!container) return;
+
+        let html = '';
+
+        CONFIG.days.forEach((day, index) => {
+          const isOpen = index === 0 ? 'open' : '';
+
+          html += `<div class="day-group ${isOpen}" id="${day.id}">`;
+          html += `<div class="day-header" onclick="window.toggleDay(this)">
+                     <span class="title">${day.title} <small>${day.subtitle}</small></span>
+                     <span class="arrow">▾</span>
+                   </div>`;
+          html += `<div class="day-body">`;
+
+          // 步行难度
+          if (day.walkBadge) {
+            html += `<div class="walk-badge">${day.walkBadge}</div>`;
+          }
+
+          // 时间安排表 + 午饭推荐
+          html += renderSchedule(day);
+
+          // 地点卡片
+          if (day.places && day.places.length > 0) {
+            day.places.forEach(place => {
+              const placeId = generatePlaceId(day.id, place.name);
+              const isFav = isFavorite(placeId);
+              const links = place.platformLinks || {};
+
+              html += `<div class="place-card" data-place-id="${placeId}">`;
+              html += `<div class="place-name">${place.name} <span class="tag">${place.tag || ''}</span></div>`;
+              html += `<div class="place-image">${renderImage(place.imageUrl, place.name)}</div>`;
+              html += `<div class="place-desc">${place.desc}</div>`;
+              if (place.meta) {
+                html += `<div class="meta">${place.meta}</div>`;
+              }
+
+              html += `<div class="btn-group">`;
+              // 导航
+              if (place.navLink) {
+                html += `<a class="btn btn-nav" href="${place.navLink}" target="_blank">🧭 导航</a>`;
+              }
+              // 大众点评
+              if (links.dianping && links.dianping.trim() !== '') {
+                html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评<span class="tooltip">查看评价 · 订座</span></a>`;
+              } else {
+                html += `<span class="btn btn-dp btn-placeholder">📝 大众点评</span>`;
+              }
+              // 美团
+              if (links.meituan && links.meituan.trim() !== '') {
+                html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+              } else {
+                html += `<span class="btn btn-mt btn-placeholder">🍜 美团</span>`;
+              }
+              // 抖音
+              if (links.douyin && links.douyin.trim() !== '') {
+                html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+              } else {
+                html += `<span class="btn btn-dy btn-placeholder">🎵 抖音</span>`;
+              }
+              // 扫街榜 (高德)
+              if (links.street && links.street.trim() !== '') {
+                html += `<a class="btn btn-street" href="${links.street}" target="_blank">🏆 扫街榜</a>`;
+              } else {
+                html += `<span class="btn btn-street btn-placeholder">🏆 扫街榜</span>`;
+              }
+              // 收藏
+              html += `<button class="btn btn-fav ${isFav ? 'is-fav' : ''}" data-place-id="${placeId}" onclick="window.toggleFavorite('${placeId}')">收藏</button>`;
+              html += `</div>`;
+
+              html += `</div>`;
+            });
+          }
+
+          // 游轮信息 (Day 5)
+          if (day.shipInfo) {
+            const info = day.shipInfo;
+            html += `<div class="ship-info">
+                       <div class="label">${info.label}</div>
+                       <p>${info.text}</p>`;
+            if (info.ticketLink) {
+              html += `<div class="btn-group" style="margin-top:10px;">
+                         <a class="btn btn-ticket" href="${info.ticketLink}" target="_blank">🎫 购票链接</a>
+                       </div>`;
+            } else {
+              html += `<div class="btn-group" style="margin-top:10px;">
+                         <span class="btn btn-ticket btn-placeholder">🎫 购票链接 (待补充)</span>
+                       </div>`;
+            }
+            html += `</div>`;
+          }
+
+          // 休息点
+          if (day.restNote) {
+            html += `<div class="rest-note">${day.restNote}</div>`;
+          }
+
+          html += `</div>`;
+          html += `</div>`;
+        });
+
+        container.innerHTML = html;
+      }
+
+      // ============================================================
+      // 12. 启动应用
+      // ============================================================
+      document.addEventListener('DOMContentLoaded', function() {
+        renderDays();
+        setupScrollAnimation();
+        setupBackToTop();
+        updateFavoriteButtons();
+
+        window.addEventListener('scroll', updateReadingProgress, { passive: true });
+        updateReadingProgress();
+
+        // 延迟加载地图，确保DOM渲染完成
+        setTimeout(renderOverviewMap, 500);
+      });
+
+    })();
+  </script>
+</body>
+</html>
