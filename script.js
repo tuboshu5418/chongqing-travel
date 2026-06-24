@@ -1,12 +1,11 @@
 // ============================================================
-// 重庆-丰都旅游攻略 - 完整主脚本（修复版）
+// 重庆-丰都旅游攻略 - 完整主脚本
 // ============================================================
 
 // ---- 配置 ----
 const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
 const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
 
-// 路线图圆点坐标（百分比）
 const DAY_POINTS = {
     1: [
         { id: 'day1_1', name: '江北机场', x: 8, y: 15, placeIndex: 0 },
@@ -53,7 +52,8 @@ let currentTab = 1;
 let isAdminMode = false;
 let floatingCardPinned = false;
 let floatingCardData = null;
-let hoverTimeout = null;
+let hideTimeout = null;
+let isHovering = false;
 
 // ---- DOM 引用 ----
 const floatingCard = document.getElementById('floating-card');
@@ -109,8 +109,9 @@ function renderMap(day) {
              </div>`;
 
     points.forEach(p => {
-        html += `<div class="map-point" style="left:${p.x}%; top:${p.y}%;" data-day="${day}" data-place-index="${p.placeIndex}" 
-                     onmouseenter="onMapPointHover(${day}, ${p.placeIndex}, this)" 
+        html += `<div class="map-point" style="left:${p.x}%; top:${p.y}%;" 
+                     data-day="${day}" data-place-index="${p.placeIndex}" 
+                     onmouseenter="onMapPointEnter(${day}, ${p.placeIndex}, this)" 
                      onmouseleave="onMapPointLeave()"
                      onclick="onMapPointClick(${day}, ${p.placeIndex}, this)">
                     ${p.placeIndex + 1}
@@ -130,7 +131,7 @@ function switchTab(day) {
 }
 
 // ============================================================
-// 3. 悬浮卡片（悬停延迟 + 点击固定）
+// 3. 悬浮卡片 - 悬停/点击分离
 // ============================================================
 function getDayPlaceData(day, placeIndex) {
     const dayData = allDaysData.find(d => d.day === day);
@@ -144,10 +145,10 @@ function showFloatingCard(day, placeIndex, event, isPinned = false) {
     const place = getDayPlaceData(day, placeIndex);
     if (!place) return;
 
-    // 清除之前的悬停定时器
-    if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = null;
+    // 清除之前的隐藏定时器
+    if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
     }
 
     floatingCardData = { day, placeIndex };
@@ -186,85 +187,113 @@ function showFloatingCard(day, placeIndex, event, isPinned = false) {
     });
 }
 
-function hideFloatingCard() {
+function hideFloatingCard(immediate = false) {
     if (floatingCardPinned) return;
-    if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = null;
+    
+    if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
     }
-    // 延迟关闭，防止误触
-    hoverTimeout = setTimeout(() => {
-        floatingCard.classList.remove('show');
-        setTimeout(() => {
-            if (!floatingCardPinned) {
-                floatingCard.style.display = 'none';
-            }
-        }, 300);
-        hoverTimeout = null;
-    }, 200);
+
+    const delay = immediate ? 0 : 300;
+    hideTimeout = setTimeout(() => {
+        if (!floatingCardPinned && !isHovering) {
+            floatingCard.classList.remove('show');
+            setTimeout(() => {
+                if (!floatingCardPinned) {
+                    floatingCard.style.display = 'none';
+                }
+            }, 300);
+        }
+        hideTimeout = null;
+    }, delay);
 }
 
-function onMapPointHover(day, placeIndex, element) {
-    if (floatingCardPinned) return;
-    // 清除之前的关闭定时器
-    if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = null;
+// ---- 悬停进入 ----
+function onMapPointEnter(day, placeIndex, element) {
+    isHovering = true;
+    if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
     }
-    showFloatingCard(day, placeIndex, element, false);
+    if (!floatingCardPinned) {
+        showFloatingCard(day, placeIndex, element, false);
+    }
 }
 
+// ---- 悬停离开 ----
 function onMapPointLeave() {
-    if (floatingCardPinned) return;
-    hideFloatingCard();
+    isHovering = false;
+    if (!floatingCardPinned) {
+        hideFloatingCard(false);
+    }
 }
 
+// ---- 点击（切换固定） ----
 function onMapPointClick(day, placeIndex, element) {
+    // 如果已经固定且点击的是同一个点，取消固定
     if (floatingCardPinned && floatingCardData && 
         floatingCardData.day === day && floatingCardData.placeIndex === placeIndex) {
-        // 取消固定
         floatingCardPinned = false;
         floatingCard.dataset.pinned = 'false';
-        hideFloatingCard();
+        isHovering = false;
+        hideFloatingCard(true);
+        // 移除激活状态
+        element.classList.remove('active');
         return;
     }
-    // 清除悬停定时器
-    if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = null;
+    
+    // 否则固定这个点
+    if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
     }
+    // 移除其他点的激活状态
+    document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+    element.classList.add('active');
     showFloatingCard(day, placeIndex, element, true);
 }
 
-floatingCardClose.onclick = function() {
+// ---- 关闭按钮 ----
+floatingCardClose.onclick = function(e) {
+    e.stopPropagation();
     floatingCardPinned = false;
     floatingCard.dataset.pinned = 'false';
-    hideFloatingCard();
+    document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+    isHovering = false;
+    hideFloatingCard(true);
 };
 
+// ---- 点击外部关闭 ----
 document.addEventListener('click', function(e) {
-    if (floatingCard.style.display === 'block' && !floatingCard.contains(e.target) && !e.target.closest('.map-point')) {
+    if (floatingCard.style.display === 'block' && 
+        !floatingCard.contains(e.target) && 
+        !e.target.closest('.map-point')) {
         if (!floatingCardPinned) {
-            hideFloatingCard();
+            isHovering = false;
+            hideFloatingCard(true);
         }
     }
 });
 
+// ---- 跳转至行程 ----
 floatingCardJump.onclick = function() {
     if (!floatingCardData) return;
     const { day, placeIndex } = floatingCardData;
     
     floatingCardPinned = false;
     floatingCard.dataset.pinned = 'false';
-    hideFloatingCard();
+    document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+    hideFloatingCard(true);
 
     const targetDay = document.getElementById('day-group-' + day);
     if (targetDay) {
+        // 展开所有天
         document.querySelectorAll('.day-group').forEach(g => {
             g.classList.add('open');
             const body = g.querySelector('.day-body');
             if (body) {
-                body.style.maxHeight = body.scrollHeight + 'px';
+                body.style.maxHeight = '5000px';
                 body.style.opacity = '1';
                 body.style.padding = '6px 20px 24px';
             }
@@ -326,8 +355,6 @@ function renderDays(data) {
 
     let html = '';
     data.forEach((day, index) => {
-        const isOpen = false;
-
         html += `<div class="day-group" id="day-group-${day.day}">`;
         html += `<div class="day-header" onclick="toggleDay(this)">
                     <span class="title">${day.title} <small>${day.subtitle || ''}</small></span>
@@ -410,23 +437,34 @@ function renderDays(data) {
 
     container.innerHTML = html;
     
-    // 初始化折叠状态
+    // 初始化折叠状态（全部收起）
     document.querySelectorAll('.day-group .day-body').forEach(body => {
         body.style.maxHeight = '0';
         body.style.opacity = '0';
         body.style.padding = '0 20px';
     });
 
-    // 绑定点击波纹事件
-    document.querySelectorAll('.place-card, .btn').forEach(el => {
+    // 绑定点击波纹
+    document.querySelectorAll('.place-card, .btn, .map-point, #expand-collapse-bar .btn-ctrl, #admin-panel .btn-ctrl, #admin-panel .btn-login').forEach(el => {
         el.addEventListener('click', function(e) {
             createRipple(e, this);
+        });
+    });
+
+    // 卡片鼠标移动 - 更新光效位置
+    document.querySelectorAll('.place-card').forEach(card => {
+        card.addEventListener('mousemove', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            this.style.setProperty('--mouse-x', x + '%');
+            this.style.setProperty('--mouse-y', y + '%');
         });
     });
 }
 
 // ============================================================
-// 6. 物理光效 - 点击波纹
+// 6. 物理光效 - 点击波纹（影响周围）
 // ============================================================
 function createRipple(event, element) {
     const rect = element.getBoundingClientRect();
@@ -435,41 +473,46 @@ function createRipple(event, element) {
     
     const ripple = document.createElement('span');
     ripple.className = 'ripple';
-    const size = Math.max(rect.width, rect.height) * 0.8;
+    const size = Math.max(rect.width, rect.height) * 0.6;
     ripple.style.width = ripple.style.height = size + 'px';
     ripple.style.left = (x - size/2) + 'px';
     ripple.style.top = (y - size/2) + 'px';
     
     element.appendChild(ripple);
+    
+    // 波纹对周围元素产生视觉影响（添加阴影）
+    const siblings = element.closest('.place-card') || element.closest('.day-group') || document;
+    if (siblings) {
+        const nearby = siblings.querySelectorAll('.place-card, .map-point, .btn');
+        nearby.forEach(el => {
+            if (el !== element) {
+                el.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+                el.style.transform = 'scale(0.98)';
+                el.style.boxShadow = '0 0 30px rgba(160,82,74,0.1)';
+                setTimeout(() => {
+                    el.style.transform = '';
+                    el.style.boxShadow = '';
+                }, 400);
+            }
+        });
+    }
+    
     setTimeout(() => {
         ripple.remove();
-    }, 800);
+    }, 900);
 }
 
+// ============================================================
+// 7. Emoji 映射
+// ============================================================
 function getEmoji(name) {
     const map = {
-        '机场': '✈️',
-        '解放碑': '🏛️',
-        '好吃街': '🍜',
-        '白象居': '🏚️',
-        '索道': '🚠',
-        '洪崖洞': '🏮',
-        '李子坝': '🚇',
-        '鹅岭': '🎨',
-        '山城步道': '🚶',
-        '南滨路': '🌉',
-        '动物园': '🐼',
-        '博物馆': '🏺',
-        '观音桥': '🛍️',
-        '弹子石': '🏘️',
-        '龙门浩': '🏡',
-        'WFC': '🌆',
-        '十八梯': '🪜',
-        '盘龙': '🛣️',
-        '来福士': '🏗️',
-        '双桂山': '🌳',
-        '鬼城': '👻',
-        '码头': '⚓'
+        '机场': '✈️', '解放碑': '🏛️', '好吃街': '🍜', '白象居': '🏚️',
+        '索道': '🚠', '洪崖洞': '🏮', '李子坝': '🚇', '鹅岭': '🎨',
+        '山城步道': '🚶', '南滨路': '🌉', '动物园': '🐼', '博物馆': '🏺',
+        '观音桥': '🛍️', '弹子石': '🏘️', '龙门浩': '🏡', 'WFC': '🌆',
+        '十八梯': '🪜', '盘龙': '🛣️', '来福士': '🏗️', '双桂山': '🌳',
+        '鬼城': '👻', '码头': '⚓'
     };
     for (const [key, value] of Object.entries(map)) {
         if (name.includes(key)) return value;
@@ -478,7 +521,7 @@ function getEmoji(name) {
 }
 
 // ============================================================
-// 7. 折叠切换（带动画）
+// 8. 折叠切换（带动画）
 // ============================================================
 window.toggleDay = function(header) {
     const group = header.closest('.day-group');
@@ -504,23 +547,20 @@ window.toggleDay = function(header) {
         body.style.opacity = '0';
         body.style.padding = '0 20px';
         requestAnimationFrame(() => {
-            body.style.maxHeight = body.scrollHeight + 'px';
+            body.style.maxHeight = '5000px';
             body.style.opacity = '1';
             body.style.padding = '6px 20px 24px';
         });
-        // 检测是否需要 sticky
-        setTimeout(() => checkSticky(), 100);
+        setTimeout(() => checkSticky(), 150);
     }
 };
 
 // ============================================================
-// 8. Day 栏目滚动置顶（Sticky 吸附）
+// 9. Sticky 吸附
 // ============================================================
 function checkSticky() {
     document.querySelectorAll('.day-group .day-header').forEach(header => {
         const rect = header.getBoundingClientRect();
-        const containerRect = header.closest('.app-container').getBoundingClientRect();
-        // 如果 header 到达顶部，添加 sticky 类
         if (rect.top <= 4) {
             header.classList.add('sticky');
         } else {
@@ -530,19 +570,17 @@ function checkSticky() {
 }
 
 function setupStickyDays() {
-    // 滚动时检测 sticky 状态
     window.addEventListener('scroll', checkSticky, { passive: true });
     window.addEventListener('resize', checkSticky, { passive: true });
-    // 初始检测
     setTimeout(checkSticky, 500);
 }
 
 // ============================================================
-// 9. 一键展开/收缩
+// 10. 一键展开/收缩（独立按钮）
 // ============================================================
 function setupExpandCollapse() {
-    const expandBtn = document.getElementById('admin-expand-all-btn');
-    const collapseBtn = document.getElementById('admin-collapse-all-btn');
+    const expandBtn = document.getElementById('expand-all-btn');
+    const collapseBtn = document.getElementById('collapse-all-btn');
 
     if (expandBtn) {
         expandBtn.onclick = function() {
@@ -554,7 +592,7 @@ function setupExpandCollapse() {
                     body.style.opacity = '0';
                     body.style.padding = '0 20px';
                     requestAnimationFrame(() => {
-                        body.style.maxHeight = body.scrollHeight + 'px';
+                        body.style.maxHeight = '5000px';
                         body.style.opacity = '1';
                         body.style.padding = '6px 20px 24px';
                     });
@@ -585,7 +623,7 @@ function setupExpandCollapse() {
 }
 
 // ============================================================
-// 10. 修改模式（密码验证）
+// 11. 修改模式
 // ============================================================
 function setupAdminMode() {
     const toggleBtn = document.getElementById('admin-toggle-btn');
@@ -664,7 +702,7 @@ function setupAdminMode() {
 }
 
 // ============================================================
-// 11. 编辑功能
+// 12. 编辑功能
 // ============================================================
 function enableEditing() {
     document.querySelectorAll('.place-card').forEach(card => {
@@ -736,7 +774,7 @@ function openEditModal(day, placeIndex) {
                 <textarea id="edit-place-desc" rows="3" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px; resize:vertical;">${place.desc || ''}</textarea>
             </div>
             <div style="margin-bottom:12px;">
-                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">元信息 (如: 🎫 免费 · 全天开放)</label>
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">元信息</label>
                 <input id="edit-place-meta" value="${place.meta || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
             </div>
             <div style="display:flex; gap:10px; margin-top:16px;">
@@ -845,7 +883,7 @@ function openEditScheduleModal(day, index) {
         <div style="background:#fff; border-radius:20px; padding:30px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
             <h3 style="margin-bottom:16px; color:#4a4a4a;">编辑时间项</h3>
             <div style="margin-bottom:12px;">
-                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">时间 (如: 10:00-11:30)</label>
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">时间</label>
                 <input id="edit-schedule-time" value="${item.time || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
             </div>
             <div style="margin-bottom:12px;">
@@ -927,7 +965,7 @@ function openEditScheduleModal(day, index) {
 }
 
 // ============================================================
-// 12. 滚动动画
+// 13. 滚动动画
 // ============================================================
 function setupScrollAnimation() {
     const cards = document.querySelectorAll('.place-card');
@@ -943,7 +981,7 @@ function setupScrollAnimation() {
 }
 
 // ============================================================
-// 13. 阅读进度条 & 返回顶部
+// 14. 阅读进度条 & 返回顶部
 // ============================================================
 function updateReadingProgress() {
     const scrollTop = window.scrollY;
@@ -963,7 +1001,7 @@ function setupBackToTop() {
 }
 
 // ============================================================
-// 14. 页面加载
+// 15. 页面加载
 // ============================================================
 document.addEventListener('DOMContentLoaded', async function() {
     const data = await loadItineraryData();
@@ -979,14 +1017,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.addEventListener('scroll', updateReadingProgress, { passive: true });
         updateReadingProgress();
 
-        // 初始化折叠状态
+        // 全部默认收起
         document.querySelectorAll('.day-group .day-body').forEach(body => {
             body.style.maxHeight = '0';
             body.style.opacity = '0';
             body.style.padding = '0 20px';
         });
     } else {
-        document.getElementById('day-groups-container').innerHTML = '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 无法加载行程数据，请检查网络连接或API配置。</p>';
+        document.getElementById('day-groups-container').innerHTML = '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 无法加载行程数据</p>';
     }
 });
 
@@ -996,6 +1034,6 @@ window.toggleOverview = function(header) {
     const group = header.closest('.overview-group');
     if (group) group.classList.toggle('open');
 };
-window.onMapPointHover = onMapPointHover;
+window.onMapPointEnter = onMapPointEnter;
 window.onMapPointLeave = onMapPointLeave;
 window.onMapPointClick = onMapPointClick;
