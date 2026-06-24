@@ -1,5 +1,5 @@
 // ============================================================
-// 重庆-丰都旅游攻略 - 完整主脚本
+// 重庆-丰都旅游攻略 - 完整主脚本（修复版）
 // ============================================================
 
 // ---- 配置 ----
@@ -53,7 +53,7 @@ let currentTab = 1;
 let isAdminMode = false;
 let floatingCardPinned = false;
 let floatingCardData = null;
-let currentOpenDay = null;
+let hoverTimeout = null;
 
 // ---- DOM 引用 ----
 const floatingCard = document.getElementById('floating-card');
@@ -111,6 +111,7 @@ function renderMap(day) {
     points.forEach(p => {
         html += `<div class="map-point" style="left:${p.x}%; top:${p.y}%;" data-day="${day}" data-place-index="${p.placeIndex}" 
                      onmouseenter="onMapPointHover(${day}, ${p.placeIndex}, this)" 
+                     onmouseleave="onMapPointLeave()"
                      onclick="onMapPointClick(${day}, ${p.placeIndex}, this)">
                     ${p.placeIndex + 1}
                 </div>`;
@@ -129,7 +130,7 @@ function switchTab(day) {
 }
 
 // ============================================================
-// 3. 悬浮卡片（悬停 + 点击）
+// 3. 悬浮卡片（悬停延迟 + 点击固定）
 // ============================================================
 function getDayPlaceData(day, placeIndex) {
     const dayData = allDaysData.find(d => d.day === day);
@@ -142,6 +143,12 @@ function getDayPlaceData(day, placeIndex) {
 function showFloatingCard(day, placeIndex, event, isPinned = false) {
     const place = getDayPlaceData(day, placeIndex);
     if (!place) return;
+
+    // 清除之前的悬停定时器
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
+    }
 
     floatingCardData = { day, placeIndex };
 
@@ -172,11 +179,7 @@ function showFloatingCard(day, placeIndex, event, isPinned = false) {
     floatingCard.style.display = 'block';
     
     floatingCardPinned = isPinned;
-    if (isPinned) {
-        floatingCard.dataset.pinned = 'true';
-    } else {
-        floatingCard.dataset.pinned = 'false';
-    }
+    floatingCard.dataset.pinned = isPinned ? 'true' : 'false';
 
     requestAnimationFrame(() => {
         floatingCard.classList.add('show');
@@ -185,26 +188,50 @@ function showFloatingCard(day, placeIndex, event, isPinned = false) {
 
 function hideFloatingCard() {
     if (floatingCardPinned) return;
-    floatingCard.classList.remove('show');
-    setTimeout(() => {
-        if (!floatingCardPinned) {
-            floatingCard.style.display = 'none';
-        }
-    }, 300);
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
+    }
+    // 延迟关闭，防止误触
+    hoverTimeout = setTimeout(() => {
+        floatingCard.classList.remove('show');
+        setTimeout(() => {
+            if (!floatingCardPinned) {
+                floatingCard.style.display = 'none';
+            }
+        }, 300);
+        hoverTimeout = null;
+    }, 200);
 }
 
 function onMapPointHover(day, placeIndex, element) {
     if (floatingCardPinned) return;
+    // 清除之前的关闭定时器
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
+    }
     showFloatingCard(day, placeIndex, element, false);
+}
+
+function onMapPointLeave() {
+    if (floatingCardPinned) return;
+    hideFloatingCard();
 }
 
 function onMapPointClick(day, placeIndex, element) {
     if (floatingCardPinned && floatingCardData && 
         floatingCardData.day === day && floatingCardData.placeIndex === placeIndex) {
+        // 取消固定
         floatingCardPinned = false;
         floatingCard.dataset.pinned = 'false';
         hideFloatingCard();
         return;
+    }
+    // 清除悬停定时器
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
     }
     showFloatingCard(day, placeIndex, element, true);
 }
@@ -382,12 +409,41 @@ function renderDays(data) {
     });
 
     container.innerHTML = html;
-    // 初始化展开状态
+    
+    // 初始化折叠状态
     document.querySelectorAll('.day-group .day-body').forEach(body => {
         body.style.maxHeight = '0';
         body.style.opacity = '0';
         body.style.padding = '0 20px';
     });
+
+    // 绑定点击波纹事件
+    document.querySelectorAll('.place-card, .btn').forEach(el => {
+        el.addEventListener('click', function(e) {
+            createRipple(e, this);
+        });
+    });
+}
+
+// ============================================================
+// 6. 物理光效 - 点击波纹
+// ============================================================
+function createRipple(event, element) {
+    const rect = element.getBoundingClientRect();
+    const x = (event.clientX || event.pageX) - rect.left;
+    const y = (event.clientY || event.pageY) - rect.top;
+    
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const size = Math.max(rect.width, rect.height) * 0.8;
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (x - size/2) + 'px';
+    ripple.style.top = (y - size/2) + 'px';
+    
+    element.appendChild(ripple);
+    setTimeout(() => {
+        ripple.remove();
+    }, 800);
 }
 
 function getEmoji(name) {
@@ -422,7 +478,7 @@ function getEmoji(name) {
 }
 
 // ============================================================
-// 6. 折叠切换（带动画）
+// 7. 折叠切换（带动画）
 // ============================================================
 window.toggleDay = function(header) {
     const group = header.closest('.day-group');
@@ -432,6 +488,7 @@ window.toggleDay = function(header) {
 
     const isOpen = group.classList.contains('open');
     if (isOpen) {
+        // 关闭
         body.style.maxHeight = body.scrollHeight + 'px';
         requestAnimationFrame(() => {
             body.style.maxHeight = '0';
@@ -439,7 +496,9 @@ window.toggleDay = function(header) {
             body.style.padding = '0 20px';
         });
         group.classList.remove('open');
+        header.classList.remove('sticky');
     } else {
+        // 展开
         group.classList.add('open');
         body.style.maxHeight = '0';
         body.style.opacity = '0';
@@ -449,41 +508,37 @@ window.toggleDay = function(header) {
             body.style.opacity = '1';
             body.style.padding = '6px 20px 24px';
         });
+        // 检测是否需要 sticky
+        setTimeout(() => checkSticky(), 100);
     }
 };
 
 // ============================================================
-// 7. 滚动置顶指示器
+// 8. Day 栏目滚动置顶（Sticky 吸附）
 // ============================================================
-function setupStickyDays() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const dayId = entry.target.id;
-                const indicator = document.getElementById('sticky-day-indicator');
-                if (!indicator) return;
-                const day = allDaysData.find(d => d.id === dayId);
-                if (day) {
-                    indicator.textContent = `📍 当前查看: ${day.title} ${day.subtitle || ''}`;
-                    indicator.style.display = 'block';
-                }
-            }
-        });
-    }, {
-        threshold: 0.3,
-        rootMargin: '0px 0px -100px 0px'
+function checkSticky() {
+    document.querySelectorAll('.day-group .day-header').forEach(header => {
+        const rect = header.getBoundingClientRect();
+        const containerRect = header.closest('.app-container').getBoundingClientRect();
+        // 如果 header 到达顶部，添加 sticky 类
+        if (rect.top <= 4) {
+            header.classList.add('sticky');
+        } else {
+            header.classList.remove('sticky');
+        }
     });
+}
 
-    document.querySelectorAll('.day-group').forEach(group => observer.observe(group));
-
-    // 创建指示器
-    const indicator = document.createElement('div');
-    indicator.id = 'sticky-day-indicator';
-    document.querySelector('.app-container').prepend(indicator);
+function setupStickyDays() {
+    // 滚动时检测 sticky 状态
+    window.addEventListener('scroll', checkSticky, { passive: true });
+    window.addEventListener('resize', checkSticky, { passive: true });
+    // 初始检测
+    setTimeout(checkSticky, 500);
 }
 
 // ============================================================
-// 8. 一键展开/收缩
+// 9. 一键展开/收缩
 // ============================================================
 function setupExpandCollapse() {
     const expandBtn = document.getElementById('admin-expand-all-btn');
@@ -505,6 +560,7 @@ function setupExpandCollapse() {
                     });
                 }
             });
+            setTimeout(checkSticky, 300);
         };
     }
 
@@ -512,6 +568,7 @@ function setupExpandCollapse() {
         collapseBtn.onclick = function() {
             document.querySelectorAll('.day-group').forEach(group => {
                 const body = group.querySelector('.day-body');
+                const header = group.querySelector('.day-header');
                 if (body && group.classList.contains('open')) {
                     body.style.maxHeight = body.scrollHeight + 'px';
                     requestAnimationFrame(() => {
@@ -520,6 +577,7 @@ function setupExpandCollapse() {
                         body.style.padding = '0 20px';
                     });
                     group.classList.remove('open');
+                    if (header) header.classList.remove('sticky');
                 }
             });
         };
@@ -527,7 +585,7 @@ function setupExpandCollapse() {
 }
 
 // ============================================================
-// 9. 修改模式（密码验证）
+// 10. 修改模式（密码验证）
 // ============================================================
 function setupAdminMode() {
     const toggleBtn = document.getElementById('admin-toggle-btn');
@@ -551,6 +609,7 @@ function setupAdminMode() {
                 card.style.outline = 'none';
                 card.style.cursor = 'default';
                 card.onclick = null;
+                card.classList.remove('clickable');
             });
             document.querySelectorAll('.schedule-table tbody tr').forEach(row => {
                 row.style.cursor = 'default';
@@ -563,6 +622,7 @@ function setupAdminMode() {
             toggleBtn.style.borderColor = '#a0524a';
             passwordInput.value = '';
             passwordInput.focus();
+            statusSpan.textContent = '';
         }
     };
 
@@ -604,7 +664,7 @@ function setupAdminMode() {
 }
 
 // ============================================================
-// 10. 编辑功能
+// 11. 编辑功能
 // ============================================================
 function enableEditing() {
     document.querySelectorAll('.place-card').forEach(card => {
@@ -612,6 +672,7 @@ function enableEditing() {
         card.style.outlineOffset = '2px';
         card.style.cursor = 'pointer';
         card.title = '点击编辑此景点';
+        card.classList.add('clickable');
 
         card.onclick = function(e) {
             if (e.target.closest('.btn')) return;
@@ -866,7 +927,7 @@ function openEditScheduleModal(day, index) {
 }
 
 // ============================================================
-// 11. 滚动动画
+// 12. 滚动动画
 // ============================================================
 function setupScrollAnimation() {
     const cards = document.querySelectorAll('.place-card');
@@ -882,7 +943,7 @@ function setupScrollAnimation() {
 }
 
 // ============================================================
-// 12. 阅读进度条 & 返回顶部
+// 13. 阅读进度条 & 返回顶部
 // ============================================================
 function updateReadingProgress() {
     const scrollTop = window.scrollY;
@@ -902,7 +963,7 @@ function setupBackToTop() {
 }
 
 // ============================================================
-// 13. 页面加载
+// 14. 页面加载
 // ============================================================
 document.addEventListener('DOMContentLoaded', async function() {
     const data = await loadItineraryData();
@@ -929,11 +990,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// 暴露全局函数供 HTML 调用
+// 暴露全局函数
 window.toggleDay = window.toggleDay;
 window.toggleOverview = function(header) {
     const group = header.closest('.overview-group');
     if (group) group.classList.toggle('open');
 };
 window.onMapPointHover = onMapPointHover;
+window.onMapPointLeave = onMapPointLeave;
 window.onMapPointClick = onMapPointClick;
