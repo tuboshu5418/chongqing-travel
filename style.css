@@ -1,6 +1,8 @@
 /* ============================================================
-   全局基础样式
+   重庆-丰都旅游攻略 - 完整样式
    ============================================================ */
+
+/* ---- 全局重置 ---- */
 * {
     margin: 0;
     padding: 0;
@@ -43,9 +45,7 @@ body {
     margin-top: 8px;
 }
 
-/* ============================================================
-   头部
-   ============================================================ */
+/* ---- 头部 ---- */
 .header {
     text-align: center;
     padding-bottom: 20px;
@@ -73,9 +73,39 @@ body {
     color: #5a5a5a;
 }
 
-/* ============================================================
-   路线总览
-   ============================================================ */
+/* ---- 一键展开/收起按钮（独立，无需修改模式） ---- */
+#expand-collapse-bar {
+    display: flex;
+    gap: 10px;
+    margin: 12px 0 8px;
+    flex-wrap: wrap;
+}
+
+#expand-collapse-bar .btn-ctrl {
+    padding: 6px 18px;
+    border-radius: 30px;
+    border: 1px solid #ddd9d2;
+    background: #f5f3f0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a4a4a;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#expand-collapse-bar .btn-ctrl:hover {
+    background: #ede8e0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+#expand-collapse-bar .btn-ctrl .ripple {
+    background: radial-gradient(circle, rgba(74, 106, 127, 0.2) 0%, transparent 70%);
+}
+
+/* ---- 路线总览 ---- */
 .overview-group {
     margin-top: 16px;
     border-radius: 18px;
@@ -132,7 +162,6 @@ body {
     display: block;
 }
 
-/* 标签栏 */
 .tab-bar {
     display: flex;
     flex-wrap: wrap;
@@ -159,7 +188,6 @@ body {
     color: #fff;
 }
 
-/* 地图容器 */
 .map-wrapper {
     position: relative;
     width: 100%;
@@ -173,12 +201,14 @@ body {
     height: auto;
     display: block;
 }
+
+/* ---- 地图原点 - 物理光效增强 ---- */
 .map-point {
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: #a0524a;
+    background: radial-gradient(circle at 35% 35%, #e08a7a, #a0524a);
     color: #fff;
     font-size: 13px;
     font-weight: 700;
@@ -187,18 +217,78 @@ body {
     justify-content: center;
     cursor: pointer;
     border: 2px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     transform: translate(-50%, -50%);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.4s ease,
+                width 0.4s ease,
+                height 0.4s ease;
     z-index: 10;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    will-change: transform, box-shadow;
 }
+
+/* 原点光晕（持续脉冲） */
+.map-point::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 82, 74, 0.25), transparent 70%);
+    animation: pulseGlow 2s ease-in-out infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.4); opacity: 1; }
+}
+
+/* 原点悬停 - 变大 + 发光 + 影响周围 */
 .map-point:hover {
-    transform: translate(-50%, -50%) scale(1.2);
-    box-shadow: 0 4px 14px rgba(160,82,74,0.4);
+    transform: translate(-50%, -50%) scale(1.3);
+    box-shadow: 0 0 20px rgba(160, 82, 74, 0.6), 
+                0 0 40px rgba(160, 82, 74, 0.3),
+                0 0 60px rgba(160, 82, 74, 0.1);
     z-index: 20;
 }
 
-/* 图例和提示 */
+/* 原点点击波纹（光效扩散影响周围） */
+.map-point .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 200, 180, 0.4) 0%, rgba(160, 82, 74, 0.2) 40%, transparent 70%);
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 0;
+    animation: rippleWave 0.9s ease-out forwards;
+}
+
+@keyframes rippleWave {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(6);
+        opacity: 0;
+    }
+}
+
+/* 原点点击时影响周围的卡片（通过JS添加类） */
+.map-point.active {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 0 30px rgba(160, 82, 74, 0.5), 0 0 60px rgba(160, 82, 74, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* 图例 */
 .route-legend {
     display: flex;
     flex-wrap: wrap;
@@ -235,29 +325,37 @@ body {
     display: inline-block;
 }
 
-/* ============================================================
-   悬浮卡片
-   ============================================================ */
+/* ---- 悬浮卡片 ---- */
 #floating-card {
     position: fixed;
     z-index: 999;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: 18px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
     padding: 20px 24px 24px;
     width: 280px;
     max-width: 85vw;
-    border: 1px solid #e8e4de;
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: opacity 0.3s ease, 
+                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(8px);
+    transform: translateY(12px) scale(0.95);
 }
+
 #floating-card.show {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
+
+#floating-card[data-pinned="true"] {
+    box-shadow: 0 12px 40px rgba(160, 82, 74, 0.25), 0 0 0 2px #a0524a;
+}
+
 #floating-card-close {
     position: absolute;
     top: 10px;
@@ -302,72 +400,77 @@ body {
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 #floating-card-jump:hover {
     background: #3a5a6f;
+    transform: scale(1.02);
 }
 
-/* ============================================================
-   每日行程折叠面板
-   ============================================================ */
+/* ---- Day 栏目 Sticky 吸附 ---- */
 .day-group {
-    margin-top: 22px;
-    border-radius: 18px;
-    background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
-    border: 1px solid #efedea;
+    position: relative;
+    scroll-margin-top: 60px;
 }
-.day-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 20px;
+
+.day-group .day-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
     background-color: #fafaf8;
-    cursor: pointer;
-    user-select: none;
     border-left: 5px solid #c0b0a8;
-    transition: background 0.2s ease, border-left-color 0.2s ease;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
-.day-header:hover {
-    background-color: #f3f0ec;
+
+.day-group .day-header.sticky {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
 }
-.day-header .title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #4a4a4a;
-}
-.day-header .title small {
-    font-weight: 400;
-    font-size: 15px;
-    color: #8a8a8a;
-    margin-left: 10px;
-}
-.day-header .arrow {
-    font-size: 22px;
-    color: #a0524a;
-    transition: transform 0.35s ease;
-    display: inline-block;
-    line-height: 1;
-}
+
 .day-group.open .day-header {
     border-left-color: #a0524a;
     background-color: #f8f5f2;
 }
-.day-group.open .day-header .arrow {
-    transform: rotate(180deg);
-}
-.day-body {
-    display: none;
-    padding: 6px 20px 24px;
-    background: #ffffff;
-}
-.day-group.open .day-body {
-    display: block;
+.day-group.open .day-header.sticky {
+    background-color: #f8f5f2;
 }
 
-/* 步行难度 */
+.day-group .day-header::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.day-group .day-header.sticky::after {
+    opacity: 1;
+}
+
+/* ---- 展开/收缩动画 ---- */
+.day-body {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 20px;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.5s ease,
+                padding 0.4s ease;
+}
+
+.day-group.open .day-body {
+    max-height: 5000px;
+    opacity: 1;
+    padding: 6px 20px 24px;
+}
+
+/* ---- 步行难度 ---- */
 .walk-badge {
     display: inline-block;
     background: #e8f0f5;
@@ -380,7 +483,6 @@ body {
     font-weight: 500;
 }
 
-/* 三餐 */
 .meal-bar {
     display: flex;
     flex-wrap: wrap;
@@ -397,7 +499,6 @@ body {
     gap: 4px;
 }
 
-/* 时间表 */
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
@@ -435,27 +536,87 @@ body {
     color: #a0524a;
 }
 
-/* ============================================================
-   景点卡片
-   ============================================================ */
+/* ---- 景点卡片 ---- */
 .place-card {
     background: #f9f8f6;
     border-radius: 16px;
     padding: 16px 18px 18px;
     margin-top: 16px;
     border: 1px solid #efedea;
-    transition: box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease, transform 0.6s ease;
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
     opacity: 0;
     transform: translateY(30px);
     scroll-margin-top: 20px;
+    position: relative;
+    overflow: visible;
 }
+
 .place-card.visible {
     opacity: 1;
     transform: translateY(0);
 }
+
 .place-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    background: #fcfbf9;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    border-color: #d0c8c0;
+}
+
+/* 卡片悬浮光效 - 跟随鼠标 */
+.place-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                rgba(160, 82, 74, 0.06) 0%, 
+                rgba(74, 106, 127, 0.03) 40%,
+                transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.place-card:hover::before {
+    opacity: 1;
+}
+
+/* 卡片点击波纹 - 物理光效影响周围 */
+.place-card .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160, 82, 74, 0.3) 0%, rgba(74, 106, 127, 0.1) 40%, transparent 70%);
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 10;
+    animation: cardRipple 0.8s ease-out forwards;
+}
+
+@keyframes cardRipple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    60% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(5);
+        opacity: 0;
+    }
+}
+
+/* 卡片内容在光效上层 */
+.place-card .place-name,
+.place-card .place-image,
+.place-card .place-desc,
+.place-card .meta,
+.place-card .btn-group {
+    position: relative;
+    z-index: 1;
 }
 
 .place-card .place-name {
@@ -492,7 +653,6 @@ body {
     border: 1px solid #e6e2db;
 }
 
-/* 景点图片 */
 .place-image {
     width: 100%;
     height: 170px;
@@ -505,6 +665,7 @@ body {
     justify-content: center;
     border: 1px solid #e0dbd3;
     position: relative;
+    z-index: 1;
 }
 .place-image img {
     width: 100%;
@@ -530,15 +691,15 @@ body {
     margin-bottom: 4px;
 }
 
-/* ============================================================
-   按钮组
-   ============================================================ */
+/* ---- 按钮 ---- */
 .btn-group {
     display: flex;
     flex-wrap: wrap;
     gap: 10px 12px;
     margin-top: 8px;
     align-items: center;
+    position: relative;
+    z-index: 1;
 }
 .btn {
     display: inline-flex;
@@ -552,16 +713,22 @@ body {
     background: #edebe7;
     color: #4a4a4a;
     border: 1px solid #ddd9d2;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
     min-height: 44px;
     line-height: 1.2;
     letter-spacing: 0.4px;
+    position: relative;
+    overflow: hidden;
 }
 .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
+.btn .ripple {
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+}
+
 .btn-nav {
     background: #4a6a7f;
     border-color: #4a6a7f;
@@ -570,7 +737,9 @@ body {
 .btn-nav:hover {
     background: #3a5a6f;
     border-color: #3a5a6f;
+    box-shadow: 0 6px 20px rgba(74, 106, 127, 0.3);
 }
+
 .btn-dp {
     background: #f0ede8;
     border-color: #ccc6bd;
@@ -579,6 +748,7 @@ body {
 .btn-dp:hover {
     background: #e5e0d8;
 }
+
 .btn-mt {
     background: #f0f0e8;
     border-color: #c8c8b8;
@@ -587,6 +757,7 @@ body {
 .btn-mt:hover {
     background: #e5e5d8;
 }
+
 .btn-dy {
     background: #f0e8f0;
     border-color: #c8b8d0;
@@ -595,6 +766,7 @@ body {
 .btn-dy:hover {
     background: #e5dce8;
 }
+
 .btn-fav {
     background: #f5f0ea;
     border-color: #ddd6cd;
@@ -614,7 +786,6 @@ body {
     content: "🤍 ";
 }
 
-/* 休息点 */
 .rest-note {
     margin-top: 14px;
     font-size: 14px;
@@ -624,6 +795,7 @@ body {
     border-radius: 14px;
     border-left: 3px solid #c0b0a8;
 }
+
 .footer {
     margin-top: 40px;
     text-align: center;
@@ -633,9 +805,80 @@ body {
     padding-top: 22px;
 }
 
-/* ============================================================
-   返回顶部
-   ============================================================ */
+/* ---- 修改模式面板 ---- */
+#admin-panel {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f5f2ef;
+    border-radius: 16px;
+    border: 1px solid #e0dbd3;
+}
+
+#admin-panel .admin-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+#admin-panel .admin-row .btn-ctrl {
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid #c0b0a8;
+    background: #f0ede8;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#admin-panel .admin-row .btn-ctrl:hover {
+    background: #e5e0d8;
+    transform: translateY(-1px);
+}
+
+#admin-panel .admin-row input {
+    padding: 8px 14px;
+    border-radius: 30px;
+    border: 1px solid #ddd9d2;
+    font-size: 14px;
+    width: 160px;
+    background: #fff;
+}
+
+#admin-panel .admin-row .btn-login {
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: none;
+    background: #4a6a7f;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+#admin-panel .admin-row .btn-login:hover {
+    background: #3a5a6f;
+}
+
+#admin-panel .admin-row .status {
+    font-size: 13px;
+    color: #a0524a;
+}
+
+#admin-panel .admin-row .edit-area {
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+#admin-panel .admin-row .edit-area .badge {
+    font-size: 13px;
+    color: #4a6a7f;
+}
+
+/* ---- 返回顶部 ---- */
 #back-to-top {
     position: fixed;
     bottom: 30px;
@@ -672,9 +915,7 @@ body {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
 }
 
-/* ============================================================
-   响应式
-   ============================================================ */
+/* ---- 响应式 ---- */
 @media (min-width: 768px) {
     body {
         padding: 30px 40px;
@@ -695,6 +936,7 @@ body {
         font-size: 26px;
     }
 }
+
 @media (max-width: 420px) {
     .app-container {
         padding: 16px 12px 30px;
@@ -737,412 +979,15 @@ body {
         height: 46px;
         font-size: 20px;
     }
-}
-/* ============================================================
-   展开动画
-   ============================================================ */
-.day-body {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    padding: 0 20px;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.4s ease,
-                padding 0.3s ease;
+    .map-point {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
 }
 
-.day-group.open .day-body {
-    max-height: 2000px;  /* 足够大，实际由JS控制 */
-    opacity: 1;
-    padding: 6px 20px 24px;
-}
-
-/* 滚动置顶指示器 */
-#sticky-day-indicator {
-    position: sticky;
-    top: 4px;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(8px);
-    padding: 8px 16px;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    margin: 0 4px 8px 4px;
-    display: none;
-    font-size: 15px;
-    font-weight: 600;
-    color: #4a6a7f;
-    border: 1px solid #e8e4de;
-    transition: all 0.3s ease;
-}
-
-/* ============================================================
-   物理光效
-   ============================================================ */
-/* 卡片光效 */
-.place-card {
-    position: relative;
-    overflow: visible;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.place-card::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, rgba(160, 82, 74, 0.08), transparent 50%, rgba(74, 106, 127, 0.08));
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.place-card:hover::before {
-    opacity: 1;
-}
-
-.place-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-}
-
-/* 光效 - 顶部高光 */
-.place-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.place-card:hover::after {
-    opacity: 1;
-}
-
-/* 地图圆点光效 */
-.map-point {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #c06a5a, #a0524a);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
-    transform: translate(-50%, -50%);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.3s ease;
-    z-index: 10;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.map-point:hover {
-    transform: translate(-50%, -50%) scale(1.25);
-    box-shadow: 0 4px 20px rgba(160, 82, 74, 0.5), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
-    z-index: 20;
-}
-
-/* 卡片光效 - 悬浮卡片阴影 */
-#floating-card {
-    position: fixed;
-    z-index: 999;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    border-radius: 18px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    padding: 20px 24px 24px;
-    width: 280px;
-    max-width: 85vw;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(8px) scale(0.96);
-}
-
-#floating-card.show {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0) scale(1);
-}
-
-#floating-card[data-pinned="true"] {
-    box-shadow: 0 12px 40px rgba(160, 82, 74, 0.25), 0 0 0 2px #a0524a;
-}
-
-/* 按钮光效 */
-.btn {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn:hover::before {
-    left: 100%;
-}
-
-.btn:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-
-.btn-nav:hover {
-    box-shadow: 0 6px 20px rgba(74, 106, 127, 0.3);
-}
-
-.btn-dp:hover {
-    box-shadow: 0 6px 20px rgba(160, 82, 74, 0.15);
-}
-
-/* 淡入动画 */
+/* ---- 淡入动画 ---- */
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
-}
-
-/* ============================================================
-   Day 栏目滚动置顶（Sticky 吸附）
-   ============================================================ */
-.day-group {
-    position: relative;
-    scroll-margin-top: 60px; /* 为 sticky 留出空间 */
-}
-
-.day-group .day-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background-color: #fafaf8;
-    border-left: 5px solid #c0b0a8;
-    transition: box-shadow 0.3s ease, background-color 0.3s ease;
-}
-
-.day-group .day-header.sticky {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    background-color: #ffffff;
-}
-
-.day-group.open .day-header {
-    border-left-color: #a0524a;
-    background-color: #f8f5f2;
-}
-
-.day-group.open .day-header.sticky {
-    background-color: #f8f5f2;
-}
-
-/* 吸附时的顶部阴影指示 */
-.day-group .day-header::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.day-group .day-header.sticky::after {
-    opacity: 1;
-}
-
-/* ============================================================
-   展开/收缩动画（修复）
-   ============================================================ */
-.day-body {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    padding: 0 20px;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.4s ease 0.1s,
-                padding 0.3s ease;
-}
-
-.day-group.open .day-body {
-    max-height: 2000px;  /* 足够大 */
-    opacity: 1;
-    padding: 6px 20px 24px;
-    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s ease 0.15s,
-                padding 0.3s ease;
-}
-
-/* ============================================================
-   物理光效 - 点击波纹
-   ============================================================ */
-.ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(160, 82, 74, 0.3) 0%, rgba(74, 106, 127, 0.1) 50%, transparent 70%);
-    transform: scale(0);
-    animation: rippleAnim 0.8s ease-out forwards;
-    pointer-events: none;
-    z-index: 5;
-}
-
-@keyframes rippleAnim {
-    0% {
-        transform: scale(0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-
-/* 卡片点击光效触发区域 */
-.place-card {
-    position: relative;
-    overflow: hidden;
-    cursor: default;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.place-card.clickable {
-    cursor: pointer;
-}
-
-/* 卡片悬浮光效（柔和） */
-.place-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-                rgba(255, 255, 255, 0.08) 0%, 
-                transparent 60%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.place-card:hover::before {
-    opacity: 1;
-}
-
-/* 地图点光效（悬停发光） */
-.map-point {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #d47a6a, #a0524a);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
-    transform: translate(-50%, -50%);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.3s ease;
-    z-index: 10;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.map-point::after {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: -6px;
-    right: -6px;
-    bottom: -6px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(160, 82, 74, 0.2), transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1;
-}
-
-.map-point:hover {
-    transform: translate(-50%, -50%) scale(1.25);
-    box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.map-point:hover::after {
-    opacity: 1;
-}
-
-/* 悬浮卡片光效 */
-#floating-card {
-    position: fixed;
-    z-index: 999;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 18px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    padding: 20px 24px 24px;
-    width: 280px;
-    max-width: 85vw;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(8px) scale(0.96);
-}
-
-#floating-card.show {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0) scale(1);
-}
-
-#floating-card[data-pinned="true"] {
-    box-shadow: 0 12px 40px rgba(160, 82, 74, 0.25), 0 0 0 2px #a0524a;
-}
-
-/* 按钮点击波纹 */
-.btn {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.btn .ripple {
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
-}
-
-.btn-nav .ripple {
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-}
-
-.btn:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
