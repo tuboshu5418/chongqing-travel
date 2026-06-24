@@ -940,3 +940,72 @@ body {
     from { opacity: 0; transform: scale(0.96); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* ============================================================
+   Day 栏目 Sticky 置顶 + 展开/收缩动画（新增）
+   ============================================================ */
+
+/* 每个 day-group 作为滚动容器 */
+.day-group {
+    position: relative;
+    scroll-margin-top: 60px;
+}
+
+/* Day header 吸附在顶部 */
+.day-group .day-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: #fafaf8;
+    border-left: 5px solid #c0b0a8;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+/* 吸附时加阴影 */
+.day-group .day-header.sticky {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
+}
+
+/* 展开状态下 header 样式 */
+.day-group.open .day-header {
+    border-left-color: #a0524a;
+    background-color: #f8f5f2;
+}
+.day-group.open .day-header.sticky {
+    background-color: #f8f5f2;
+}
+
+/* 吸附时的底部阴影指示条 */
+.day-group .day-header::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.04), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.day-group .day-header.sticky::after {
+    opacity: 1;
+}
+
+/* ---- 展开/收缩动画 ---- */
+.day-body {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 20px;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s ease,
+                padding 0.3s ease;
+}
+
+.day-group.open .day-body {
+    max-height: 5000px;
+    opacity: 1;
+    padding: 6px 20px 24px;
+}
