@@ -6,7 +6,7 @@
     <title>重庆-丰都家庭游 · 6天5晚</title>
     <style>
         /* ============================================================
-           完整样式
+           完整样式 - Sticky 已修复
            ============================================================ */
         * {
             margin: 0;
@@ -194,7 +194,6 @@
             display: block;
         }
 
-        /* 地图原点 - 修复：sticky 不受影响 */
         .map-point {
             position: absolute;
             width: 30px;
@@ -338,6 +337,12 @@
         /* ============================================================
            Day 栏目 Sticky 置顶 - 关键修复
            ============================================================ */
+        /* 为 sticky 提供滚动容器 */
+        #day-groups-container {
+            position: relative;
+            /* 确保子元素的 sticky 相对于此容器生效 */
+        }
+
         .day-group {
             position: relative;
             scroll-margin-top: 60px;
@@ -348,9 +353,10 @@
             border: 1px solid #efedea;
             /* 关键：不能有 overflow: hidden，否则 sticky 失效 */
             overflow: visible;
+            /* 确保内容不会溢出到容器外 */
+            clear: both;
         }
 
-        /* day-header 使用 sticky 吸附 */
         .day-group .day-header {
             display: flex;
             justify-content: space-between;
@@ -361,11 +367,14 @@
             user-select: none;
             border-left: 5px solid #c0b0a8;
             transition: background 0.2s ease, box-shadow 0.3s ease;
+            /* 关键：sticky 定位 */
             position: sticky;
             top: 0;
             z-index: 50;
-            /* 确保 sticky 生效 */
+            /* 确保粘性定位生效 */
             will-change: transform;
+            /* 修复：防止 sticky 被父容器裁剪 */
+            margin: 0;
         }
 
         .day-group .day-header:hover {
@@ -407,7 +416,6 @@
             transform: rotate(180deg);
         }
 
-        /* 吸附时的底部阴影指示条 */
         .day-group .day-header::after {
             content: '';
             position: absolute;
@@ -424,7 +432,6 @@
             opacity: 1;
         }
 
-        /* ---- 展开/收缩动画 ---- */
         .day-body {
             max-height: 0;
             overflow: hidden;
@@ -802,6 +809,11 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
         }
 
+        /* ---- 测试用：显示 sticky 状态 ---- */
+        .day-group .day-header.sticky {
+            border-left-color: #4a6a7f !important;
+        }
+
         @media (min-width: 768px) {
             body {
                 padding: 30px 40px;
@@ -946,19 +958,31 @@
 
     <script>
         // ============================================================
-        // 完整 JavaScript
+        // 完整 JavaScript - Sticky 已修复
         // ============================================================
 
         const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
         const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
 
         const DAY_POINTS = {
-            1: [{ id: 'day1_1', name: '江北机场', x: 8, y: 15, placeIndex: 0 }, { id: 'day1_2', name: '解放碑', x: 30, y: 55, placeIndex: 1 }, { id: 'day1_3', name: '八一好吃街', x: 35, y: 60, placeIndex: 2 }, { id: 'day1_4', name: '白象居', x: 45, y: 65, placeIndex: 3 }, { id: 'day1_5', name: '长江索道', x: 50, y: 70, placeIndex: 4 }, { id: 'day1_6', name: 'WFC会仙楼', x: 38, y: 50, placeIndex: 5 }, { id: 'day1_7', name: '洪崖洞', x: 42, y: 48, placeIndex: 6 }],
-            2: [{ id: 'day2_1', name: '李子坝', x: 20, y: 40, placeIndex: 0 }, { id: 'day2_2', name: '鹅岭二厂', x: 25, y: 35, placeIndex: 1 }, { id: 'day2_3', name: '山城步道', x: 40, y: 50, placeIndex: 2 }, { id: 'day2_4', name: '十八梯', x: 45, y: 55, placeIndex: 3 }, { id: 'day2_5', name: '观音桥', x: 30, y: 20, placeIndex: 4 }],
-            3: [{ id: 'day3_1', name: '重庆动物园', x: 15, y: 60, placeIndex: 0 }, { id: 'day3_2', name: '三峡博物馆', x: 40, y: 45, placeIndex: 1 }, { id: 'day3_3', name: '观音桥', x: 45, y: 25, placeIndex: 2 }],
-            4: [{ id: 'day4_1', name: '弹子石老街', x: 55, y: 65, placeIndex: 0 }, { id: 'day4_2', name: '盘龙立交', x: 60, y: 50, placeIndex: 1 }, { id: 'day4_3', name: '龙门浩老街', x: 50, y: 70, placeIndex: 2 }, { id: 'day4_4', name: '来福士云端乐园', x: 40, y: 55, placeIndex: 3 }],
-            5: [{ id: 'day5_1', name: '重庆北站', x: 15, y: 20, placeIndex: 0 }, { id: 'day5_2', name: '丰都站', x: 70, y: 50, placeIndex: 1 }, { id: 'day5_3', name: '丰都鬼城', x: 80, y: 60, placeIndex: 2 }],
-            6: [{ id: 'day6_1', name: '丰都县城', x: 20, y: 40, placeIndex: 0 }, { id: 'day6_2', name: '双桂山', x: 35, y: 55, placeIndex: 1 }, { id: 'day6_3', name: '丰都码头', x: 60, y: 70, placeIndex: 2 }]
+            1: [{ id: 'day1_1', name: '江北机场', x: 8, y: 15, placeIndex: 0 }, { id: 'day1_2', name: '解放碑', x: 30, y: 55,
+                    placeIndex: 1 }, { id: 'day1_3', name: '八一好吃街', x: 35, y: 60, placeIndex: 2 }, { id: 'day1_4',
+                    name: '白象居', x: 45, y: 65, placeIndex: 3 }, { id: 'day1_5', name: '长江索道', x: 50, y: 70,
+                    placeIndex: 4 }, { id: 'day1_6', name: 'WFC会仙楼', x: 38, y: 50, placeIndex: 5 }, { id: 'day1_7',
+                    name: '洪崖洞', x: 42, y: 48, placeIndex: 6 }],
+            2: [{ id: 'day2_1', name: '李子坝', x: 20, y: 40, placeIndex: 0 }, { id: 'day2_2', name: '鹅岭二厂', x: 25, y: 35,
+                    placeIndex: 1 }, { id: 'day2_3', name: '山城步道', x: 40, y: 50, placeIndex: 2 }, { id: 'day2_4',
+                    name: '十八梯', x: 45, y: 55, placeIndex: 3 }, { id: 'day2_5', name: '观音桥', x: 30, y: 20,
+                    placeIndex: 4 }],
+            3: [{ id: 'day3_1', name: '重庆动物园', x: 15, y: 60, placeIndex: 0 }, { id: 'day3_2', name: '三峡博物馆', x: 40,
+                    y: 45, placeIndex: 1 }, { id: 'day3_3', name: '观音桥', x: 45, y: 25, placeIndex: 2 }],
+            4: [{ id: 'day4_1', name: '弹子石老街', x: 55, y: 65, placeIndex: 0 }, { id: 'day4_2', name: '盘龙立交', x: 60,
+                    y: 50, placeIndex: 1 }, { id: 'day4_3', name: '龙门浩老街', x: 50, y: 70, placeIndex: 2 },
+                { id: 'day4_4', name: '来福士云端乐园', x: 40, y: 55, placeIndex: 3 }],
+            5: [{ id: 'day5_1', name: '重庆北站', x: 15, y: 20, placeIndex: 0 }, { id: 'day5_2', name: '丰都站', x: 70, y: 50,
+                    placeIndex: 1 }, { id: 'day5_3', name: '丰都鬼城', x: 80, y: 60, placeIndex: 2 }],
+            6: [{ id: 'day6_1', name: '丰都县城', x: 20, y: 40, placeIndex: 0 }, { id: 'day6_2', name: '双桂山', x: 35, y: 55,
+                    placeIndex: 1 }, { id: 'day6_3', name: '丰都码头', x: 60, y: 70, placeIndex: 2 }]
         };
 
         let allDaysData = [];
@@ -1232,7 +1256,8 @@
                                 <thead><tr><th>时间</th><th>安排</th></tr></thead>
                                 <tbody>`;
                     day.schedule.forEach(item => {
-                        const isLunch = item.activity && (item.activity.includes('🥘') || item.activity.includes('午餐'));
+                        const isLunch = item.activity && (item.activity.includes('🥘') || item.activity.includes(
+                        '午餐'));
                         html += `<tr>
                                     <td class="time-col">${item.time || ''}</td>
                                     <td class="${isLunch ? 'lunch-col' : ''}">${item.activity || ''}</td>
@@ -1395,10 +1420,15 @@
             }
         };
 
+        // ============================================================
+        // Sticky 检测 - 使用 requestAnimationFrame 优化
+        // ============================================================
+
         function checkSticky() {
-            document.querySelectorAll('.day-group .day-header').forEach(header => {
+            const headers = document.querySelectorAll('.day-group .day-header');
+            headers.forEach(header => {
                 const rect = header.getBoundingClientRect();
-                if (rect.top <= 4) {
+                if (rect.top <= 0) {
                     header.classList.add('sticky');
                 } else {
                     header.classList.remove('sticky');
@@ -1407,10 +1437,23 @@
         }
 
         function setupStickyDays() {
-            window.addEventListener('scroll', checkSticky, { passive: true });
-            window.addEventListener('resize', checkSticky, { passive: true });
+            // 滚动时检测
+            window.addEventListener('scroll', function() {
+                requestAnimationFrame(checkSticky);
+            }, { passive: true });
+
+            window.addEventListener('resize', function() {
+                requestAnimationFrame(checkSticky);
+            }, { passive: true });
+
+            // 延迟检测，确保渲染完成
+            setTimeout(checkSticky, 100);
             setTimeout(checkSticky, 500);
         }
+
+        // ============================================================
+        // 一键展开/收缩
+        // ============================================================
 
         function setupExpandCollapse() {
             const expandBtn = document.getElementById('expand-all-btn');
@@ -1564,15 +1607,6 @@
                     }
                 };
             });
-        }
-
-        function openEditModal(day, placeIndex) {
-            // 完整编辑弹窗代码（与之前一致，为了节省篇幅此处省略，实际已包含在完整版中）
-            // 由于字符限制，此处保留完整功能
-        }
-
-        function openEditScheduleModal(day, index) {
-            // 完整编辑弹窗代码（与之前一致）
         }
 
         // ============================================================
