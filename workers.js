@@ -3,7 +3,7 @@
 // ============================================================
 
 // 图片仓库基础URL（优先使用Cloudflare Pages，被屏蔽时切换至GitHub）
-const CDN_BASE = 'https://chongqing-travel.pages.dev/images';  // 你的Pages域名
+const CDN_BASE = 'https://chongqing-travel-images.pages.dev';  // 你的Pages域名
 const GITHUB_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
 
 // 高德导航URI前缀（不需要Key）
@@ -42,7 +42,7 @@ export default {
             return handleOptions();
         }
 
-        const db = env.travel_data;
+        const db =  env['travel_data'];
 
         try {
             // ============================================================
