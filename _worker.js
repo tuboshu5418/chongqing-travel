@@ -1,6 +1,5 @@
 // ============================================================
 // 重庆-丰都旅游攻略 - Cloudflare Workers
-// 学习示例写法，使用 return env.ASSETS.fetch(request) 托管静态文件
 // ============================================================
 
 const GITHUB_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
@@ -22,46 +21,103 @@ function jsonResponse(data, status = 200) {
     });
 }
 
+// SHA256 加密函数
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
         const path = url.pathname;
         const method = request.method;
 
-        // OPTIONS 预检
         if (method === 'OPTIONS') {
-            return new Response(null, {
-                status: 204,
-                headers: corsHeaders,
-            });
+            return new Response(null, { status: 204, headers: corsHeaders });
         }
 
         const db = env['travel_data'];
 
         // ============================================================
-        // API 路由（在静态资源之前优先处理）
+        // 1. 管理员验证
         // ============================================================
-
-        // 高德导航链接
-        if (path === '/api/amap-link') {
-            const params = url.searchParams;
-            const lng = params.get('lng');
-            const lat = params.get('lat');
-            const name = params.get('name') || '目的地';
-            if (!lng || !lat) {
-                return jsonResponse({ error: '缺少经纬度参数' }, 400);
+        if (path === '/api/admin/verify' && method === 'POST') {
+            try {
+                const { password } = await request.json();
+                const hash = await sha256(password);
+                const result = await db.prepare(
+                    'SELECT username FROM admin WHERE password_hash = ?'
+                ).bind(hash).first();
+                
+                if (result) {
+                    return jsonResponse({ success: true });
+                } else {
+                    return jsonResponse({ success: false, error: '密码错误' }, 401);
+                }
+            } catch (e) {
+                return jsonResponse({ error: e.message }, 500);
             }
-            return jsonResponse({
-                link: `${AMAP_URI_BASE}?position=${lng},${lat}&name=${encodeURIComponent(name)}`
-            });
         }
 
-        // 图片Base URL
-        if (path === '/api/images/base') {
-            return jsonResponse({ github: GITHUB_BASE });
+        // ============================================================
+        // 2. 更新行程（需要验证）
+        // ============================================================
+        if (path === '/api/itinerary/update' && method === 'POST') {
+            try {
+                const { password, day, title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, schedule, places } = await request.json();
+                
+                // 验证密码
+                const hash = await sha256(password);
+                const admin = await db.prepare(
+                    'SELECT username FROM admin WHERE password_hash = ?'
+                ).bind(hash).first();
+                
+                if (!admin) {
+                    return jsonResponse({ error: '密码错误，无权修改' }, 401);
+                }
+
+                // 更新行程
+                const updates = [];
+                const values = [];
+
+                if (title !== undefined) { updates.push('title = ?'); values.push(title); }
+                if (subtitle !== undefined) { updates.push('subtitle = ?'); values.push(subtitle); }
+                if (walk_badge !== undefined) { updates.push('walk_badge = ?'); values.push(walk_badge); }
+                if (rest_note !== undefined) { updates.push('rest_note = ?'); values.push(rest_note); }
+                if (breakfast !== undefined) { updates.push('breakfast = ?'); values.push(breakfast); }
+                if (lunch !== undefined) { updates.push('lunch = ?'); values.push(lunch); }
+                if (dinner !== undefined) { updates.push('dinner = ?'); values.push(dinner); }
+                if (schedule !== undefined) { updates.push('schedule = ?'); values.push(JSON.stringify(schedule)); }
+                if (places !== undefined) { updates.push('places = ?'); values.push(JSON.stringify(places)); }
+
+                if (updates.length === 0) {
+                    return jsonResponse({ error: '没有要更新的字段' }, 400);
+                }
+
+                values.push(day);
+                const query = `UPDATE itinerary SET ${updates.join(', ')} WHERE day = ?`;
+                await db.prepare(query).bind(...values).run();
+
+                // 返回更新后的数据
+                const updated = await db.prepare(
+                    'SELECT * FROM itinerary WHERE day = ?'
+                ).bind(day).first();
+
+                if (updated.schedule) updated.schedule = JSON.parse(updated.schedule);
+                if (updated.places) updated.places = JSON.parse(updated.places);
+
+                return jsonResponse({ success: true, data: updated });
+            } catch (e) {
+                return jsonResponse({ error: e.message }, 500);
+            }
         }
 
-        // 行程API
+        // ============================================================
+        // 3. 获取行程数据
+        // ============================================================
         if (path.startsWith('/api/itinerary')) {
             const parts = path.split('/');
             const dayParam = parts[parts.length - 1];
@@ -69,7 +125,6 @@ export default {
 
             if (method === 'GET') {
                 try {
-                    // 查询某一天
                     if (!isNaN(dayNumber) && dayNumber > 0) {
                         const result = await db.prepare(
                             'SELECT * FROM itinerary WHERE day = ?'
@@ -84,7 +139,6 @@ export default {
                         return jsonResponse(result);
                     }
 
-                    // 查询所有天
                     const { results } = await db.prepare(
                         'SELECT * FROM itinerary ORDER BY day ASC'
                     ).all();
@@ -101,71 +155,35 @@ export default {
                 }
             }
 
-            // PUT 更新
-            if (method === 'PUT') {
-                if (isNaN(dayNumber) || dayNumber <= 0) {
-                    return jsonResponse({ error: 'Invalid day parameter' }, 400);
-                }
-
-                try {
-                    const body = await request.json();
-                    const { title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, schedule, places } = body;
-
-                    const existing = await db.prepare(
-                        'SELECT id FROM itinerary WHERE day = ?'
-                    ).bind(dayNumber).first();
-
-                    if (!existing) {
-                        return jsonResponse({ error: `Day ${dayNumber} not found` }, 404);
-                    }
-
-                    const updates = [];
-                    const values = [];
-
-                    if (title !== undefined) { updates.push('title = ?'); values.push(title); }
-                    if (subtitle !== undefined) { updates.push('subtitle = ?'); values.push(subtitle); }
-                    if (walk_badge !== undefined) { updates.push('walk_badge = ?'); values.push(walk_badge); }
-                    if (rest_note !== undefined) { updates.push('rest_note = ?'); values.push(rest_note); }
-                    if (breakfast !== undefined) { updates.push('breakfast = ?'); values.push(breakfast); }
-                    if (lunch !== undefined) { updates.push('lunch = ?'); values.push(lunch); }
-                    if (dinner !== undefined) { updates.push('dinner = ?'); values.push(dinner); }
-                    if (schedule !== undefined) { updates.push('schedule = ?'); values.push(JSON.stringify(schedule)); }
-                    if (places !== undefined) { updates.push('places = ?'); values.push(JSON.stringify(places)); }
-
-                    if (updates.length === 0) {
-                        return jsonResponse({ error: 'No fields to update' }, 400);
-                    }
-
-                    values.push(dayNumber);
-                    const query = `UPDATE itinerary SET ${updates.join(', ')} WHERE day = ?`;
-                    await db.prepare(query).bind(...values).run();
-
-                    const updated = await db.prepare(
-                        'SELECT * FROM itinerary WHERE day = ?'
-                    ).bind(dayNumber).first();
-
-                    if (updated.schedule) updated.schedule = JSON.parse(updated.schedule);
-                    if (updated.places) updated.places = JSON.parse(updated.places);
-
-                    return jsonResponse(updated);
-                } catch (e) {
-                    return jsonResponse({ error: '更新失败: ' + e.message }, 500);
-                }
-            }
-
             return jsonResponse({ error: 'Method not allowed' }, 405);
         }
 
         // ============================================================
-        // 其他 API 路由返回 404
+        // 4. 其他 API
         // ============================================================
+        if (path === '/api/amap-link') {
+            const params = url.searchParams;
+            const lng = params.get('lng');
+            const lat = params.get('lat');
+            const name = params.get('name') || '目的地';
+            if (!lng || !lat) {
+                return jsonResponse({ error: '缺少经纬度参数' }, 400);
+            }
+            return jsonResponse({
+                link: `${AMAP_URI_BASE}?position=${lng},${lat}&name=${encodeURIComponent(name)}`
+            });
+        }
+
+        if (path === '/api/images/base') {
+            return jsonResponse({ github: GITHUB_BASE });
+        }
+
         if (path.startsWith('/api/')) {
             return jsonResponse({ error: 'API not found' }, 404);
         }
 
         // ============================================================
-        // 关键：静态资源托管（学习示例写法）
-        // 所有非 API 请求交给 Pages 静态存储处理
+        // 5. 静态资源托管
         // ============================================================
         return env.ASSETS.fetch(request);
     }
