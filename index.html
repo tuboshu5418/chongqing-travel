@@ -56,7 +56,26 @@
 
         <!-- 每日行程 -->
         <div id="day-groups-container"></div>
-
+        <!-- ============================================================
+        修改模式 - 密码验证
+        ============================================================ -->
+        <div id="admin-panel" style="margin-top:20px; padding:16px; background:#f5f2ef; border-radius:16px; border:1px solid #e0dbd3;">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <button id="admin-toggle-btn" style="padding:8px 20px; border-radius:30px; border:1px solid #c0b0a8; background:#f0ede8; cursor:pointer; font-size:14px;">
+                    🔧 修改模式
+                </button>
+                <div id="admin-login-area" style="display:none; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <input type="password" id="admin-password-input" placeholder="请输入密码" style="padding:8px 14px; border-radius:30px; border:1px solid #ddd9d2; font-size:14px; width:160px;">
+                    <button id="admin-login-btn" style="padding:8px 20px; border-radius:30px; border:none; background:#4a6a7f; color:#fff; cursor:pointer; font-size:14px;">验证</button>
+                    <span id="admin-login-status" style="font-size:13px; color:#a0524a;"></span>
+                </div>
+                <div id="admin-edit-area" style="display:none; flex-wrap:wrap; gap:8px;">
+                    <span style="font-size:13px; color:#4a6a7f;">✅ 已进入修改模式</span>
+                    <button id="admin-expand-all-btn" style="padding:6px 16px; border-radius:30px; border:1px solid #c0b0a8; background:#f0ede8; cursor:pointer; font-size:13px;">📂 全部展开</button>
+                    <button id="admin-collapse-all-btn" style="padding:6px 16px; border-radius:30px; border:1px solid #c0b0a8; background:#f0ede8; cursor:pointer; font-size:13px;">📁 全部收起</button>
+                </div>
+            </div>
+        </div>
         <div class="footer">
             📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快
         </div>
