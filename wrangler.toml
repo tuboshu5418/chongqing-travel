@@ -1,0 +1,8 @@
+name = "chongqing-travel"
+main = "workers.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "travel_data"        # 代码中使用的变量名
+database_name = "travel-data"  # 你在 Cloudflare 创建的数据库名称
+database_id = "9e2423e5-adba-48c2-a678-ddc3937d6be2"    # 在 Cloudflare 仪表盘 D1 页面可以找到
