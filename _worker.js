@@ -179,23 +179,24 @@ export default {
         // 2. 静态资源托管
         // ============================================================
         try {
-            // 处理根路径
-            let filePath = path;
-            if (filePath === '/' || filePath === '') {
-                filePath = '/index.html';
-            }
-
-            // 从 Pages 静态存储获取文件
-            const asset = await env.ASSETS.fetch(
-                new Request(new URL(filePath, request.url).toString(), request)
-            );
-
-            // 如果文件存在，直接返回
-            if (asset.status === 200) {
-                return asset;
-            }
+        // 构建完整的文件路径
+        let filePath = path;
+        if (filePath === '/' || filePath === '') {
+            filePath = '/index.html';
+        }
+        
+        // 使用 env.ASSETS 获取静态文件
+        // 注意：需要将请求 URL 重新构造，确保路径正确
+        const assetUrl = new URL(filePath, request.url);
+        const assetRequest = new Request(assetUrl.toString(), request);
+        const asset = await env.ASSETS.fetch(assetRequest);
+    
+        // 如果成功获取到文件，直接返回
+        if (asset.status === 200 || asset.status === 304) {
+            return asset;
+        }
         } catch (e) {
-            // 静态文件获取失败，继续执行
+            // 静态文件获取失败，继续执行 404
         }
 
         // ============================================================
