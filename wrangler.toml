@@ -1,7 +1,6 @@
 name = "chongqing-travel"
 main = "workers.js"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = "."   # 关键：告诉 Pages 输出目录
 
 [[d1_databases]]
 binding = "travel_data"        # 代码中使用的变量名
