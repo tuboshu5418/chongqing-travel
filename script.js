@@ -1001,7 +1001,27 @@ function setupBackToTop() {
 }
 
 // ============================================================
-// 15. 页面加载
+// 15. Sticky 置顶检测
+// ============================================================
+function checkSticky() {
+    document.querySelectorAll('.day-group .day-header').forEach(header => {
+        const rect = header.getBoundingClientRect();
+        if (rect.top <= 4) {
+            header.classList.add('sticky');
+        } else {
+            header.classList.remove('sticky');
+        }
+    });
+}
+
+function setupStickyDays() {
+    window.addEventListener('scroll', checkSticky, { passive: true });
+    window.addEventListener('resize', checkSticky, { passive: true });
+    setTimeout(checkSticky, 500);
+}
+
+// ============================================================
+// 17. 页面加载
 // ============================================================
 document.addEventListener('DOMContentLoaded', async function() {
     const data = await loadItineraryData();
