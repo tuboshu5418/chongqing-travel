@@ -1,11 +1,12 @@
 // ============================================================
-// 配置
+// 重庆-丰都旅游攻略 - 完整主脚本
 // ============================================================
+
+// ---- 配置 ----
 const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
 const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
 
-// 6天路线图的景点圆点坐标（百分比，相对于图片宽高）
-// 需要根据你实际截图的比例调整这些值
+// 路线图圆点坐标（百分比）
 const DAY_POINTS = {
     1: [
         { id: 'day1_1', name: '江北机场', x: 8, y: 15, placeIndex: 0 },
@@ -46,15 +47,15 @@ const DAY_POINTS = {
     ]
 };
 
-// ============================================================
-// 状态
-// ============================================================
+// ---- 状态 ----
 let allDaysData = [];
 let currentTab = 1;
+let isAdminMode = false;
+let floatingCardPinned = false;
+let floatingCardData = null;
+let currentOpenDay = null;
 
-// ============================================================
-// DOM 引用
-// ============================================================
+// ---- DOM 引用 ----
 const floatingCard = document.getElementById('floating-card');
 const floatingCardClose = document.getElementById('floating-card-close');
 const floatingCardImg = document.getElementById('floating-card-img');
@@ -63,7 +64,7 @@ const floatingCardDesc = document.getElementById('floating-card-desc');
 const floatingCardJump = document.getElementById('floating-card-jump');
 
 // ============================================================
-// 1. 从 API 加载行程数据
+// 1. 数据加载
 // ============================================================
 async function loadItineraryData() {
     try {
@@ -79,10 +80,9 @@ async function loadItineraryData() {
 }
 
 // ============================================================
-// 2. 渲染路线总览
+// 2. 路线总览
 // ============================================================
 function renderOverview() {
-    // 生成标签
     const tabBar = document.getElementById('tab-bar');
     tabBar.innerHTML = '';
     for (let i = 1; i <= 6; i++) {
@@ -93,8 +93,6 @@ function renderOverview() {
         btn.onclick = () => switchTab(i);
         tabBar.appendChild(btn);
     }
-
-    // 渲染当前标签的地图
     renderMap(currentTab);
 }
 
@@ -111,7 +109,9 @@ function renderMap(day) {
              </div>`;
 
     points.forEach(p => {
-        html += `<div class="map-point" style="left:${p.x}%; top:${p.y}%;" data-day="${day}" data-place-index="${p.placeIndex}" onclick="showFloatingCard(${day}, ${p.placeIndex}, event)">
+        html += `<div class="map-point" style="left:${p.x}%; top:${p.y}%;" data-day="${day}" data-place-index="${p.placeIndex}" 
+                     onmouseenter="onMapPointHover(${day}, ${p.placeIndex}, this)" 
+                     onclick="onMapPointClick(${day}, ${p.placeIndex}, this)">
                     ${p.placeIndex + 1}
                 </div>`;
     });
@@ -129,38 +129,36 @@ function switchTab(day) {
 }
 
 // ============================================================
-// 3. 悬浮卡片
+// 3. 悬浮卡片（悬停 + 点击）
 // ============================================================
-function showFloatingCard(day, placeIndex, event) {
+function getDayPlaceData(day, placeIndex) {
     const dayData = allDaysData.find(d => d.day === day);
     if (!dayData || !dayData.places || !dayData.places[placeIndex]) {
-        return;
+        return null;
     }
+    return dayData.places[placeIndex];
+}
 
-    const place = dayData.places[placeIndex];
-    const rect = event.target.getBoundingClientRect();
+function showFloatingCard(day, placeIndex, event, isPinned = false) {
+    const place = getDayPlaceData(day, placeIndex);
+    if (!place) return;
 
-    // 设置卡片内容
+    floatingCardData = { day, placeIndex };
+
     floatingCardName.textContent = place.name;
     floatingCardDesc.textContent = place.desc || '暂无介绍';
 
-    // 图片
     const imgName = getImageName(place.name);
     if (imgName) {
         floatingCardImg.src = GITHUB_IMAGE_BASE + '/' + imgName;
         floatingCardImg.style.display = 'block';
-        floatingCardImg.onerror = () => {
-            floatingCardImg.style.display = 'none';
-        };
+        floatingCardImg.onerror = () => { floatingCardImg.style.display = 'none'; };
     } else {
         floatingCardImg.style.display = 'none';
     }
 
-    // 存储跳转信息
-    floatingCard.dataset.day = day;
-    floatingCard.dataset.placeIndex = placeIndex;
-
     // 定位
+    const rect = event.getBoundingClientRect();
     let left = rect.left + rect.width / 2 - 140;
     let top = rect.bottom + 12;
     if (left < 10) left = 10;
@@ -172,58 +170,94 @@ function showFloatingCard(day, placeIndex, event) {
     floatingCard.style.left = left + 'px';
     floatingCard.style.top = top + 'px';
     floatingCard.style.display = 'block';
+    
+    floatingCardPinned = isPinned;
+    if (isPinned) {
+        floatingCard.dataset.pinned = 'true';
+    } else {
+        floatingCard.dataset.pinned = 'false';
+    }
+
     requestAnimationFrame(() => {
         floatingCard.classList.add('show');
     });
 }
 
 function hideFloatingCard() {
+    if (floatingCardPinned) return;
     floatingCard.classList.remove('show');
     setTimeout(() => {
-        floatingCard.style.display = 'none';
+        if (!floatingCardPinned) {
+            floatingCard.style.display = 'none';
+        }
     }, 300);
 }
 
-// 跳转至行程
-floatingCardJump.onclick = function() {
-    const day = parseInt(floatingCard.dataset.day);
-    const placeIndex = parseInt(floatingCard.dataset.placeIndex);
+function onMapPointHover(day, placeIndex, element) {
+    if (floatingCardPinned) return;
+    showFloatingCard(day, placeIndex, element, false);
+}
+
+function onMapPointClick(day, placeIndex, element) {
+    if (floatingCardPinned && floatingCardData && 
+        floatingCardData.day === day && floatingCardData.placeIndex === placeIndex) {
+        floatingCardPinned = false;
+        floatingCard.dataset.pinned = 'false';
+        hideFloatingCard();
+        return;
+    }
+    showFloatingCard(day, placeIndex, element, true);
+}
+
+floatingCardClose.onclick = function() {
+    floatingCardPinned = false;
+    floatingCard.dataset.pinned = 'false';
     hideFloatingCard();
-
-    // 展开所有天
-    document.querySelectorAll('.day-group').forEach(g => g.classList.add('open'));
-
-    // 滚动到对应景点卡片
-    setTimeout(() => {
-        const cards = document.querySelectorAll('.place-card');
-        let target = null;
-        let count = 0;
-        for (let i = 0; i < cards.length; i++) {
-            const d = parseInt(cards[i].dataset.day);
-            if (d === day) {
-                if (count === placeIndex) {
-                    target = cards[i];
-                    break;
-                }
-                count++;
-            }
-        }
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            target.style.boxShadow = '0 0 0 3px #a0524a';
-            setTimeout(() => { target.style.boxShadow = ''; }, 2000);
-        }
-    }, 300);
 };
 
-floatingCardClose.onclick = hideFloatingCard;
 document.addEventListener('click', function(e) {
     if (floatingCard.style.display === 'block' && !floatingCard.contains(e.target) && !e.target.closest('.map-point')) {
-        hideFloatingCard();
+        if (!floatingCardPinned) {
+            hideFloatingCard();
+        }
     }
 });
 
-// 辅助：根据景点名称获取图片文件名
+floatingCardJump.onclick = function() {
+    if (!floatingCardData) return;
+    const { day, placeIndex } = floatingCardData;
+    
+    floatingCardPinned = false;
+    floatingCard.dataset.pinned = 'false';
+    hideFloatingCard();
+
+    const targetDay = document.getElementById('day-group-' + day);
+    if (targetDay) {
+        document.querySelectorAll('.day-group').forEach(g => {
+            g.classList.add('open');
+            const body = g.querySelector('.day-body');
+            if (body) {
+                body.style.maxHeight = body.scrollHeight + 'px';
+                body.style.opacity = '1';
+                body.style.padding = '6px 20px 24px';
+            }
+        });
+        setTimeout(() => {
+            targetDay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            targetDay.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+            targetDay.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+            targetDay.style.borderColor = '#a0524a';
+            setTimeout(() => {
+                targetDay.style.boxShadow = '';
+                targetDay.style.borderColor = '';
+            }, 3000);
+        }, 300);
+    }
+};
+
+// ============================================================
+// 4. 图片名称映射
+// ============================================================
 function getImageName(name) {
     const map = {
         '解放碑': 'jiefangbei.jpg',
@@ -248,7 +282,6 @@ function getImageName(name) {
         '丰都鬼城': 'fengduguicheng.jpg',
         '丰都码头': 'fengdumatou.jpg'
     };
-    // 模糊匹配
     for (const [key, value] of Object.entries(map)) {
         if (name.includes(key) || key.includes(name)) {
             return value;
@@ -258,7 +291,7 @@ function getImageName(name) {
 }
 
 // ============================================================
-// 4. 渲染每日行程
+// 5. 渲染每日行程
 // ============================================================
 function renderDays(data) {
     const container = document.getElementById('day-groups-container');
@@ -266,21 +299,19 @@ function renderDays(data) {
 
     let html = '';
     data.forEach((day, index) => {
-        const isOpen = false; // 默认全部折叠
+        const isOpen = false;
 
-        html += `<div class="day-group ${isOpen ? 'open' : ''}" id="day-group-${day.day}">`;
+        html += `<div class="day-group" id="day-group-${day.day}">`;
         html += `<div class="day-header" onclick="toggleDay(this)">
                     <span class="title">${day.title} <small>${day.subtitle || ''}</small></span>
                     <span class="arrow">▾</span>
                 </div>`;
         html += `<div class="day-body">`;
 
-        // 步行难度
         if (day.walk_badge) {
             html += `<div class="walk-badge">${day.walk_badge}</div>`;
         }
 
-        // 三餐
         if (day.breakfast || day.lunch || day.dinner) {
             html += `<div class="meal-bar">`;
             if (day.breakfast) html += `<span>🌅 早餐：${day.breakfast}</span>`;
@@ -289,7 +320,6 @@ function renderDays(data) {
             html += `</div>`;
         }
 
-        // 时间表
         if (day.schedule && day.schedule.length > 0) {
             html += `<table class="schedule-table">
                         <thead><tr><th>时间</th><th>安排</th></tr></thead>
@@ -304,31 +334,26 @@ function renderDays(data) {
             html += `</tbody></table>`;
         }
 
-        // 景点卡片
         if (day.places && day.places.length > 0) {
             day.places.forEach((place, idx) => {
                 const imgName = getImageName(place.name);
                 const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
+                const emoji = getEmoji(place.name);
 
                 html += `<div class="place-card" data-day="${day.day}" data-place-index="${idx}">`;
                 html += `<div class="place-name">${place.name} <span class="tag">${place.tag || ''}</span></div>`;
-
-                // 图片
                 html += `<div class="place-image">`;
                 if (imgUrl) {
                     html += `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
-                    html += `<div class="placeholder-text" style="display:none;"><span>${getEmoji(place.name)}</span>${place.name}</div>`;
+                    html += `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
                 } else {
-                    html += `<div class="placeholder-text"><span>${getEmoji(place.name)}</span>${place.name}</div>`;
+                    html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
                 }
                 html += `</div>`;
-
                 html += `<div class="place-desc">${place.desc || ''}</div>`;
                 if (place.meta) {
                     html += `<div class="meta">${place.meta}</div>`;
                 }
-
-                // 按钮组
                 html += `<div class="btn-group">`;
                 if (place.navLink) {
                     html += `<a class="btn btn-nav" href="${place.navLink}" target="_blank">🧭 导航</a>`;
@@ -344,7 +369,6 @@ function renderDays(data) {
                     html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
                 }
                 html += `</div>`;
-
                 html += `</div>`;
             });
         }
@@ -358,9 +382,14 @@ function renderDays(data) {
     });
 
     container.innerHTML = html;
+    // 初始化展开状态
+    document.querySelectorAll('.day-group .day-body').forEach(body => {
+        body.style.maxHeight = '0';
+        body.style.opacity = '0';
+        body.style.padding = '0 20px';
+    });
 }
 
-// 辅助：获取景点Emoji
 function getEmoji(name) {
     const map = {
         '机场': '✈️',
@@ -393,20 +422,451 @@ function getEmoji(name) {
 }
 
 // ============================================================
-// 5. 折叠切换
+// 6. 折叠切换（带动画）
 // ============================================================
-window.toggleOverview = function(header) {
-    const group = header.closest('.overview-group');
-    if (group) group.classList.toggle('open');
-};
-
 window.toggleDay = function(header) {
     const group = header.closest('.day-group');
-    if (group) group.classList.toggle('open');
+    if (!group) return;
+    const body = group.querySelector('.day-body');
+    if (!body) return;
+
+    const isOpen = group.classList.contains('open');
+    if (isOpen) {
+        body.style.maxHeight = body.scrollHeight + 'px';
+        requestAnimationFrame(() => {
+            body.style.maxHeight = '0';
+            body.style.opacity = '0';
+            body.style.padding = '0 20px';
+        });
+        group.classList.remove('open');
+    } else {
+        group.classList.add('open');
+        body.style.maxHeight = '0';
+        body.style.opacity = '0';
+        body.style.padding = '0 20px';
+        requestAnimationFrame(() => {
+            body.style.maxHeight = body.scrollHeight + 'px';
+            body.style.opacity = '1';
+            body.style.padding = '6px 20px 24px';
+        });
+    }
 };
 
 // ============================================================
-// 6. 滚动动画（Intersection Observer）
+// 7. 滚动置顶指示器
+// ============================================================
+function setupStickyDays() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const dayId = entry.target.id;
+                const indicator = document.getElementById('sticky-day-indicator');
+                if (!indicator) return;
+                const day = allDaysData.find(d => d.id === dayId);
+                if (day) {
+                    indicator.textContent = `📍 当前查看: ${day.title} ${day.subtitle || ''}`;
+                    indicator.style.display = 'block';
+                }
+            }
+        });
+    }, {
+        threshold: 0.3,
+        rootMargin: '0px 0px -100px 0px'
+    });
+
+    document.querySelectorAll('.day-group').forEach(group => observer.observe(group));
+
+    // 创建指示器
+    const indicator = document.createElement('div');
+    indicator.id = 'sticky-day-indicator';
+    document.querySelector('.app-container').prepend(indicator);
+}
+
+// ============================================================
+// 8. 一键展开/收缩
+// ============================================================
+function setupExpandCollapse() {
+    const expandBtn = document.getElementById('admin-expand-all-btn');
+    const collapseBtn = document.getElementById('admin-collapse-all-btn');
+
+    if (expandBtn) {
+        expandBtn.onclick = function() {
+            document.querySelectorAll('.day-group').forEach(group => {
+                const body = group.querySelector('.day-body');
+                if (body && !group.classList.contains('open')) {
+                    group.classList.add('open');
+                    body.style.maxHeight = '0';
+                    body.style.opacity = '0';
+                    body.style.padding = '0 20px';
+                    requestAnimationFrame(() => {
+                        body.style.maxHeight = body.scrollHeight + 'px';
+                        body.style.opacity = '1';
+                        body.style.padding = '6px 20px 24px';
+                    });
+                }
+            });
+        };
+    }
+
+    if (collapseBtn) {
+        collapseBtn.onclick = function() {
+            document.querySelectorAll('.day-group').forEach(group => {
+                const body = group.querySelector('.day-body');
+                if (body && group.classList.contains('open')) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        body.style.maxHeight = '0';
+                        body.style.opacity = '0';
+                        body.style.padding = '0 20px';
+                    });
+                    group.classList.remove('open');
+                }
+            });
+        };
+    }
+}
+
+// ============================================================
+// 9. 修改模式（密码验证）
+// ============================================================
+function setupAdminMode() {
+    const toggleBtn = document.getElementById('admin-toggle-btn');
+    const loginArea = document.getElementById('admin-login-area');
+    const editArea = document.getElementById('admin-edit-area');
+    const passwordInput = document.getElementById('admin-password-input');
+    const loginBtn = document.getElementById('admin-login-btn');
+    const statusSpan = document.getElementById('admin-login-status');
+
+    if (!toggleBtn) return;
+
+    toggleBtn.onclick = function() {
+        if (isAdminMode) {
+            isAdminMode = false;
+            loginArea.style.display = 'none';
+            editArea.style.display = 'none';
+            statusSpan.textContent = '';
+            toggleBtn.textContent = '🔧 修改模式';
+            toggleBtn.style.borderColor = '#c0b0a8';
+            document.querySelectorAll('.place-card').forEach(card => {
+                card.style.outline = 'none';
+                card.style.cursor = 'default';
+                card.onclick = null;
+            });
+            document.querySelectorAll('.schedule-table tbody tr').forEach(row => {
+                row.style.cursor = 'default';
+                row.title = '';
+                row.onclick = null;
+            });
+        } else {
+            loginArea.style.display = 'flex';
+            toggleBtn.textContent = '🔧 退出修改';
+            toggleBtn.style.borderColor = '#a0524a';
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    };
+
+    loginBtn.onclick = async function() {
+        const password = passwordInput.value.trim();
+        if (!password) {
+            statusSpan.textContent = '请输入密码';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                isAdminMode = true;
+                statusSpan.textContent = '✅ 验证成功！';
+                editArea.style.display = 'flex';
+                loginArea.style.display = 'none';
+                toggleBtn.textContent = '🔧 退出修改';
+                enableEditing();
+            } else {
+                statusSpan.textContent = '❌ ' + (result.error || '密码错误');
+            }
+        } catch (e) {
+            statusSpan.textContent = '❌ 网络错误';
+        }
+    };
+
+    passwordInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            loginBtn.click();
+        }
+    });
+}
+
+// ============================================================
+// 10. 编辑功能
+// ============================================================
+function enableEditing() {
+    document.querySelectorAll('.place-card').forEach(card => {
+        card.style.outline = '2px dashed #a0524a';
+        card.style.outlineOffset = '2px';
+        card.style.cursor = 'pointer';
+        card.title = '点击编辑此景点';
+
+        card.onclick = function(e) {
+            if (e.target.closest('.btn')) return;
+            if (e.target.closest('.place-image')) return;
+            const day = parseInt(this.dataset.day);
+            const placeIndex = parseInt(this.dataset.placeIndex);
+            openEditModal(day, placeIndex);
+        };
+    });
+
+    document.querySelectorAll('.schedule-table tbody tr').forEach(row => {
+        row.style.cursor = 'pointer';
+        row.title = '点击编辑此时间项';
+        row.onclick = function() {
+            const dayGroup = this.closest('.day-group');
+            if (!dayGroup) return;
+            const day = parseInt(dayGroup.id.replace('day-group-', ''));
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData || !dayData.schedule) return;
+            const rows = Array.from(this.closest('tbody').querySelectorAll('tr'));
+            const index = rows.indexOf(this);
+            if (index >= 0 && index < dayData.schedule.length) {
+                openEditScheduleModal(day, index);
+            }
+        };
+    });
+}
+
+// ---- 编辑景点弹窗 ----
+function openEditModal(day, placeIndex) {
+    const dayData = allDaysData.find(d => d.day === day);
+    if (!dayData || !dayData.places || !dayData.places[placeIndex]) return;
+
+    const place = dayData.places[placeIndex];
+    const modal = document.createElement('div');
+    modal.id = 'edit-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    `;
+    modal.innerHTML = `
+        <div style="background:#fff; border-radius:20px; padding:30px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:16px; color:#4a4a4a;">编辑景点: ${place.name}</h3>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">景点名称</label>
+                <input id="edit-place-name" value="${place.name}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">标签</label>
+                <input id="edit-place-tag" value="${place.tag || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">介绍</label>
+                <textarea id="edit-place-desc" rows="3" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px; resize:vertical;">${place.desc || ''}</textarea>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">元信息 (如: 🎫 免费 · 全天开放)</label>
+                <input id="edit-place-meta" value="${place.meta || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button id="edit-place-save" style="padding:10px 28px; border-radius:30px; border:none; background:#4a6a7f; color:#fff; cursor:pointer; font-size:15px;">💾 保存</button>
+                <button id="edit-place-close" style="padding:10px 28px; border-radius:30px; border:1px solid #ddd9d2; background:#f5f3f0; cursor:pointer; font-size:15px;">取消</button>
+                <button id="edit-place-delete" style="padding:10px 28px; border-radius:30px; border:none; background:#a0524a; color:#fff; cursor:pointer; font-size:15px; margin-left:auto;">🗑️ 删除</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector('#edit-place-close').onclick = () => modal.remove();
+    modal.querySelector('#edit-place-save').onclick = async function() {
+        const newName = document.getElementById('edit-place-name').value.trim();
+        const newTag = document.getElementById('edit-place-tag').value.trim();
+        const newDesc = document.getElementById('edit-place-desc').value.trim();
+        const newMeta = document.getElementById('edit-place-meta').value.trim();
+
+        if (!newName) { alert('景点名称不能为空'); return; }
+
+        const password = document.getElementById('admin-password-input').value.trim();
+        if (!password) { alert('请输入管理员密码'); return; }
+
+        const places = [...dayData.places];
+        places[placeIndex] = {
+            ...places[placeIndex],
+            name: newName,
+            tag: newTag,
+            desc: newDesc,
+            meta: newMeta
+        };
+
+        try {
+            const response = await fetch('/api/itinerary/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    password,
+                    day: day,
+                    places: places
+                })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ 保存成功！');
+                modal.remove();
+                location.reload();
+            } else {
+                alert('❌ 保存失败: ' + (result.error || '未知错误'));
+            }
+        } catch (e) {
+            alert('❌ 网络错误: ' + e.message);
+        }
+    };
+
+    modal.querySelector('#edit-place-delete').onclick = async function() {
+        if (!confirm(`确定要删除景点 "${place.name}" 吗？`)) return;
+        const password = document.getElementById('admin-password-input').value.trim();
+        if (!password) { alert('请输入管理员密码'); return; }
+
+        const places = dayData.places.filter((_, i) => i !== placeIndex);
+        try {
+            const response = await fetch('/api/itinerary/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    password,
+                    day: day,
+                    places: places
+                })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ 已删除！');
+                modal.remove();
+                location.reload();
+            } else {
+                alert('❌ 删除失败: ' + (result.error || '未知错误'));
+            }
+        } catch (e) {
+            alert('❌ 网络错误: ' + e.message);
+        }
+    };
+}
+
+// ---- 编辑时间项弹窗 ----
+function openEditScheduleModal(day, index) {
+    const dayData = allDaysData.find(d => d.day === day);
+    if (!dayData || !dayData.schedule || !dayData.schedule[index]) return;
+
+    const item = dayData.schedule[index];
+    const modal = document.createElement('div');
+    modal.id = 'edit-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    `;
+    modal.innerHTML = `
+        <div style="background:#fff; border-radius:20px; padding:30px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:16px; color:#4a4a4a;">编辑时间项</h3>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">时间 (如: 10:00-11:30)</label>
+                <input id="edit-schedule-time" value="${item.time || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:14px; color:#6a6a6a; margin-bottom:4px;">活动描述</label>
+                <input id="edit-schedule-activity" value="${item.activity || ''}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ddd9d2; font-size:15px;">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button id="edit-schedule-save" style="padding:10px 28px; border-radius:30px; border:none; background:#4a6a7f; color:#fff; cursor:pointer; font-size:15px;">💾 保存</button>
+                <button id="edit-schedule-close" style="padding:10px 28px; border-radius:30px; border:1px solid #ddd9d2; background:#f5f3f0; cursor:pointer; font-size:15px;">取消</button>
+                <button id="edit-schedule-delete" style="padding:10px 28px; border-radius:30px; border:none; background:#a0524a; color:#fff; cursor:pointer; font-size:15px; margin-left:auto;">🗑️ 删除</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector('#edit-schedule-close').onclick = () => modal.remove();
+    modal.querySelector('#edit-schedule-save').onclick = async function() {
+        const time = document.getElementById('edit-schedule-time').value.trim();
+        const activity = document.getElementById('edit-schedule-activity').value.trim();
+        if (!time || !activity) { alert('时间和活动不能为空'); return; }
+
+        const password = document.getElementById('admin-password-input').value.trim();
+        if (!password) { alert('请输入管理员密码'); return; }
+
+        const schedule = [...dayData.schedule];
+        schedule[index] = { time, activity };
+
+        try {
+            const response = await fetch('/api/itinerary/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    password,
+                    day: day,
+                    schedule: schedule
+                })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ 保存成功！');
+                modal.remove();
+                location.reload();
+            } else {
+                alert('❌ 保存失败: ' + (result.error || '未知错误'));
+            }
+        } catch (e) {
+            alert('❌ 网络错误: ' + e.message);
+        }
+    };
+
+    modal.querySelector('#edit-schedule-delete').onclick = async function() {
+        if (!confirm('确定要删除此时间项吗？')) return;
+        const password = document.getElementById('admin-password-input').value.trim();
+        if (!password) { alert('请输入管理员密码'); return; }
+
+        const schedule = dayData.schedule.filter((_, i) => i !== index);
+        try {
+            const response = await fetch('/api/itinerary/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    password,
+                    day: day,
+                    schedule: schedule
+                })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ 已删除！');
+                modal.remove();
+                location.reload();
+            } else {
+                alert('❌ 删除失败: ' + (result.error || '未知错误'));
+            }
+        } catch (e) {
+            alert('❌ 网络错误: ' + e.message);
+        }
+    };
+}
+
+// ============================================================
+// 11. 滚动动画
 // ============================================================
 function setupScrollAnimation() {
     const cards = document.querySelectorAll('.place-card');
@@ -422,7 +882,7 @@ function setupScrollAnimation() {
 }
 
 // ============================================================
-// 7. 阅读进度条 & 返回顶部
+// 12. 阅读进度条 & 返回顶部
 // ============================================================
 function updateReadingProgress() {
     const scrollTop = window.scrollY;
@@ -442,7 +902,7 @@ function setupBackToTop() {
 }
 
 // ============================================================
-// 8. 启动
+// 13. 页面加载
 // ============================================================
 document.addEventListener('DOMContentLoaded', async function() {
     const data = await loadItineraryData();
@@ -450,11 +910,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         allDaysData = data;
         renderDays(data);
         renderOverview();
+        setupStickyDays();
+        setupExpandCollapse();
+        setupAdminMode();
         setupScrollAnimation();
         setupBackToTop();
         window.addEventListener('scroll', updateReadingProgress, { passive: true });
         updateReadingProgress();
+
+        // 初始化折叠状态
+        document.querySelectorAll('.day-group .day-body').forEach(body => {
+            body.style.maxHeight = '0';
+            body.style.opacity = '0';
+            body.style.padding = '0 20px';
+        });
     } else {
         document.getElementById('day-groups-container').innerHTML = '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 无法加载行程数据，请检查网络连接或API配置。</p>';
     }
 });
+
+// 暴露全局函数供 HTML 调用
+window.toggleDay = window.toggleDay;
+window.toggleOverview = function(header) {
+    const group = header.closest('.overview-group');
+    if (group) group.classList.toggle('open');
+};
+window.onMapPointHover = onMapPointHover;
+window.onMapPointClick = onMapPointClick;
