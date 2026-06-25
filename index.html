@@ -216,8 +216,8 @@
 
         .map-point {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: #a0524a;
             color: #fff;
@@ -523,20 +523,29 @@
             font-size: 15px;
             color: #3a3a3a;
         }
-        .timeline-item .transport {
-            font-size: 13px;
-            color: #6a7a8a;
-            background: #eef2f5;
-            padding: 2px 12px;
+        .timeline-item .activity .tag {
+            font-size: 12px;
+            background: #e8e4de;
+            color: #6a6a6a;
+            padding: 0 10px;
             border-radius: 20px;
-            display: inline-block;
-            margin-top: 2px;
+            margin-left: 6px;
         }
-        .timeline-item .transport .mode-icon {
-            margin-right: 4px;
+
+        /* ---- 备选方案 ---- */
+        .alternatives-block {
+            background: #f5f2ef;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 6px 0 12px;
+            font-size: 13px;
+            border-left: 3px solid #a0524a;
         }
-        .timeline-item .transport .detail {
-            font-weight: 500;
+        .alternatives-block .alt-item {
+            padding: 2px 0;
+            color: #5a5a5a;
+        }
+        .alternatives-block .alt-item strong {
             color: #4a6a7f;
         }
 
@@ -583,6 +592,12 @@
             border-radius: 20px;
             font-weight: 400;
         }
+        .place-card .place-name .time-badge {
+            font-size: 13px;
+            color: #4a6a7f;
+            font-weight: 500;
+            margin-left: auto;
+        }
         .place-card .place-desc {
             font-size: 15px;
             color: #4a4a4a;
@@ -601,6 +616,15 @@
             border: 1px solid #e6e2db;
             position: relative;
             z-index: 1;
+        }
+        .place-card .remark {
+            font-size: 13px;
+            color: #a0524a;
+            background: #f9f0ec;
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 8px;
         }
 
         .place-image {
@@ -708,24 +732,6 @@
         .btn-dy:hover {
             background: #e5dce8;
         }
-        .btn-fav {
-            background: #f5f0ea;
-            border-color: #ddd6cd;
-            color: #7a6a5a;
-            min-width: 44px;
-            padding: 8px 16px;
-        }
-        .btn-fav.is-fav {
-            background: #e8ddd0;
-            border-color: #c0b0a0;
-            color: #a0524a;
-        }
-        .btn-fav.is-fav::before {
-            content: "❤️ ";
-        }
-        .btn-fav:not(.is-fav)::before {
-            content: "🤍 ";
-        }
 
         .rest-note {
             margin-top: 14px;
@@ -805,6 +811,15 @@
         #admin-panel .admin-row .edit-area .badge {
             font-size: 13px;
             color: #4a6a7f;
+        }
+        #admin-panel .save-hint {
+            font-size: 12px;
+            color: #8a8a8a;
+            margin-top: 4px;
+            display: none;
+        }
+        #admin-panel .save-hint.show {
+            display: block;
         }
 
         #back-to-top {
@@ -927,6 +942,31 @@
                 font-size: 14px;
             }
         }
+
+        /* ---- 编辑模式样式 ---- */
+        .editable {
+            cursor: pointer;
+            transition: background 0.2s ease;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .editable:hover {
+            background: rgba(74, 106, 127, 0.08);
+        }
+        .editable-input {
+            border: 1px solid #4a6a7f;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: inherit;
+            font-family: inherit;
+            background: #fff;
+            width: 100%;
+            min-width: 60px;
+        }
+        .editable-input:focus {
+            outline: 2px solid #4a6a7f;
+            outline-offset: 1px;
+        }
     </style>
 </head>
 <body>
@@ -947,7 +987,7 @@
     <div class="app-container" id="app">
         <header class="header">
             <h1>🏠 重庆-丰都家庭游</h1>
-            <div class="sub">5天5晚 · 从山城到鬼城 · 老少皆宜</div>
+            <div class="sub">6天5晚 · 从山城到鬼城 · 老少皆宜</div>
             <div class="family-tag">👨‍👩‍👧‍👦 含老人 · 儿童 · 中年人 · 青年</div>
         </header>
 
@@ -982,8 +1022,10 @@
                 <div class="edit-area" id="admin-edit-area">
                     <span class="badge">✅ 已进入修改模式</span>
                     <button class="btn-ctrl btn-primary" id="admin-add-day-btn">➕ 新增一天</button>
+                    <button class="btn-ctrl btn-primary" id="admin-save-btn" style="background:#a0524a;border-color:#a0524a;color:#fff;">💾 保存修改</button>
                 </div>
             </div>
+            <div class="save-hint" id="admin-save-hint">修改完后记得按「保存修改」</div>
         </div>
 
         <div class="footer">📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快</div>
@@ -991,13 +1033,12 @@
 
     <script>
         // ============================================================
-        // 完整 JavaScript - 所有数据从 API 动态加载
+        // 完整 JavaScript
         // ============================================================
 
         const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
         const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
 
-        // ---- 状态 ----
         let allDaysData = [];
         let currentTab = 1;
         let isAdminMode = false;
@@ -1005,9 +1046,9 @@
         let floatingCardData = null;
         let hideTimeout = null;
         let isHovering = false;
-        let isDataLoaded = false;
+        let editedData = {};
 
-        // ---- DOM 引用 ----
+        // DOM 引用
         const floatingCard = document.getElementById('floating-card');
         const floatingCardClose = document.getElementById('floating-card-close');
         const floatingCardImg = document.getElementById('floating-card-img');
@@ -1016,7 +1057,7 @@
         const floatingCardJump = document.getElementById('floating-card-jump');
 
         // ============================================================
-        // 1. 数据加载（从 API）
+        // 1. 数据加载
         // ============================================================
         async function loadItineraryData() {
             try {
@@ -1024,7 +1065,6 @@
                 if (!response.ok) throw new Error('API error: ' + response.status);
                 const data = await response.json();
                 allDaysData = data;
-                isDataLoaded = true;
                 return data;
             } catch (error) {
                 console.error('加载行程数据失败:', error);
@@ -1033,7 +1073,7 @@
         }
 
         // ============================================================
-        // 2. 路线总览
+        // 2. 渲染路线总览
         // ============================================================
         function renderOverview() {
             const tabBar = document.getElementById('tab-bar');
@@ -1047,31 +1087,34 @@
                 return;
             }
 
-            days.forEach((day, index) => {
+            days.forEach((day) => {
                 const btn = document.createElement('button');
-                btn.className = 'tab-btn' + (index === currentTab - 1 ? ' active' : '');
+                btn.className = 'tab-btn' + (day.day === currentTab ? ' active' : '');
                 btn.dataset.day = day.day;
                 btn.textContent = 'Day ' + day.day;
                 btn.onclick = () => switchTab(day.day);
                 tabBar.appendChild(btn);
             });
 
-            // 渲染当前标签的地图
             renderMap(currentTab);
+            renderLegend(days);
+        }
 
-            // 渲染图例
+        function renderLegend(days) {
             const legend = document.getElementById('route-legend');
             legend.innerHTML = '';
             const colors = ['#4a6a7f', '#6a7f8a', '#8a7a6a', '#9a8a7a', '#b0a090', '#a0524a'];
             days.forEach((day, idx) => {
                 const span = document.createElement('span');
-                span.innerHTML = `<span class="dot" style="background:${colors[idx % colors.length]};"></span> Day ${day.day}`;
+                span.innerHTML =
+                    `<span class="dot" style="background:${colors[idx % colors.length]};"></span> Day ${day.day}`;
                 legend.appendChild(span);
             });
         }
 
         function renderMap(day) {
             const container = document.getElementById('overview-maps');
+            const dayData = allDaysData.find(d => d.day === day);
             const imgUrl = MAP_IMAGE_BASE + '/day' + day + '_overview.png';
 
             let html = `<div class="map-wrapper" id="map-wrapper-${day}">`;
@@ -1081,19 +1124,15 @@
                         <span style="font-size:13px;">请确认 maps/day${day}_overview.png 已上传</span>
                      </div>`;
 
-            // 从 allDaysData 中找对应的 day 数据
-            const dayData = allDaysData.find(d => d.day === day);
             if (dayData && dayData.places && dayData.places.length > 0) {
-                // 按 placeIndex 生成圆点
                 dayData.places.forEach((place, idx) => {
-                    // 动态计算位置（基于索引）
-                    const x = 10 + (idx / Math.max(dayData.places.length - 1, 1)) * 80;
-                    const y = 20 + (idx % 2) * 50;
+                    const x = place.map_x || (10 + (idx / Math.max(dayData.places.length - 1, 1)) * 80);
+                    const y = place.map_y || (20 + (idx % 2) * 50);
                     html += `<div class="map-point" style="left:${x}%; top:${y}%;" 
-                                 data-day="${day}" data-place-index="${idx}" 
-                                 onmouseenter="onMapPointEnter(${day}, ${idx}, this)" 
+                                 data-day="${day}" data-place-id="${place.id}" 
+                                 onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
                                  onmouseleave="onMapPointLeave()"
-                                 onclick="onMapPointClick(${day}, ${idx}, this)">
+                                 onclick="onMapPointClick(${day}, '${place.id}', this)">
                                 ${idx + 1}
                             </div>`;
                 });
@@ -1114,22 +1153,22 @@
         // ============================================================
         // 3. 悬浮卡片
         // ============================================================
-        function getDayPlaceData(day, placeIndex) {
+        function getPlaceById(day, placeId) {
             const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData || !dayData.places || !dayData.places[placeIndex]) return null;
-            return dayData.places[placeIndex];
+            if (!dayData || !dayData.places) return null;
+            return dayData.places.find(p => p.id == placeId);
         }
 
-        function showFloatingCard(day, placeIndex, event, isPinned = false) {
-            const place = getDayPlaceData(day, placeIndex);
+        function showFloatingCard(day, placeId, event, isPinned = false) {
+            const place = getPlaceById(day, placeId);
             if (!place) return;
 
             if (hideTimeout) { clearTimeout(hideTimeout);
                 hideTimeout = null; }
 
-            floatingCardData = { day, placeIndex };
+            floatingCardData = { day, placeId };
             floatingCardName.textContent = place.name;
-            floatingCardDesc.textContent = place.desc || '暂无介绍';
+            floatingCardDesc.textContent = place.intro || '暂无介绍';
 
             const imgName = getImageName(place.name);
             if (imgName) {
@@ -1170,11 +1209,11 @@
             }, delay);
         }
 
-        function onMapPointEnter(day, placeIndex, element) {
+        function onMapPointEnter(day, placeId, element) {
             isHovering = true;
             if (hideTimeout) { clearTimeout(hideTimeout);
                 hideTimeout = null; }
-            if (!floatingCardPinned) { showFloatingCard(day, placeIndex, element, false); }
+            if (!floatingCardPinned) { showFloatingCard(day, placeId, element, false); }
         }
 
         function onMapPointLeave() {
@@ -1182,9 +1221,9 @@
             if (!floatingCardPinned) { hideFloatingCard(false); }
         }
 
-        function onMapPointClick(day, placeIndex, element) {
+        function onMapPointClick(day, placeId, element) {
             if (floatingCardPinned && floatingCardData &&
-                floatingCardData.day === day && floatingCardData.placeIndex === placeIndex) {
+                floatingCardData.day === day && floatingCardData.placeId == placeId) {
                 floatingCardPinned = false;
                 floatingCard.dataset.pinned = 'false';
                 isHovering = false;
@@ -1196,7 +1235,7 @@
                 hideTimeout = null; }
             document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
             element.classList.add('active');
-            showFloatingCard(day, placeIndex, element, true);
+            showFloatingCard(day, placeId, element, true);
         }
 
         floatingCardClose.onclick = function(e) {
@@ -1219,7 +1258,7 @@
 
         floatingCardJump.onclick = function() {
             if (!floatingCardData) return;
-            const { day, placeIndex } = floatingCardData;
+            const { day, placeId } = floatingCardData;
             floatingCardPinned = false;
             floatingCard.dataset.pinned = 'false';
             document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
@@ -1227,25 +1266,33 @@
 
             const targetDay = document.getElementById('day-group-' + day);
             if (targetDay) {
-                document.querySelectorAll('.day-group').forEach(g => {
-                    g.classList.add('open');
-                    const body = g.querySelector('.day-body');
-                    if (body) {
+                // 只展开目标天，不展开所有
+                targetDay.classList.add('open');
+                const body = targetDay.querySelector('.day-body');
+                if (body) {
+                    body.style.maxHeight = '0';
+                    body.style.opacity = '0';
+                    body.style.padding = '0 20px';
+                    requestAnimationFrame(() => {
                         body.style.maxHeight = '5000px';
                         body.style.opacity = '1';
                         body.style.padding = '6px 20px 24px';
-                    }
-                });
+                    });
+                }
                 setTimeout(() => {
-                    targetDay.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    targetDay.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
-                    targetDay.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
-                    targetDay.style.borderColor = '#a0524a';
-                    setTimeout(() => {
-                        targetDay.style.boxShadow = '';
-                        targetDay.style.borderColor = '';
-                    }, 3000);
-                }, 300);
+                    // 滚动到对应的景点卡片
+                    const card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                        card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                        card.style.borderColor = '#a0524a';
+                        setTimeout(() => {
+                            card.style.boxShadow = '';
+                            card.style.borderColor = '';
+                        }, 3000);
+                    }
+                }, 400);
             }
         };
 
@@ -1272,7 +1319,9 @@
                 'WFC会仙楼': 'wfc.jpg',
                 '周公馆': 'zhougongguan.jpg',
                 '双桂山': 'shuanggui.jpg',
-                '丰都码头': 'fengdumatou.jpg'
+                '丰都码头': 'fengdumatou.jpg',
+                '桂园': 'guiyuan.jpg',
+                '南山一棵树': 'nanshan.jpg'
             };
             for (const [key, value] of Object.entries(map)) {
                 if (name.includes(key) || key.includes(name)) return value;
@@ -1304,7 +1353,9 @@
                 '双桂山': '🌳',
                 '码头': '⚓',
                 '家乡': '🏠',
-                '慢车': '🚂'
+                '慢车': '🚂',
+                '桂园': '🏛️',
+                '南山': '🌄'
             };
             for (const [key, value] of Object.entries(map)) {
                 if (name.includes(key)) return value;
@@ -1312,29 +1363,8 @@
             return '📍';
         }
 
-        function getTransportIcon(mode) {
-            const icons = {
-                '轨道交通': '🚇',
-                '地铁': '🚇',
-                '公交': '🚌',
-                '打车': '🚕',
-                '出租车': '🚕',
-                '步行': '🚶',
-                '动车': '🚄',
-                '高铁': '🚄',
-                '慢车': '🚂',
-                '普速': '🚂',
-                '飞机': '✈️',
-                '自驾': '🚗'
-            };
-            for (const [key, value] of Object.entries(icons)) {
-                if (mode.includes(key)) return value;
-            }
-            return '🚌';
-        }
-
         // ============================================================
-        // 5. 渲染每日行程（核心）
+        // 5. 渲染每日行程
         // ============================================================
         function renderDays() {
             const container = document.getElementById('day-groups-container');
@@ -1348,10 +1378,13 @@
 
             let html = '';
             allDaysData.forEach((day) => {
+                const places = day.places || [];
+                const dayAlts = day.day_alternatives || {};
+
                 html += `<div class="day-group" id="day-group-${day.day}">`;
                 html += `<div class="day-header" onclick="toggleDay(this)">
                             <span class="title">${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small></span>
-                            <span class="arrow">▾</span>
+                            <span class="arrow" style="font-size:24px;">▾</span>
                         </div>`;
                 html += `<div class="day-body">`;
 
@@ -1369,165 +1402,156 @@
                     html += `</div>`;
                 }
 
-                // ---- 时间轴（合并 schedule + places） ----
-                html += `<div class="timeline">`;
-
-                // 获取当天交通方式
-                const transports = day.transports || [];
-
-                // 合并 schedule 和 places
-                const items = [];
-                if (day.schedule && day.schedule.length > 0) {
-                    day.schedule.forEach((s, idx) => {
-                        // 检查是否午餐/晚餐，如果是则标记
-                        const isMeal = s.activity && (s.activity.includes('🥘') || s.activity.includes('午餐') || s
-                        .activity.includes('晚餐'));
-                        // 查找是否有对应的 place（通过名称匹配或索引匹配）
-                        let matchedPlace = null;
-                        if (day.places && idx < day.places.length) {
-                            matchedPlace = day.places[idx];
-                        }
-                        items.push({
-                            type: 'schedule',
-                            time: s.time || '',
-                            activity: s.activity || '',
-                            isMeal: isMeal,
-                            place: matchedPlace,
-                            transport: s.transport || ''
-                        });
-                    });
-                } else if (day.places && day.places.length > 0) {
-                    // 如果没有 schedule，直接用 places
-                    day.places.forEach((place, idx) => {
-                        items.push({
-                            type: 'place',
-                            time: '',
-                            activity: place.name,
-                            isMeal: false,
-                            place: place,
-                            transport: ''
-                        });
-                    });
+                // 当天备选方案
+                const altKeys = ['congestion', 'peak', 'rainy'];
+                const altLabels = { congestion: '🚧 拥堵备选', peak: '⏰ 高峰备选', rainy: '🌧️ 雨天备选' };
+                let hasAlt = false;
+                let altHtml = '';
+                altKeys.forEach(key => {
+                    if (dayAlts[key]) {
+                        hasAlt = true;
+                        altHtml +=
+                            `<div class="alt-item"><strong>${altLabels[key]}</strong>：${dayAlts[key]}</div>`;
+                    }
+                });
+                if (hasAlt) {
+                    html += `<div class="alternatives-block">${altHtml}</div>`;
                 }
 
-                // 渲染时间轴项
-                items.forEach((item, idx) => {
-                    const place = item.place;
-                    const isMeal = item.isMeal || (place && (place.name.includes('午餐') || place.name.includes('晚餐')));
-                    const isLunch = item.activity && item.activity.includes('🥘');
+                // ---- 时间轴 ----
+                html += `<div class="timeline">`;
+                places.forEach((place, idx) => {
+                    const emoji = getEmoji(place.name);
+                    const timeStr = place.time_start && place.time_end ? `${place.time_start} - ${place.time_end}` :
+                        place.time_start || '';
+                    const typeLabel = {
+                        'attraction': '景点',
+                        'food': '用餐',
+                        'transport': '交通',
+                        'culture': '红色文化',
+                        'rest': '休息',
+                        'shopping': '购物',
+                        'other': '其他'
+                    } [place.type] || '';
 
                     html += `<div class="timeline-item">`;
-                    if (item.time) {
-                        html += `<span class="time">${item.time}</span>`;
+                    if (timeStr) {
+                        html += `<span class="time">${timeStr}</span>`;
                     }
-                    if (isMeal) {
-                        html += `<span class="activity" style="color:#a0524a;font-weight:500;">${item.activity}</span>`;
-                    } else if (place) {
-                        html += `<span class="activity">${place.name}${place.tag ? ' <span style="font-size:12px;color:#8a8a8a;">[' + place.tag + ']</span>' : ''}</span>`;
-                        // 显示景点描述（简短）
-                        if (place.desc && place.desc.length < 30) {
-                            html += `<div style="font-size:13px;color:#6a6a6a;margin-top:2px;">${place.desc}</div>`;
-                        }
+                    html +=
+                        `<span class="activity">${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+
+                // ---- 景点卡片 ----
+                places.forEach((place) => {
+                    const imgName = getImageName(place.name);
+                    const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
+                    const emoji = getEmoji(place.name);
+                    const typeLabel = {
+                        'attraction': '景点',
+                        'food': '用餐',
+                        'transport': '交通',
+                        'culture': '红色文化',
+                        'rest': '休息',
+                        'shopping': '购物',
+                        'other': '其他'
+                    } [place.type] || '';
+                    const timeStr = place.time_start && place.time_end ? `${place.time_start} - ${place.time_end}` :
+                        place.time_start || '';
+
+                    html += `<div class="place-card" data-day="${day.day}" data-place-id="${place.id}">`;
+                    html += `<div class="place-name">
+                                ${emoji} ${place.name}
+                                <span class="tag">${typeLabel}</span>
+                                ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                            </div>`;
+
+                    // 图片
+                    html += `<div class="place-image">`;
+                    if (imgUrl) {
+                        html +=
+                            `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
+                        html += `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
                     } else {
-                        html += `<span class="activity">${item.activity}</span>`;
+                        html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
+                    }
+                    html += `</div>`;
+
+                    // 简介
+                    if (place.intro) {
+                        html += `<div class="place-desc">${place.intro}</div>`;
                     }
 
-                    // 显示交通方式
-                    if (item.transport) {
-                        html += `<div class="transport"><span class="mode-icon">${getTransportIcon(item.transport)}</span> ${item.transport}</div>`;
+                    // 元信息
+                    if (place.address || place.duration) {
+                        let metaParts = [];
+                        if (place.duration) metaParts.push(`⏱️ ${place.duration}`);
+                        if (place.address) metaParts.push(`📍 ${place.address}`);
+                        if (metaParts.length > 0) {
+                            html += `<div class="meta">${metaParts.join(' · ')}</div>`;
+                        }
                     }
 
+                    // 贴心提示
+                    if (place.remark) {
+                        html += `<div class="remark">💡 ${place.remark}</div>`;
+                    }
+
+                    // 景点备选方案
+                    let placeAltHtml = '';
+                    if (place.peak_alternative) {
+                        placeAltHtml +=
+                            `<div class="alt-item"><strong>⏰ 错峰备选</strong>：${place.peak_alternative}</div>`;
+                    }
+                    if (place.congestion_alternative) {
+                        placeAltHtml +=
+                            `<div class="alt-item"><strong>🚧 拥堵备选</strong>：${place.congestion_alternative}</div>`;
+                    }
+                    if (place.rainy_alternative) {
+                        placeAltHtml +=
+                            `<div class="alt-item"><strong>🌧️ 雨天备选</strong>：${place.rainy_alternative}</div>`;
+                    }
+                    if (placeAltHtml) {
+                        html += `<div class="alternatives-block">${placeAltHtml}</div>`;
+                    }
+
+                    // 按钮
+                    html += `<div class="btn-group">`;
+                    if (place.nav_link) {
+                        html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
+                    }
+                    const links = place.platform_links ? JSON.parse(place.platform_links) : {};
+                    if (links.dianping) {
+                        html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                    }
+                    if (links.meituan) {
+                        html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+                    }
+                    if (links.douyin) {
+                        html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                    }
+                    if (isAdminMode) {
+                        html +=
+                            `<button class="btn" style="background:#e8ddd0;border-color:#c0b0a0;" onclick="editPlaceInline(${day.day}, ${place.id})">✏️</button>`;
+                        html +=
+                            `<button class="btn" style="background:#a0524a;color:#fff;border-color:#a0524a;" onclick="deletePlace(${day.day}, ${place.id})">🗑️</button>`;
+                    }
+                    html += `</div>`;
                     html += `</div>`;
                 });
 
-                html += `</div>`;
-
-                // ---- 景点卡片（独立展示） ----
-                if (day.places && day.places.length > 0) {
-                    day.places.forEach((place, idx) => {
-                        // 如果是午餐/晚餐相关的占位景点，跳过（已经在时间轴中显示）
-                        if (place.name.includes('午餐') || place.name.includes('晚餐')) return;
-
-                        const imgName = getImageName(place.name);
-                        const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
-                        const emoji = getEmoji(place.name);
-
-                        html += `<div class="place-card" data-day="${day.day}" data-place-index="${idx}">`;
-                        html += `<div class="place-name">${place.name} <span class="tag">${place.tag || ''}</span></div>`;
-                        html += `<div class="place-image">`;
-                        if (imgUrl) {
-                            html +=
-                                `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
-                            html += `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
-                        } else {
-                            html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
-                        }
-                        html += `</div>`;
-                        html += `<div class="place-desc">${place.desc || ''}</div>`;
-                        if (place.meta) {
-                            html += `<div class="meta">${place.meta}</div>`;
-                        }
-
-                        // 交通方式（从 transports 中查找相关）
-                        const relatedTransport = transports.find(t =>
-                            t.from_place && place.name.includes(t.from_place) ||
-                            t.to_place && place.name.includes(t.to_place)
-                        );
-                        if (relatedTransport) {
-                            html +=
-                                `<div style="font-size:13px;color:#4a6a7f;background:#eef2f5;padding:4px 14px;border-radius:20px;display:inline-block;margin-bottom:8px;">
-                                    ${getTransportIcon(relatedTransport.mode)} ${relatedTransport.mode}：${relatedTransport.detail || ''} 
-                                    ${relatedTransport.from_place ? relatedTransport.from_place + ' → ' + relatedTransport.to_place : ''}
-                                    ${relatedTransport.duration ? '（' + relatedTransport.duration + '）' : ''}
-                                </div>`;
-                        }
-
-                        html += `<div class="btn-group">`;
-                        if (place.navLink) {
-                            html += `<a class="btn btn-nav" href="${place.navLink}" target="_blank">🧭 导航</a>`;
-                        }
-                        const links = place.platformLinks || {};
-                        if (links.dianping) {
-                            html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
-                        }
-                        if (links.meituan) {
-                            html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
-                        }
-                        if (links.douyin) {
-                            html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
-                        }
-                        if (isAdminMode) {
-                            html +=
-                                `<button class="btn" style="background:#e8ddd0;border-color:#c0b0a0;" onclick="editPlace(${day.day}, ${idx})">✏️ 编辑</button>`;
-                            html +=
-                                `<button class="btn" style="background:#a0524a;color:#fff;border-color:#a0524a;" onclick="deletePlace(${day.day}, ${idx})">🗑️</button>`;
-                        }
-                        html += `</div>`;
-                        html += `</div>`;
-                    });
-                }
-
-                // 交通方式独立展示（如果还没有在卡片中展示）
-                if (transports.length > 0 && (!day.places || day.places.length === 0)) {
-                    html += `<div style="margin-top:12px;padding:12px 16px;background:#f0f4f6;border-radius:12px;">`;
-                    html += `<div style="font-weight:600;color:#4a6a7f;margin-bottom:8px;">🚌 交通安排</div>`;
-                    transports.forEach(t => {
-                        html +=
-                            `<div style="font-size:14px;padding:4px 0;border-bottom:1px solid #e8e4de;">${getTransportIcon(t.mode)} ${t.mode}：${t.detail || ''} ${t.from_place || ''}${t.from_place && t.to_place ? ' → ' : ''}${t.to_place || ''} ${t.duration ? '（' + t.duration + '）' : ''}</div>`;
-                    });
-                    html += `</div>`;
-                }
-
                 if (day.rest_note) {
-                    html += `<div class="rest-note">${day.rest_note}</div>`;
+                    html += `<div class="rest-note">☕ ${day.rest_note}</div>`;
                 }
 
                 // 修改模式下的管理按钮
                 if (isAdminMode) {
                     html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                <button class="btn-ctrl btn-primary" onclick="editDay(${day.day})">✏️ 编辑这一天</button>
+                                <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑这一天</button>
                                 <button class="btn-ctrl btn-danger" onclick="deleteDay(${day.day})">🗑️ 删除这一天</button>
-                                <button class="btn-ctrl" onclick="addTransport(${day.day})">🚌 添加交通</button>
+                                <button class="btn-ctrl" onclick="addPlaceToDay(${day.day})">➕ 添加景点</button>
                             </div>`;
                 }
 
@@ -1537,48 +1561,15 @@
 
             container.innerHTML = html;
 
-            // 初始化折叠状态（全部收起）
+            // 初始化折叠状态
             document.querySelectorAll('.day-group .day-body').forEach(body => {
                 body.style.maxHeight = '0';
                 body.style.opacity = '0';
                 body.style.padding = '0 20px';
             });
 
-            // 波纹效果
-            document.querySelectorAll('.place-card, .btn, .map-point, #control-bar .btn-ctrl, #admin-panel .btn-ctrl, #admin-panel .btn-login')
-                .forEach(el => {
-                    el.addEventListener('click', function(e) {
-                        createRipple(e, this);
-                    });
-                });
-
-            // 卡片鼠标移动光效
-            document.querySelectorAll('.place-card').forEach(card => {
-                card.addEventListener('mousemove', function(e) {
-                    const rect = this.getBoundingClientRect();
-                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                    const y = ((e.clientY - rect.top) / rect.height) * 100;
-                    this.style.setProperty('--mouse-x', x + '%');
-                    this.style.setProperty('--mouse-y', y + '%');
-                });
-            });
-
             // 滚动动画
             setTimeout(setupScrollAnimation, 100);
-        }
-
-        function createRipple(event, element) {
-            const rect = element.getBoundingClientRect();
-            const x = (event.clientX || event.pageX) - rect.left;
-            const y = (event.clientY || event.pageY) - rect.top;
-            const ripple = document.createElement('span');
-            ripple.className = 'ripple';
-            const size = Math.max(rect.width, rect.height) * 0.6;
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = (x - size / 2) + 'px';
-            ripple.style.top = (y - size / 2) + 'px';
-            element.appendChild(ripple);
-            setTimeout(() => { ripple.remove(); }, 900);
         }
 
         // ============================================================
@@ -1689,9 +1680,11 @@
             const toggleBtn = document.getElementById('admin-toggle-btn');
             const loginArea = document.getElementById('admin-login-area');
             const editArea = document.getElementById('admin-edit-area');
+            const saveHint = document.getElementById('admin-save-hint');
             const passwordInput = document.getElementById('admin-password-input');
             const loginBtn = document.getElementById('admin-login-btn');
             const statusSpan = document.getElementById('admin-login-status');
+            const saveBtn = document.getElementById('admin-save-btn');
 
             if (!toggleBtn) return;
 
@@ -1700,9 +1693,11 @@
                     isAdminMode = false;
                     loginArea.style.display = 'none';
                     editArea.style.display = 'none';
+                    saveHint.classList.remove('show');
                     statusSpan.textContent = '';
                     toggleBtn.textContent = '🔧 修改模式';
                     toggleBtn.style.borderColor = '#c0b0a8';
+                    editedData = {};
                     renderDays();
                     renderOverview();
                 } else {
@@ -1712,6 +1707,8 @@
                     passwordInput.value = '';
                     passwordInput.focus();
                     statusSpan.textContent = '';
+                    saveHint.classList.add('show');
+                    editedData = {};
                 }
             };
 
@@ -1736,6 +1733,7 @@
                         editArea.style.display = 'flex';
                         loginArea.style.display = 'none';
                         toggleBtn.textContent = '🔧 退出修改';
+                        saveHint.classList.add('show');
                         renderDays();
                         renderOverview();
                     } else {
@@ -1755,6 +1753,12 @@
                 if (!isAdminMode) { alert('请先进入修改模式'); return; }
                 addNewDay();
             };
+
+            // 保存修改
+            saveBtn.onclick = function() {
+                if (!isAdminMode) { alert('请先进入修改模式'); return; }
+                saveAllChanges();
+            };
         }
 
         // ============================================================
@@ -1771,9 +1775,58 @@
             return await response.json();
         }
 
+        function getPassword() {
+            return document.getElementById('admin-password-input').value.trim();
+        }
+
+        // ---- 保存所有修改 ----
+        async function saveAllChanges() {
+            const password = getPassword();
+            if (!password) { alert('请输入管理员密码'); return; }
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // 遍历所有修改
+            for (const [key, value] of Object.entries(editedData)) {
+                try {
+                    if (key.startsWith('day_')) {
+                        const dayNum = parseInt(key.replace('day_', ''));
+                        const result = await apiCall('PUT', '/api/itinerary/' + dayNum, {
+                            password: password,
+                            ...value
+                        });
+                        if (result.success) successCount++;
+                        else failCount++;
+                    } else if (key.startsWith('place_')) {
+                        const placeId = parseInt(key.replace('place_', ''));
+                        const result = await apiCall('PUT', '/api/places/' + placeId, {
+                            password: password,
+                            ...value
+                        });
+                        if (result.success) successCount++;
+                        else failCount++;
+                    }
+                } catch (e) {
+                    failCount++;
+                }
+            }
+
+            if (failCount === 0 && successCount > 0) {
+                alert(`✅ 所有修改已保存成功！`);
+                editedData = {};
+                await reloadData();
+            } else if (successCount > 0 && failCount > 0) {
+                alert(`⚠️ 部分修改保存失败。成功 ${successCount} 项，失败 ${failCount} 项。`);
+                await reloadData();
+            } else {
+                alert('⚠️ 没有检测到修改，或全部保存失败。');
+            }
+        }
+
         // ---- 新增一天 ----
         async function addNewDay() {
-            const password = document.getElementById('admin-password-input').value.trim();
+            const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
 
             const dayNum = allDaysData.length > 0 ? Math.max(...allDaysData.map(d => d.day)) + 1 : 1;
@@ -1786,9 +1839,9 @@
                 breakfast: '',
                 lunch: '',
                 dinner: '',
-                schedule: [{ time: '09:00-12:00', activity: '新活动' }],
-                places: [{ name: '新景点', tag: '', desc: '', meta: '', imageUrl: '', navLink: '', platformLinks: {} }],
-                transport_ids: []
+                place_order: [],
+                day_alternatives: {},
+                notes: ''
             });
 
             if (result.success) {
@@ -1802,7 +1855,7 @@
         // ---- 删除一天 ----
         window.deleteDay = async function(day) {
             if (!confirm(`确定要删除 Day ${day} 吗？此操作不可恢复！`)) return;
-            const password = document.getElementById('admin-password-input').value.trim();
+            const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
 
             const result = await apiCall('DELETE', '/api/itinerary/' + day, { password: password });
@@ -1814,114 +1867,153 @@
             }
         };
 
-        // ---- 编辑景点 ----
-        window.editPlace = function(day, placeIndex) {
+        // ---- 编辑景点（内联） ----
+        window.editPlaceInline = function(day, placeId) {
             const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData || !dayData.places || !dayData.places[placeIndex]) return;
-            const place = dayData.places[placeIndex];
-            // 简单编辑：prompt 方式
+            if (!dayData) return;
+            const place = dayData.places.find(p => p.id === placeId);
+            if (!place) return;
+
+            // 简单内联编辑：弹窗收集信息
             const newName = prompt('景点名称:', place.name);
             if (newName === null) return;
-            const newDesc = prompt('景点描述:', place.desc || '');
-            if (newDesc === null) return;
+            const newIntro = prompt('简介:', place.intro || '');
+            if (newIntro === null) return;
+            const newTimeStart = prompt('开始时间 (如 09:00):', place.time_start || '');
+            if (newTimeStart === null) return;
+            const newTimeEnd = prompt('结束时间 (如 10:30):', place.time_end || '');
+            if (newTimeEnd === null) return;
 
-            const places = [...dayData.places];
-            places[placeIndex] = { ...place, name: newName.trim(), desc: newDesc.trim() };
+            const updates = {
+                name: newName.trim(),
+                intro: newIntro.trim(),
+                time_start: newTimeStart.trim(),
+                time_end: newTimeEnd.trim()
+            };
 
-            updateDayData(day, { places: places });
+            // 存到编辑缓存
+            editedData['place_' + placeId] = { ...editedData['place_' + placeId], ...updates };
+
+            // 更新本地显示
+            place.name = newName.trim();
+            place.intro = newIntro.trim();
+            place.time_start = newTimeStart.trim();
+            place.time_end = newTimeEnd.trim();
+
+            renderDays();
+            renderOverview();
+            alert('✅ 已暂存修改，记得点击「保存修改」提交到数据库。');
         };
 
         // ---- 删除景点 ----
-        window.deletePlace = async function(day, placeIndex) {
+        window.deletePlace = async function(day, placeId) {
             if (!confirm('确定要删除这个景点吗？')) return;
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-            const password = document.getElementById('admin-password-input').value.trim();
+            const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
 
-            const places = dayData.places.filter((_, i) => i !== placeIndex);
-            await updateDayData(day, { places: places });
+            const result = await apiCall('DELETE', '/api/places/' + placeId, { password: password });
+            if (result.success) {
+                alert('✅ 删除成功！');
+                await reloadData();
+            } else {
+                alert('❌ 删除失败: ' + (result.error || '未知错误'));
+            }
         };
 
-        // ---- 编辑整天的行程 ----
-        window.editDay = function(day) {
+        // ---- 编辑天信息 ----
+        window.editDayMeta = function(day) {
             const dayData = allDaysData.find(d => d.day === day);
             if (!dayData) return;
-            // 简单编辑：使用 prompt 修改标题和副标题
-            const newTitle = prompt('标题 (如 Day 1):', dayData.title || '');
+
+            const newTitle = prompt('标题:', dayData.title || '');
             if (newTitle === null) return;
             const newSubtitle = prompt('副标题:', dayData.subtitle || '');
             if (newSubtitle === null) return;
+            const newWalkBadge = prompt('步行难度 (如 🚶 步行难度 ★★☆):', dayData.walk_badge || '');
+            if (newWalkBadge === null) return;
+            const newRestNote = prompt('休息点:', dayData.rest_note || '');
+            if (newRestNote === null) return;
 
-            const updates = {};
-            if (newTitle.trim()) updates.title = newTitle.trim();
-            if (newSubtitle.trim()) updates.subtitle = newSubtitle.trim();
+            const updates = {
+                title: newTitle.trim(),
+                subtitle: newSubtitle.trim(),
+                walk_badge: newWalkBadge.trim(),
+                rest_note: newRestNote.trim()
+            };
 
-            updateDayData(day, updates);
+            editedData['day_' + day] = { ...editedData['day_' + day], ...updates };
+
+            dayData.title = newTitle.trim();
+            dayData.subtitle = newSubtitle.trim();
+            dayData.walk_badge = newWalkBadge.trim();
+            dayData.rest_note = newRestNote.trim();
+
+            renderDays();
+            renderOverview();
+            alert('✅ 已暂存修改，记得点击「保存修改」提交到数据库。');
         };
 
-        // ---- 添加交通 ----
-        window.addTransport = async function(day) {
-            const password = document.getElementById('admin-password-input').value.trim();
+        // ---- 添加景点到天 ----
+        window.addPlaceToDay = async function(day) {
+            const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
 
-            const from = prompt('出发地:');
-            if (from === null) return;
-            const to = prompt('目的地:');
-            if (to === null) return;
-            const mode = prompt('交通方式 (如 动车/公交/打车/步行/慢车):', '动车');
-            if (mode === null) return;
-            const detail = prompt('详细信息 (如 D2233 / 公交307路):');
-            if (detail === null) return;
-            const departure = prompt('出发站/上车点 (可选):') || '';
-            const arrival = prompt('到达站/下车点 (可选):') || '';
-            const duration = prompt('耗时 (如 约1.5小时):') || '';
+            const name = prompt('景点名称:');
+            if (!name) return;
+            const type = prompt('类型 (attraction/food/transport/culture/rest/shopping/other):', 'attraction');
+            if (!type) return;
+            const timeStart = prompt('开始时间 (如 09:00):', '');
+            const timeEnd = prompt('结束时间 (如 10:30):', '');
 
-            const result = await apiCall('POST', '/api/transport', {
+            const result = await apiCall('POST', '/api/places', {
                 password: password,
+                name: name.trim(),
+                type: type.trim(),
                 day: day,
-                from_place: from.trim(),
-                to_place: to.trim(),
-                mode: mode.trim(),
-                detail: detail.trim(),
-                departure: departure.trim(),
-                arrival: arrival.trim(),
-                duration: duration.trim(),
-                notes: ''
+                time_start: timeStart || '',
+                time_end: timeEnd || '',
+                duration: '',
+                intro: '',
+                address: '',
+                nav_link: '',
+                image_url: '',
+                platform_links: '',
+                remark: '',
+                map_x: 50,
+                map_y: 50,
+                sort_order: 0,
+                peak_alternative: '',
+                congestion_alternative: '',
+                rainy_alternative: ''
             });
 
             if (result.success) {
-                alert('✅ 交通添加成功！');
-                // 更新 itinerary 的 transport_ids
+                // 更新 place_order
                 const dayData = allDaysData.find(d => d.day === day);
-                const ids = dayData.transport_ids || [];
-                ids.push(result.id);
-                await updateDayData(day, { transport_ids: ids });
+                const placeOrder = dayData.place_order || [];
+                placeOrder.push(result.id);
+                const updateResult = await apiCall('PUT', '/api/itinerary/' + day, {
+                    password: password,
+                    place_order: placeOrder
+                });
+                if (updateResult.success) {
+                    alert('✅ 景点添加成功！');
+                    await reloadData();
+                } else {
+                    alert('⚠️ 景点已创建，但未加入当天行程，请手动调整。');
+                }
             } else {
                 alert('❌ 添加失败: ' + (result.error || '未知错误'));
             }
         };
 
-        // ---- 更新某一天的数据 ----
-        async function updateDayData(day, updates) {
-            const password = document.getElementById('admin-password-input').value.trim();
-            if (!password) { alert('请输入管理员密码'); return; }
-
-            const result = await apiCall('PUT', '/api/itinerary/' + day, { password: password, ...updates });
-            if (result.success) {
-                await reloadData();
-            } else {
-                alert('❌ 更新失败: ' + (result.error || '未知错误'));
-            }
-        }
-
         // ---- 重新加载数据 ----
         async function reloadData() {
             const data = await loadItineraryData();
             if (data) {
+                allDaysData = data;
                 renderDays();
                 renderOverview();
-                // 如果有当前 tab 则保持
                 if (currentTab) {
                     const exists = data.some(d => d.day === currentTab);
                     if (!exists && data.length > 0) {
@@ -1974,7 +2066,6 @@
             const data = await loadItineraryData();
             if (data && data.length > 0) {
                 allDaysData = data;
-                // 设置当前 tab 为第一天
                 if (data.length > 0) currentTab = data[0].day;
                 renderDays();
                 renderOverview();
@@ -1985,7 +2076,6 @@
                 window.addEventListener('scroll', updateReadingProgress, { passive: true });
                 updateReadingProgress();
 
-                // 初始化折叠状态
                 document.querySelectorAll('.day-group .day-body').forEach(body => {
                     body.style.maxHeight = '0';
                     body.style.opacity = '0';
@@ -2009,11 +2099,11 @@
         window.onMapPointEnter = onMapPointEnter;
         window.onMapPointLeave = onMapPointLeave;
         window.onMapPointClick = onMapPointClick;
-        window.editPlace = window.editPlace;
+        window.editPlaceInline = window.editPlaceInline;
         window.deletePlace = window.deletePlace;
-        window.editDay = window.editDay;
+        window.editDayMeta = window.editDayMeta;
         window.deleteDay = window.deleteDay;
-        window.addTransport = window.addTransport;
+        window.addPlaceToDay = window.addPlaceToDay;
     </script>
 
 </body>
