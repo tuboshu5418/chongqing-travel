@@ -50,7 +50,6 @@
             margin-top: 8px;
         }
 
-        /* ---- Header ---- */
         .header {
             text-align: center;
             padding-bottom: 20px;
@@ -78,7 +77,6 @@
             color: #5a5a5a;
         }
 
-        /* ---- 控制栏 ---- */
         #control-bar {
             display: flex;
             gap: 10px;
@@ -117,7 +115,6 @@
             background: #8a423a;
         }
 
-        /* ---- 路线总览 ---- */
         .overview-group {
             margin-top: 16px;
             border-radius: 18px;
@@ -152,7 +149,7 @@
             margin-left: 10px;
         }
         .overview-header .arrow {
-            font-size: 20px;
+            font-size: 24px;
             color: #4a6a7f;
             transition: transform 0.35s ease;
             display: inline-block;
@@ -207,6 +204,7 @@
             overflow: hidden;
             border: 1px solid #e8e4de;
             background: #f6f4f1;
+            min-height: 200px;
         }
         .map-wrapper img {
             width: 100%;
@@ -216,8 +214,8 @@
 
         .map-point {
             position: absolute;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: #a0524a;
             color: #fff;
@@ -228,14 +226,56 @@
             justify-content: center;
             cursor: pointer;
             border: 2px solid #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
             transform: translate(-50%, -50%);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             z-index: 10;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+        .map-point .drag-handle {
+            display: none;
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: #4a6a7f;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            line-height: 18px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            border: 1px solid #fff;
+        }
+        .map-point.draggable .drag-handle {
+            display: block;
+        }
+        .map-point.dragging {
+            z-index: 100;
+            box-shadow: 0 8px 30px rgba(160, 82, 74, 0.5);
+            transform: translate(-50%, -50%) scale(1.15);
+            transition: none;
+        }
+        .map-point .index-label {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: #4a6a7f;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
         }
         .map-point:hover {
-            transform: translate(-50%, -50%) scale(1.2);
+            transform: translate(-50%, -50%) scale(1.15);
             box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
             z-index: 20;
         }
@@ -280,7 +320,6 @@
             display: inline-block;
         }
 
-        /* ---- 悬浮卡片 ---- */
         #floating-card {
             position: fixed;
             z-index: 999;
@@ -354,7 +393,6 @@
             background: #3a5a6f;
         }
 
-        /* ---- Day 栏目 Sticky ---- */
         .day-group {
             position: relative;
             scroll-margin-top: 60px;
@@ -381,16 +419,13 @@
             z-index: 50;
             will-change: transform;
         }
-
         .day-group .day-header:hover {
             background-color: #f3f0ec;
         }
-
         .day-group .day-header.sticky {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             background-color: #ffffff;
         }
-
         .day-group.open .day-header {
             border-left-color: #a0524a;
             background-color: #f8f5f2;
@@ -398,7 +433,6 @@
         .day-group.open .day-header.sticky {
             background-color: #f8f5f2;
         }
-
         .day-group .day-header .title {
             font-size: 20px;
             font-weight: 600;
@@ -411,7 +445,7 @@
             margin-left: 10px;
         }
         .day-group .day-header .arrow {
-            font-size: 22px;
+            font-size: 28px;
             color: #a0524a;
             transition: transform 0.35s ease;
             display: inline-block;
@@ -420,7 +454,6 @@
         .day-group.open .day-header .arrow {
             transform: rotate(180deg);
         }
-
         .day-group .day-header::after {
             content: '';
             position: absolute;
@@ -450,7 +483,6 @@
             padding: 6px 20px 24px;
         }
 
-        /* ---- 步行难度 ---- */
         .walk-badge {
             display: inline-block;
             background: #e8f0f5;
@@ -463,7 +495,6 @@
             font-weight: 500;
         }
 
-        /* ---- 三餐 ---- */
         .meal-bar {
             display: flex;
             flex-wrap: wrap;
@@ -483,45 +514,58 @@
         /* ---- 时间轴 ---- */
         .timeline {
             position: relative;
-            padding-left: 28px;
+            padding-left: 32px;
             margin: 10px 0 14px;
         }
         .timeline::before {
             content: '';
             position: absolute;
-            left: 8px;
-            top: 4px;
-            bottom: 4px;
+            left: 10px;
+            top: 6px;
+            bottom: 6px;
             width: 2px;
             background: #d0ccc4;
         }
         .timeline-item {
             position: relative;
-            padding: 6px 0 6px 16px;
-            margin-bottom: 4px;
+            padding: 5px 0 5px 16px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: -20px;
+            left: -22px;
             top: 14px;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #a0524a;
             border: 2px solid #fff;
             box-shadow: 0 0 0 2px #a0524a;
+            flex-shrink: 0;
+        }
+        .timeline-item.transport::before {
+            background: #4a6a7f;
+            box-shadow: 0 0 0 2px #4a6a7f;
+            width: 14px;
+            height: 14px;
         }
         .timeline-item .time {
             font-weight: 600;
             color: #4a6a7f;
             font-size: 14px;
-            display: inline-block;
-            min-width: 70px;
+            min-width: 80px;
+            flex-shrink: 0;
         }
         .timeline-item .activity {
             font-size: 15px;
             color: #3a3a3a;
+            flex: 1;
+            min-width: 120px;
         }
         .timeline-item .activity .tag {
             font-size: 12px;
@@ -531,8 +575,50 @@
             border-radius: 20px;
             margin-left: 6px;
         }
+        .timeline-item .transport-icon {
+            font-size: 16px;
+            margin-right: 4px;
+        }
+        .timeline-item .admin-actions {
+            display: none;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .day-group .timeline-item .admin-actions {
+            display: none;
+        }
+        .day-group.is-admin .timeline-item .admin-actions {
+            display: flex;
+        }
+        .admin-actions .btn-sm {
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid #ddd9d2;
+            background: #f5f3f0;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .admin-actions .btn-sm:hover {
+            background: #ede8e0;
+        }
+        .admin-actions .btn-sm.primary {
+            background: #4a6a7f;
+            border-color: #4a6a7f;
+            color: #fff;
+        }
+        .admin-actions .btn-sm.primary:hover {
+            background: #3a5a6f;
+        }
+        .admin-actions .btn-sm.danger {
+            background: #a0524a;
+            border-color: #a0524a;
+            color: #fff;
+        }
+        .admin-actions .btn-sm.danger:hover {
+            background: #8a423a;
+        }
 
-        /* ---- 备选方案 ---- */
         .alternatives-block {
             background: #f5f2ef;
             border-radius: 12px;
@@ -549,7 +635,6 @@
             color: #4a6a7f;
         }
 
-        /* ---- 景点卡片 ---- */
         .place-card {
             background: #f9f8f6;
             border-radius: 16px;
@@ -571,7 +656,6 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
             background: #fcfbf9;
         }
-
         .place-card .place-name {
             font-size: 18px;
             font-weight: 600;
@@ -626,7 +710,6 @@
             display: inline-block;
             margin-bottom: 8px;
         }
-
         .place-image {
             width: 100%;
             aspect-ratio: 16 / 10;
@@ -751,7 +834,6 @@
             padding-top: 22px;
         }
 
-        /* ---- 修改模式 ---- */
         #admin-panel {
             margin-top: 20px;
             padding: 16px;
@@ -858,7 +940,35 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
         }
 
-        /* ---- 响应式 ---- */
+        .editable {
+            cursor: pointer;
+            transition: background 0.2s ease;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .editable:hover {
+            background: rgba(74, 106, 127, 0.08);
+        }
+        .editable-input {
+            border: 1px solid #4a6a7f;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: inherit;
+            font-family: inherit;
+            background: #fff;
+            width: auto;
+            min-width: 60px;
+        }
+        .editable-input:focus {
+            outline: 2px solid #4a6a7f;
+            outline-offset: 1px;
+        }
+
+        .inline-edit {
+            display: inline-block;
+            min-width: 40px;
+        }
+
         @media (min-width: 768px) {
             body {
                 padding: 30px 40px;
@@ -930,9 +1040,14 @@
                 font-size: 20px;
             }
             .map-point {
-                width: 24px;
-                height: 24px;
+                width: 28px;
+                height: 28px;
                 font-size: 11px;
+            }
+            .map-point .index-label {
+                width: 16px;
+                height: 16px;
+                font-size: 8px;
             }
             .timeline-item .time {
                 min-width: 55px;
@@ -941,31 +1056,6 @@
             .timeline-item .activity {
                 font-size: 14px;
             }
-        }
-
-        /* ---- 编辑模式样式 ---- */
-        .editable {
-            cursor: pointer;
-            transition: background 0.2s ease;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .editable:hover {
-            background: rgba(74, 106, 127, 0.08);
-        }
-        .editable-input {
-            border: 1px solid #4a6a7f;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: inherit;
-            font-family: inherit;
-            background: #fff;
-            width: 100%;
-            min-width: 60px;
-        }
-        .editable-input:focus {
-            outline: 2px solid #4a6a7f;
-            outline-offset: 1px;
         }
     </style>
 </head>
@@ -993,14 +1083,14 @@
 
         <div class="overview-group open" id="overview-group">
             <div class="overview-header" onclick="window.toggleOverview(this)">
-                <span class="title">🗺️ 路线总览 <small>点击下方标签切换天数</small></span>
+                <span class="title">🗺️ 路线总览 <small>点击标签切换天数</small></span>
                 <span class="arrow">▾</span>
             </div>
             <div class="overview-body">
                 <div class="tab-bar" id="tab-bar"></div>
                 <div id="overview-maps"></div>
                 <div class="route-legend" id="route-legend"></div>
-                <div class="route-hint"><span>👆 点击路线图上的圆点查看景点卡片</span></div>
+                <div class="route-hint"><span>👆 点击圆点查看景点卡片</span></div>
             </div>
         </div>
 
@@ -1014,7 +1104,7 @@
         <div id="admin-panel">
             <div class="admin-row">
                 <button class="btn-ctrl" id="admin-toggle-btn">🔧 修改模式</button>
-                <div id="admin-login-area" style="display:none; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div id="admin-login-area" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                     <input type="password" id="admin-password-input" placeholder="请输入密码">
                     <button class="btn-login" id="admin-login-btn">验证</button>
                     <span class="status" id="admin-login-status"></span>
@@ -1047,8 +1137,9 @@
         let hideTimeout = null;
         let isHovering = false;
         let editedData = {};
+        let dragState = null;
+        let originalData = null;
 
-        // DOM 引用
         const floatingCard = document.getElementById('floating-card');
         const floatingCardClose = document.getElementById('floating-card-close');
         const floatingCardImg = document.getElementById('floating-card-img');
@@ -1073,7 +1164,7 @@
         }
 
         // ============================================================
-        // 2. 渲染路线总览
+        // 2. 路线总览 + 拖动功能
         // ============================================================
         function renderOverview() {
             const tabBar = document.getElementById('tab-bar');
@@ -1117,8 +1208,10 @@
             const dayData = allDaysData.find(d => d.day === day);
             const imgUrl = MAP_IMAGE_BASE + '/day' + day + '_overview.png';
 
-            let html = `<div class="map-wrapper" id="map-wrapper-${day}">`;
-            html += `<img src="${imgUrl}" alt="Day ${day} 路线图" onerror="this.style.display='none'; document.getElementById('map-error-${day}').style.display='flex';" />`;
+            let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
+            html += `<img src="${imgUrl}" alt="Day ${day} 路线图" 
+                        onerror="this.style.display='none'; document.getElementById('map-error-${day}').style.display='flex';" 
+                        style="width:100%;height:auto;display:block;" />`;
             html += `<div id="map-error-${day}" style="display:none; height:300px; align-items:center; justify-content:center; color:#8a8a8a; background:#f6f4f1; border-radius:14px; flex-direction:column; gap:8px;">
                         <span>🖼️ 图片加载失败</span>
                         <span style="font-size:13px;">请确认 maps/day${day}_overview.png 已上传</span>
@@ -1127,19 +1220,137 @@
             if (dayData && dayData.places && dayData.places.length > 0) {
                 dayData.places.forEach((place, idx) => {
                     const x = place.map_x || (10 + (idx / Math.max(dayData.places.length - 1, 1)) * 80);
-                    const y = place.map_y || (20 + (idx % 2) * 50);
-                    html += `<div class="map-point" style="left:${x}%; top:${y}%;" 
+                    const y = place.map_y || (20 + (idx % 2) * 40 + 10);
+                    const isDraggable = isAdminMode ? 'draggable' : '';
+                    html += `<div class="map-point ${isDraggable}" 
+                                 style="left:${x}%; top:${y}%;" 
                                  data-day="${day}" data-place-id="${place.id}" 
+                                 data-original-x="${x}" data-original-y="${y}"
                                  onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
                                  onmouseleave="onMapPointLeave()"
                                  onclick="onMapPointClick(${day}, '${place.id}', this)">
-                                ${idx + 1}
+                                <span class="index-label">${idx + 1}</span>
+                                ${isAdminMode ? '<span class="drag-handle">⤡</span>' : ''}
                             </div>`;
                 });
             }
 
             html += '</div>';
             container.innerHTML = html;
+
+            // 绑定拖动事件
+            if (isAdminMode) {
+                setupDragEvents(day);
+            }
+        }
+
+        function setupDragEvents(day) {
+            const points = document.querySelectorAll(`#map-wrapper-${day} .map-point.draggable`);
+            points.forEach(point => {
+                point.addEventListener('mousedown', function(e) {
+                    if (!isAdminMode) return;
+                    e.preventDefault();
+                    startDrag(e, this);
+                });
+                point.addEventListener('touchstart', function(e) {
+                    if (!isAdminMode) return;
+                    e.preventDefault();
+                    startDrag(e, this);
+                }, { passive: false });
+            });
+        }
+
+        function startDrag(e, element) {
+            const wrapper = element.closest('.map-wrapper');
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            dragState = {
+                element: element,
+                wrapper: wrapper,
+                wrapperRect: wrapperRect,
+                startX: clientX,
+                startY: clientY,
+                placeId: element.dataset.placeId,
+                day: parseInt(element.dataset.day)
+            };
+
+            element.classList.add('dragging');
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function onDrag(e) {
+            if (!dragState) return;
+            e.preventDefault();
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const rect = dragState.wrapperRect;
+            const x = ((clientX - rect.left) / rect.width) * 100;
+            const y = ((clientY - rect.top) / rect.height) * 100;
+
+            const clampedX = Math.max(0, Math.min(100, x));
+            const clampedY = Math.max(0, Math.min(100, y));
+
+            dragState.element.style.left = clampedX + '%';
+            dragState.element.style.top = clampedY + '%';
+        }
+
+        function endDrag(e) {
+            if (!dragState) return;
+
+            const element = dragState.element;
+            const placeId = dragState.placeId;
+            const day = dragState.day;
+
+            element.classList.remove('dragging');
+
+            const left = parseFloat(element.style.left);
+            const top = parseFloat(element.style.top);
+
+            // 保存到编辑缓存
+            const mapX = Math.round(left);
+            const mapY = Math.round(top);
+
+            // 更新本地数据
+            const dayData = allDaysData.find(d => d.day === day);
+            if (dayData) {
+                const place = dayData.places.find(p => p.id == placeId);
+                if (place) {
+                    place.map_x = mapX;
+                    place.map_y = mapY;
+                }
+            }
+
+            editedData['place_' + placeId] = {
+                ...editedData['place_' + placeId],
+                map_x: mapX,
+                map_y: mapY
+            };
+
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('touchend', endDrag);
+
+            dragState = null;
+
+            // 显示保存提示
+            const hint = document.getElementById('admin-save-hint');
+            if (hint) {
+                hint.textContent = '📍 圆点位置已修改，记得按「保存修改」提交';
+                hint.style.color = '#a0524a';
+                setTimeout(() => {
+                    hint.textContent = '修改完后记得按「保存修改」';
+                    hint.style.color = '';
+                }, 3000);
+            }
         }
 
         function switchTab(day) {
@@ -1266,7 +1477,7 @@
 
             const targetDay = document.getElementById('day-group-' + day);
             if (targetDay) {
-                // 只展开目标天，不展开所有
+                // 只展开目标天
                 targetDay.classList.add('open');
                 const body = targetDay.querySelector('.day-body');
                 if (body) {
@@ -1280,7 +1491,6 @@
                     });
                 }
                 setTimeout(() => {
-                    // 滚动到对应的景点卡片
                     const card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
                     if (card) {
                         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1355,7 +1565,8 @@
                 '家乡': '🏠',
                 '慢车': '🚂',
                 '桂园': '🏛️',
-                '南山': '🌄'
+                '南山': '🌄',
+                '交通': '🚌'
             };
             for (const [key, value] of Object.entries(map)) {
                 if (name.includes(key)) return value;
@@ -1363,8 +1574,124 @@
             return '📍';
         }
 
+        function getTypeLabel(type) {
+            const map = {
+                'attraction': '景点',
+                'food': '用餐',
+                'transport': '交通',
+                'culture': '红色文化',
+                'rest': '休息',
+                'shopping': '购物',
+                'other': '其他'
+            };
+            return map[type] || type;
+        }
+
         // ============================================================
-        // 5. 渲染每日行程
+        // 5. 内联编辑（点击文字直接修改）
+        // ============================================================
+        function makeEditable(element, field, placeId, day, callback) {
+            if (!isAdminMode) return;
+            const text = element.textContent.trim();
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'editable-input';
+            input.value = text;
+            input.style.width = Math.max(text.length * 10 + 20, 60) + 'px';
+
+            element.textContent = '';
+            element.appendChild(input);
+            input.focus();
+            input.select();
+
+            function saveEdit() {
+                const newValue = input.value.trim();
+                if (newValue !== text) {
+                    // 更新本地数据
+                    const dayData = allDaysData.find(d => d.day === day);
+                    if (dayData) {
+                        const place = dayData.places.find(p => p.id === placeId);
+                        if (place) {
+                            place[field] = newValue;
+                        }
+                    }
+                    editedData['place_' + placeId] = {
+                        ...editedData['place_' + placeId],
+                        [field]: newValue
+                    };
+                    if (callback) callback(newValue);
+                }
+                element.textContent = newValue || text;
+                element.classList.add('editable');
+            }
+
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+                if (e.key === 'Escape') {
+                    input.value = text;
+                    input.blur();
+                }
+            });
+        }
+
+        function makeEditableText(element, field, placeId, day) {
+            if (!isAdminMode) return;
+            const text = element.textContent.trim();
+            element.classList.add('editable');
+            element.onclick = function(e) {
+                e.stopPropagation();
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'editable-input';
+                input.value = text;
+                input.style.width = Math.max(text.length * 10 + 20, 60) + 'px';
+
+                const parent = this.parentNode;
+                this.textContent = '';
+                parent.insertBefore(input, this);
+                input.focus();
+                input.select();
+
+                function saveEdit() {
+                    const newValue = input.value.trim();
+                    if (newValue !== text) {
+                        const dayData = allDaysData.find(d => d.day === day);
+                        if (dayData) {
+                            const place = dayData.places.find(p => p.id === placeId);
+                            if (place) {
+                                place[field] = newValue;
+                            }
+                        }
+                        editedData['place_' + placeId] = {
+                            ...editedData['place_' + placeId],
+                            [field]: newValue
+                        };
+                    }
+                    parent.textContent = newValue || text;
+                    parent.classList.add('editable');
+                    parent.onclick = arguments.callee;
+                }
+
+                input.addEventListener('blur', saveEdit);
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        input.blur();
+                    }
+                    if (e.key === 'Escape') {
+                        input.value = text;
+                        input.blur();
+                    }
+                });
+            };
+        }
+
+        // ============================================================
+        // 6. 渲染每日行程
         // ============================================================
         function renderDays() {
             const container = document.getElementById('day-groups-container');
@@ -1380,25 +1707,42 @@
             allDaysData.forEach((day) => {
                 const places = day.places || [];
                 const dayAlts = day.day_alternatives || {};
+                const isAdmin = isAdminMode ? 'is-admin' : '';
 
-                html += `<div class="day-group" id="day-group-${day.day}">`;
+                html += `<div class="day-group ${isAdmin}" id="day-group-${day.day}">`;
                 html += `<div class="day-header" onclick="toggleDay(this)">
                             <span class="title">${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small></span>
-                            <span class="arrow" style="font-size:24px;">▾</span>
+                            <span class="arrow">▾</span>
                         </div>`;
                 html += `<div class="day-body">`;
 
-                // 步行难度
+                // 步行难度 - 可编辑
                 if (day.walk_badge) {
-                    html += `<div class="walk-badge">${day.walk_badge}</div>`;
+                    html += `<div class="walk-badge" id="walk-badge-${day.day}">${day.walk_badge}</div>`;
+                    if (isAdminMode) {
+                        html +=
+                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:8px;" onclick="editDayField(${day.day}, 'walk_badge', 'walk-badge-${day.day}')">✏️</span>`;
+                    }
                 }
 
-                // 三餐
+                // 三餐 - 可编辑
                 if (day.breakfast || day.lunch || day.dinner) {
                     html += `<div class="meal-bar">`;
-                    if (day.breakfast) html += `<span>🌅 早餐：${day.breakfast}</span>`;
-                    if (day.lunch) html += `<span>☀️ 午餐：${day.lunch}</span>`;
-                    if (day.dinner) html += `<span>🌙 晚餐：${day.dinner}</span>`;
+                    if (day.breakfast) {
+                        html += `<span id="breakfast-${day.day}">🌅 早餐：${day.breakfast}</span>`;
+                        if (isAdminMode) html +=
+                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'breakfast', 'breakfast-${day.day}')">✏️</span>`;
+                    }
+                    if (day.lunch) {
+                        html += `<span id="lunch-${day.day}">☀️ 午餐：${day.lunch}</span>`;
+                        if (isAdminMode) html +=
+                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'lunch', 'lunch-${day.day}')">✏️</span>`;
+                    }
+                    if (day.dinner) {
+                        html += `<span id="dinner-${day.day}">🌙 晚餐：${day.dinner}</span>`;
+                        if (isAdminMode) html +=
+                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'dinner', 'dinner-${day.day}')">✏️</span>`;
+                    }
                     html += `</div>`;
                 }
 
@@ -1420,27 +1764,48 @@
 
                 // ---- 时间轴 ----
                 html += `<div class="timeline">`;
+                let prevTime = '';
                 places.forEach((place, idx) => {
                     const emoji = getEmoji(place.name);
                     const timeStr = place.time_start && place.time_end ? `${place.time_start} - ${place.time_end}` :
                         place.time_start || '';
-                    const typeLabel = {
-                        'attraction': '景点',
-                        'food': '用餐',
-                        'transport': '交通',
-                        'culture': '红色文化',
-                        'rest': '休息',
-                        'shopping': '购物',
-                        'other': '其他'
-                    } [place.type] || '';
+                    const typeLabel = getTypeLabel(place.type);
+                    const isTransport = place.type === 'transport';
+                    const transportClass = isTransport ? 'transport' : '';
 
-                    html += `<div class="timeline-item">`;
+                    // 计算时间间隔（如果前后时间不衔接，自动补交通）
+                    const showTransportHint = isAdminMode && idx > 0 && prevTime && !isTransport;
+                    const transportIcon = isTransport ? '🚌' : '';
+
+                    html += `<div class="timeline-item ${transportClass}" data-place-id="${place.id}">`;
                     if (timeStr) {
-                        html += `<span class="time">${timeStr}</span>`;
+                        html += `<span class="time" id="time-${place.id}">${timeStr}</span>`;
+                        if (isAdminMode) {
+                            html +=
+                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'time_start', 'time-${place.id}')">✏️</span>`;
+                        }
                     }
                     html +=
-                        `<span class="activity">${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
+                        `<span class="activity">${transportIcon} ${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
+                    if (isAdminMode) {
+                        html += `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:4px;" onclick="editPlaceField(${place.id}, 'name')">✏️</span>`;
+                        html += `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:4px;" onclick="editPlaceField(${place.id}, 'intro')">📝</span>`;
+                    }
+                    // 管理员操作按钮：添加交通/修改交通
+                    if (isAdminMode) {
+                        if (isTransport) {
+                            html +=
+                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:4px;" onclick="editTransport(${place.id}, ${day.day})">✏️交通</span>`;
+                        } else {
+                            html +=
+                                `<span style="font-size:11px;color:#4a6a7f;cursor:pointer;margin-left:4px;" onclick="addTransportBefore(${day.day}, ${idx})">➕交通</span>`;
+                        }
+                        html +=
+                            `<span style="font-size:11px;color:#a0524a;cursor:pointer;margin-left:4px;" onclick="deletePlaceFromDay(${day.day}, ${place.id})">🗑️</span>`;
+                    }
                     html += `</div>`;
+
+                    prevTime = place.time_end || place.time_start || '';
                 });
                 html += `</div>`;
 
@@ -1449,26 +1814,19 @@
                     const imgName = getImageName(place.name);
                     const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
                     const emoji = getEmoji(place.name);
-                    const typeLabel = {
-                        'attraction': '景点',
-                        'food': '用餐',
-                        'transport': '交通',
-                        'culture': '红色文化',
-                        'rest': '休息',
-                        'shopping': '购物',
-                        'other': '其他'
-                    } [place.type] || '';
+                    const typeLabel = getTypeLabel(place.type);
                     const timeStr = place.time_start && place.time_end ? `${place.time_start} - ${place.time_end}` :
                         place.time_start || '';
 
                     html += `<div class="place-card" data-day="${day.day}" data-place-id="${place.id}">`;
                     html += `<div class="place-name">
-                                ${emoji} ${place.name}
+                                <span id="place-name-${place.id}">${emoji} ${place.name}</span>
+                                ${isAdminMode ? `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'name')">✏️</span>` : ''}
                                 <span class="tag">${typeLabel}</span>
-                                ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                                ${timeStr ? `<span class="time-badge" id="place-time-${place.id}">🕐 ${timeStr}</span>` : ''}
+                                ${isAdminMode && timeStr ? `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'time_start')">✏️</span>` : ''}
                             </div>`;
 
-                    // 图片
                     html += `<div class="place-image">`;
                     if (imgUrl) {
                         html +=
@@ -1479,12 +1837,15 @@
                     }
                     html += `</div>`;
 
-                    // 简介
                     if (place.intro) {
-                        html += `<div class="place-desc">${place.intro}</div>`;
+                        html +=
+                            `<div class="place-desc" id="place-intro-${place.id}">${place.intro}</div>`;
+                        if (isAdminMode) {
+                            html +=
+                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'intro')">✏️</span>`;
+                        }
                     }
 
-                    // 元信息
                     if (place.address || place.duration) {
                         let metaParts = [];
                         if (place.duration) metaParts.push(`⏱️ ${place.duration}`);
@@ -1494,9 +1855,13 @@
                         }
                     }
 
-                    // 贴心提示
                     if (place.remark) {
-                        html += `<div class="remark">💡 ${place.remark}</div>`;
+                        html +=
+                            `<div class="remark" id="place-remark-${place.id}">💡 ${place.remark}</div>`;
+                        if (isAdminMode) {
+                            html +=
+                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'remark')">✏️</span>`;
+                        }
                     }
 
                     // 景点备选方案
@@ -1517,7 +1882,6 @@
                         html += `<div class="alternatives-block">${placeAltHtml}</div>`;
                     }
 
-                    // 按钮
                     html += `<div class="btn-group">`;
                     if (place.nav_link) {
                         html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
@@ -1532,24 +1896,22 @@
                     if (links.douyin) {
                         html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
                     }
-                    if (isAdminMode) {
-                        html +=
-                            `<button class="btn" style="background:#e8ddd0;border-color:#c0b0a0;" onclick="editPlaceInline(${day.day}, ${place.id})">✏️</button>`;
-                        html +=
-                            `<button class="btn" style="background:#a0524a;color:#fff;border-color:#a0524a;" onclick="deletePlace(${day.day}, ${place.id})">🗑️</button>`;
-                    }
                     html += `</div>`;
                     html += `</div>`;
                 });
 
                 if (day.rest_note) {
-                    html += `<div class="rest-note">☕ ${day.rest_note}</div>`;
+                    html += `<div class="rest-note" id="rest-note-${day.day}">☕ ${day.rest_note}</div>`;
+                    if (isAdminMode) {
+                        html +=
+                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'rest_note', 'rest-note-${day.day}')">✏️</span>`;
+                    }
                 }
 
                 // 修改模式下的管理按钮
                 if (isAdminMode) {
                     html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑这一天</button>
+                                <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑标题</button>
                                 <button class="btn-ctrl btn-danger" onclick="deleteDay(${day.day})">🗑️ 删除这一天</button>
                                 <button class="btn-ctrl" onclick="addPlaceToDay(${day.day})">➕ 添加景点</button>
                             </div>`;
@@ -1573,7 +1935,174 @@
         }
 
         // ============================================================
-        // 6. 折叠切换 + Sticky
+        // 7. 内联编辑函数
+        // ============================================================
+        window.editPlaceField = function(placeId, field) {
+            if (!isAdminMode) return;
+            const dayData = allDaysData.find(d => d.places && d.places.some(p => p.id === placeId));
+            if (!dayData) return;
+            const place = dayData.places.find(p => p.id === placeId);
+            if (!place) return;
+
+            const currentValue = place[field] || '';
+            const newValue = prompt(`修改 ${field}:`, currentValue);
+            if (newValue === null) return;
+
+            place[field] = newValue.trim();
+            editedData['place_' + placeId] = {
+                ...editedData['place_' + placeId],
+                [field]: newValue.trim()
+            };
+
+            renderDays();
+            renderOverview();
+        };
+
+        window.editDayField = function(day, field, elementId) {
+            if (!isAdminMode) return;
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData) return;
+
+            const currentValue = dayData[field] || '';
+            const newValue = prompt(`修改 ${field}:`, currentValue);
+            if (newValue === null) return;
+
+            dayData[field] = newValue.trim();
+            editedData['day_' + day] = {
+                ...editedData['day_' + day],
+                [field]: newValue.trim()
+            };
+
+            renderDays();
+            renderOverview();
+        };
+
+        window.editPlaceMeta = function(placeId, field) {
+            editPlaceField(placeId, field);
+        };
+
+        // ---- 编辑交通 ----
+        window.editTransport = function(placeId, day) {
+            if (!isAdminMode) return;
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData) return;
+            const place = dayData.places.find(p => p.id === placeId);
+            if (!place) return;
+
+            const newName = prompt('交通方式名称:', place.name);
+            if (newName === null) return;
+            const newIntro = prompt('交通详情 (车次/路数/路线):', place.intro || '');
+            if (newIntro === null) return;
+
+            place.name = newName.trim();
+            place.intro = newIntro.trim();
+            editedData['place_' + placeId] = {
+                ...editedData['place_' + placeId],
+                name: newName.trim(),
+                intro: newIntro.trim()
+            };
+
+            renderDays();
+            renderOverview();
+        };
+
+        // ---- 在指定位置前添加交通 ----
+        window.addTransportBefore = function(day, index) {
+            if (!isAdminMode) return;
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData) return;
+
+            const name = prompt('交通方式名称 (如 公交307路):');
+            if (!name) return;
+            const intro = prompt('交通详情 (上车点 → 下车点):');
+            if (intro === null) return;
+
+            const newPlace = {
+                id: -Date.now(),
+                name: name.trim(),
+                type: 'transport',
+                day: day,
+                time_start: '',
+                time_end: '',
+                duration: '',
+                intro: intro.trim(),
+                address: '',
+                nav_link: '',
+                image_url: '',
+                platform_links: '',
+                remark: '',
+                map_x: 50,
+                map_y: 50,
+                sort_order: index,
+                peak_alternative: '',
+                congestion_alternative: '',
+                rainy_alternative: ''
+            };
+
+            dayData.places.splice(index, 0, newPlace);
+            // 更新 place_order
+            const placeOrder = dayData.place_order || [];
+            placeOrder.splice(index, 0, newPlace.id);
+
+            editedData['day_' + day] = {
+                ...editedData['day_' + day],
+                place_order: placeOrder
+            };
+
+            renderDays();
+            renderOverview();
+            alert('✅ 交通已添加，记得按「保存修改」提交到数据库。');
+        };
+
+        // ---- 从当天删除景点 ----
+        window.deletePlaceFromDay = function(day, placeId) {
+            if (!confirm('确定要删除这个景点/交通吗？')) return;
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData) return;
+
+            const idx = dayData.places.findIndex(p => p.id === placeId);
+            if (idx === -1) return;
+
+            dayData.places.splice(idx, 1);
+            const placeOrder = dayData.place_order || [];
+            const orderIdx = placeOrder.indexOf(placeId);
+            if (orderIdx !== -1) placeOrder.splice(orderIdx, 1);
+
+            editedData['day_' + day] = {
+                ...editedData['day_' + day],
+                place_order: placeOrder
+            };
+
+            renderDays();
+            renderOverview();
+            alert('✅ 已删除，记得按「保存修改」提交到数据库。');
+        };
+
+        // ---- 编辑天标题 ----
+        window.editDayMeta = function(day) {
+            if (!isAdminMode) return;
+            const dayData = allDaysData.find(d => d.day === day);
+            if (!dayData) return;
+
+            const newTitle = prompt('标题:', dayData.title || '');
+            if (newTitle === null) return;
+            const newSubtitle = prompt('副标题:', dayData.subtitle || '');
+            if (newSubtitle === null) return;
+
+            dayData.title = newTitle.trim();
+            dayData.subtitle = newSubtitle.trim();
+            editedData['day_' + day] = {
+                ...editedData['day_' + day],
+                title: newTitle.trim(),
+                subtitle: newSubtitle.trim()
+            };
+
+            renderDays();
+            renderOverview();
+        };
+
+        // ============================================================
+        // 8. 折叠切换 + Sticky
         // ============================================================
 
         window.toggleDay = function(header) {
@@ -1673,7 +2202,7 @@
         }
 
         // ============================================================
-        // 7. 修改模式
+        // 9. 修改模式
         // ============================================================
 
         function setupAdminMode() {
@@ -1691,7 +2220,7 @@
             toggleBtn.onclick = function() {
                 if (isAdminMode) {
                     isAdminMode = false;
-                    loginArea.style.display = 'none';
+                    loginArea.style.display = 'flex';
                     editArea.style.display = 'none';
                     saveHint.classList.remove('show');
                     statusSpan.textContent = '';
@@ -1709,6 +2238,8 @@
                     statusSpan.textContent = '';
                     saveHint.classList.add('show');
                     editedData = {};
+                    renderDays();
+                    renderOverview();
                 }
             };
 
@@ -1748,13 +2279,11 @@
                 if (e.key === 'Enter') { loginBtn.click(); }
             });
 
-            // 新增一天
             document.getElementById('admin-add-day-btn').onclick = function() {
                 if (!isAdminMode) { alert('请先进入修改模式'); return; }
                 addNewDay();
             };
 
-            // 保存修改
             saveBtn.onclick = function() {
                 if (!isAdminMode) { alert('请先进入修改模式'); return; }
                 saveAllChanges();
@@ -1762,7 +2291,7 @@
         }
 
         // ============================================================
-        // 8. API 操作函数
+        // 10. API 操作函数
         // ============================================================
 
         async function apiCall(method, url, data) {
@@ -1779,7 +2308,6 @@
             return document.getElementById('admin-password-input').value.trim();
         }
 
-        // ---- 保存所有修改 ----
         async function saveAllChanges() {
             const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
@@ -1787,7 +2315,6 @@
             let successCount = 0;
             let failCount = 0;
 
-            // 遍历所有修改
             for (const [key, value] of Object.entries(editedData)) {
                 try {
                     if (key.startsWith('day_')) {
@@ -1819,12 +2346,13 @@
             } else if (successCount > 0 && failCount > 0) {
                 alert(`⚠️ 部分修改保存失败。成功 ${successCount} 项，失败 ${failCount} 项。`);
                 await reloadData();
+            } else if (successCount === 0 && failCount === 0) {
+                alert('ℹ️ 没有检测到需要保存的修改。');
             } else {
-                alert('⚠️ 没有检测到修改，或全部保存失败。');
+                alert('⚠️ 全部保存失败。');
             }
         }
 
-        // ---- 新增一天 ----
         async function addNewDay() {
             const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
@@ -1852,7 +2380,6 @@
             }
         }
 
-        // ---- 删除一天 ----
         window.deleteDay = async function(day) {
             if (!confirm(`确定要删除 Day ${day} 吗？此操作不可恢复！`)) return;
             const password = getPassword();
@@ -1867,93 +2394,6 @@
             }
         };
 
-        // ---- 编辑景点（内联） ----
-        window.editPlaceInline = function(day, placeId) {
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-            const place = dayData.places.find(p => p.id === placeId);
-            if (!place) return;
-
-            // 简单内联编辑：弹窗收集信息
-            const newName = prompt('景点名称:', place.name);
-            if (newName === null) return;
-            const newIntro = prompt('简介:', place.intro || '');
-            if (newIntro === null) return;
-            const newTimeStart = prompt('开始时间 (如 09:00):', place.time_start || '');
-            if (newTimeStart === null) return;
-            const newTimeEnd = prompt('结束时间 (如 10:30):', place.time_end || '');
-            if (newTimeEnd === null) return;
-
-            const updates = {
-                name: newName.trim(),
-                intro: newIntro.trim(),
-                time_start: newTimeStart.trim(),
-                time_end: newTimeEnd.trim()
-            };
-
-            // 存到编辑缓存
-            editedData['place_' + placeId] = { ...editedData['place_' + placeId], ...updates };
-
-            // 更新本地显示
-            place.name = newName.trim();
-            place.intro = newIntro.trim();
-            place.time_start = newTimeStart.trim();
-            place.time_end = newTimeEnd.trim();
-
-            renderDays();
-            renderOverview();
-            alert('✅ 已暂存修改，记得点击「保存修改」提交到数据库。');
-        };
-
-        // ---- 删除景点 ----
-        window.deletePlace = async function(day, placeId) {
-            if (!confirm('确定要删除这个景点吗？')) return;
-            const password = getPassword();
-            if (!password) { alert('请输入管理员密码'); return; }
-
-            const result = await apiCall('DELETE', '/api/places/' + placeId, { password: password });
-            if (result.success) {
-                alert('✅ 删除成功！');
-                await reloadData();
-            } else {
-                alert('❌ 删除失败: ' + (result.error || '未知错误'));
-            }
-        };
-
-        // ---- 编辑天信息 ----
-        window.editDayMeta = function(day) {
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-
-            const newTitle = prompt('标题:', dayData.title || '');
-            if (newTitle === null) return;
-            const newSubtitle = prompt('副标题:', dayData.subtitle || '');
-            if (newSubtitle === null) return;
-            const newWalkBadge = prompt('步行难度 (如 🚶 步行难度 ★★☆):', dayData.walk_badge || '');
-            if (newWalkBadge === null) return;
-            const newRestNote = prompt('休息点:', dayData.rest_note || '');
-            if (newRestNote === null) return;
-
-            const updates = {
-                title: newTitle.trim(),
-                subtitle: newSubtitle.trim(),
-                walk_badge: newWalkBadge.trim(),
-                rest_note: newRestNote.trim()
-            };
-
-            editedData['day_' + day] = { ...editedData['day_' + day], ...updates };
-
-            dayData.title = newTitle.trim();
-            dayData.subtitle = newSubtitle.trim();
-            dayData.walk_badge = newWalkBadge.trim();
-            dayData.rest_note = newRestNote.trim();
-
-            renderDays();
-            renderOverview();
-            alert('✅ 已暂存修改，记得点击「保存修改」提交到数据库。');
-        };
-
-        // ---- 添加景点到天 ----
         window.addPlaceToDay = async function(day) {
             const password = getPassword();
             if (!password) { alert('请输入管理员密码'); return; }
@@ -1988,7 +2428,6 @@
             });
 
             if (result.success) {
-                // 更新 place_order
                 const dayData = allDaysData.find(d => d.day === day);
                 const placeOrder = dayData.place_order || [];
                 placeOrder.push(result.id);
@@ -2007,7 +2446,6 @@
             }
         };
 
-        // ---- 重新加载数据 ----
         async function reloadData() {
             const data = await loadItineraryData();
             if (data) {
@@ -2025,7 +2463,7 @@
         }
 
         // ============================================================
-        // 9. 滚动动画
+        // 11. 滚动动画
         // ============================================================
 
         function setupScrollAnimation() {
@@ -2059,7 +2497,7 @@
         }
 
         // ============================================================
-        // 10. 启动
+        // 12. 启动
         // ============================================================
 
         document.addEventListener('DOMContentLoaded', async function() {
@@ -2099,9 +2537,12 @@
         window.onMapPointEnter = onMapPointEnter;
         window.onMapPointLeave = onMapPointLeave;
         window.onMapPointClick = onMapPointClick;
-        window.editPlaceInline = window.editPlaceInline;
-        window.deletePlace = window.deletePlace;
-        window.editDayMeta = window.editDayMeta;
+        window.editPlaceField = editPlaceField;
+        window.editDayField = editDayField;
+        window.editTransport = editTransport;
+        window.addTransportBefore = addTransportBefore;
+        window.deletePlaceFromDay = deletePlaceFromDay;
+        window.editDayMeta = editDayMeta;
         window.deleteDay = window.deleteDay;
         window.addPlaceToDay = window.addPlaceToDay;
     </script>
