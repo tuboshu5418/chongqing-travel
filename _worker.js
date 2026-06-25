@@ -1,6 +1,6 @@
 // ============================================================
 // 重庆-丰都旅游攻略 - Cloudflare Workers API
-// 支持行程 + 交通方式管理
+// 支持 itinerary + places 双表结构
 // ============================================================
 
 const GITHUB_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
@@ -15,7 +15,10 @@ const corsHeaders = {
 function jsonResponse(data, status = 200) {
     return new Response(JSON.stringify(data), {
         status,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+        },
     });
 }
 
@@ -39,6 +42,7 @@ export default {
         const db = env['travel_data'];
 
         try {
+
             // ============================================================
             // 1. 管理员验证
             // ============================================================
@@ -52,306 +56,283 @@ export default {
             }
 
             // ============================================================
-            // 2. 行程 API
+            // 2. 获取完整行程数据（itinerary + places 关联）
             // ============================================================
-            if (path.startsWith('/api/itinerary')) {
-                const parts = path.split('/');
-                const dayParam = parts[parts.length - 1];
-                const dayNumber = parseInt(dayParam);
+            if (path === '/api/itinerary' && method === 'GET') {
+                // 获取所有天的行程框架
+                const { results: days } = await db.prepare(
+                    'SELECT * FROM itinerary ORDER BY day ASC'
+                ).all();
 
-                // ---- GET ----
-                if (method === 'GET') {
-                    if (!isNaN(dayNumber) && dayNumber > 0) {
-                        const result = await db.prepare(
-                            'SELECT * FROM itinerary WHERE day = ?'
-                        ).bind(dayNumber).first();
-                        if (!result) return jsonResponse({ error: 'Not found' }, 404);
-                        if (result.schedule) result.schedule = JSON.parse(result.schedule);
-                        if (result.places) result.places = JSON.parse(result.places);
-                        if (result.transport_ids) {
-                            const ids = JSON.parse(result.transport_ids);
-                            const placeholders = ids.map(() => '?').join(',');
-                            if (ids.length > 0) {
-                                const transports = await db.prepare(
-                                    `SELECT * FROM transport WHERE id IN (${placeholders}) ORDER BY sort_order`
-                                ).bind(...ids).all();
-                                result.transports = transports.results;
-                            } else {
-                                result.transports = [];
-                            }
-                        }
-                        return jsonResponse(result);
-                    }
+                // 获取所有景点
+                const { results: allPlaces } = await db.prepare(
+                    'SELECT * FROM places ORDER BY day, sort_order'
+                ).all();
 
-                    // 查询所有天
+                // 按天组装数据
+                const result = days.map(day => {
+                    const placeIds = day.place_order ? JSON.parse(day.place_order) : [];
+                    const places = placeIds
+                        .map(id => allPlaces.find(p => p.id === id))
+                        .filter(p => p !== undefined);
+                    return {
+                        ...day,
+                        places: places,
+                        place_order: placeIds,
+                        day_alternatives: day.day_alternatives ? JSON.parse(day.day_alternatives) : {},
+                    };
+                });
+
+                return jsonResponse(result);
+            }
+
+            // ============================================================
+            // 3. 获取单天行程
+            // ============================================================
+            if (path.startsWith('/api/itinerary/') && method === 'GET') {
+                const dayNum = parseInt(path.split('/').pop());
+                if (isNaN(dayNum)) return jsonResponse({ error: 'Invalid day' }, 400);
+
+                const day = await db.prepare(
+                    'SELECT * FROM itinerary WHERE day = ?'
+                ).bind(dayNum).first();
+
+                if (!day) return jsonResponse({ error: 'Day not found' }, 404);
+
+                const placeIds = day.place_order ? JSON.parse(day.place_order) : [];
+                let places = [];
+                if (placeIds.length > 0) {
+                    const placeholders = placeIds.map(() => '?').join(',');
                     const { results } = await db.prepare(
-                        'SELECT * FROM itinerary ORDER BY day ASC'
-                    ).all();
-
-                    for (const row of results) {
-                        if (row.schedule) row.schedule = JSON.parse(row.schedule);
-                        if (row.places) row.places = JSON.parse(row.places);
-                        if (row.transport_ids) {
-                            const ids = JSON.parse(row.transport_ids);
-                            const placeholders = ids.map(() => '?').join(',');
-                            if (ids.length > 0) {
-                                const transports = await db.prepare(
-                                    `SELECT * FROM transport WHERE id IN (${placeholders}) ORDER BY sort_order`
-                                ).bind(...ids).all();
-                                row.transports = transports.results;
-                            } else {
-                                row.transports = [];
-                            }
-                        }
-                    }
-                    return jsonResponse(results);
+                        `SELECT * FROM places WHERE id IN (${placeholders}) ORDER BY sort_order`
+                    ).bind(...placeIds).all();
+                    // 按 place_order 顺序排序
+                    const placeMap = {};
+                    results.forEach(p => placeMap[p.id] = p);
+                    places = placeIds.map(id => placeMap[id]).filter(p => p !== undefined);
                 }
 
-                // ---- POST（新建一天） ----
-                if (method === 'POST') {
-                    const body = await request.json();
-                    const { password, title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, schedule, places, transport_ids } = body;
-
-                    // 验证密码
-                    const hash = await sha256(password);
-                    const admin = await db.prepare(
-                        'SELECT username FROM admin WHERE password_hash = ?'
-                    ).bind(hash).first();
-                    if (!admin) return jsonResponse({ error: '密码错误' }, 401);
-
-                    // 获取当前最大 day
-                    const maxDay = await db.prepare('SELECT MAX(day) as max FROM itinerary').first();
-                    const newDay = (maxDay?.max || 0) + 1;
-
-                    const result = await db.prepare(
-                        `INSERT INTO itinerary (day, title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, schedule, places, transport_ids)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-                    ).bind(
-                        newDay,
-                        title || `Day ${newDay}`,
-                        subtitle || '',
-                        walk_badge || '',
-                        rest_note || '',
-                        breakfast || '',
-                        lunch || '',
-                        dinner || '',
-                        JSON.stringify(schedule || []),
-                        JSON.stringify(places || []),
-                        JSON.stringify(transport_ids || [])
-                    ).run();
-
-                    const inserted = await db.prepare(
-                        'SELECT * FROM itinerary WHERE day = ?'
-                    ).bind(newDay).first();
-                    if (inserted.schedule) inserted.schedule = JSON.parse(inserted.schedule);
-                    if (inserted.places) inserted.places = JSON.parse(inserted.places);
-                    return jsonResponse({ success: true, data: inserted }, 201);
-                }
-
-                // ---- PUT（更新） ----
-                if (method === 'PUT') {
-                    if (isNaN(dayNumber) || dayNumber <= 0) {
-                        return jsonResponse({ error: 'Invalid day' }, 400);
-                    }
-
-                    const body = await request.json();
-                    const { password, title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, schedule, places, transport_ids } = body;
-
-                    const hash = await sha256(password);
-                    const admin = await db.prepare(
-                        'SELECT username FROM admin WHERE password_hash = ?'
-                    ).bind(hash).first();
-                    if (!admin) return jsonResponse({ error: '密码错误' }, 401);
-
-                    const existing = await db.prepare(
-                        'SELECT id FROM itinerary WHERE day = ?'
-                    ).bind(dayNumber).first();
-                    if (!existing) return jsonResponse({ error: 'Day not found' }, 404);
-
-                    const updates = [];
-                    const values = [];
-                    if (title !== undefined) { updates.push('title = ?');
-                        values.push(title); }
-                    if (subtitle !== undefined) { updates.push('subtitle = ?');
-                        values.push(subtitle); }
-                    if (walk_badge !== undefined) { updates.push('walk_badge = ?');
-                        values.push(walk_badge); }
-                    if (rest_note !== undefined) { updates.push('rest_note = ?');
-                        values.push(rest_note); }
-                    if (breakfast !== undefined) { updates.push('breakfast = ?');
-                        values.push(breakfast); }
-                    if (lunch !== undefined) { updates.push('lunch = ?');
-                        values.push(lunch); }
-                    if (dinner !== undefined) { updates.push('dinner = ?');
-                        values.push(dinner); }
-                    if (schedule !== undefined) { updates.push('schedule = ?');
-                        values.push(JSON.stringify(schedule)); }
-                    if (places !== undefined) { updates.push('places = ?');
-                        values.push(JSON.stringify(places)); }
-                    if (transport_ids !== undefined) { updates.push('transport_ids = ?');
-                        values.push(JSON.stringify(transport_ids)); }
-
-                    if (updates.length === 0) return jsonResponse({ error: 'No fields' }, 400);
-
-                    values.push(dayNumber);
-                    await db.prepare(
-                        `UPDATE itinerary SET ${updates.join(', ')} WHERE day = ?`
-                    ).bind(...values).run();
-
-                    const updated = await db.prepare(
-                        'SELECT * FROM itinerary WHERE day = ?'
-                    ).bind(dayNumber).first();
-                    if (updated.schedule) updated.schedule = JSON.parse(updated.schedule);
-                    if (updated.places) updated.places = JSON.parse(updated.places);
-                    return jsonResponse({ success: true, data: updated });
-                }
-
-                // ---- DELETE ----
-                if (method === 'DELETE') {
-                    if (isNaN(dayNumber) || dayNumber <= 0) {
-                        return jsonResponse({ error: 'Invalid day' }, 400);
-                    }
-                    const body = await request.json();
-                    const { password } = body;
-                    const hash = await sha256(password);
-                    const admin = await db.prepare(
-                        'SELECT username FROM admin WHERE password_hash = ?'
-                    ).bind(hash).first();
-                    if (!admin) return jsonResponse({ error: '密码错误' }, 401);
-
-                    const existing = await db.prepare(
-                        'SELECT id FROM itinerary WHERE day = ?'
-                    ).bind(dayNumber).first();
-                    if (!existing) return jsonResponse({ error: 'Day not found' }, 404);
-
-                    await db.prepare('DELETE FROM itinerary WHERE day = ?').bind(dayNumber).run();
-                    return jsonResponse({ success: true, deleted: dayNumber });
-                }
-
-                return jsonResponse({ error: 'Method not allowed' }, 405);
+                return jsonResponse({
+                    ...day,
+                    places: places,
+                    place_order: placeIds,
+                    day_alternatives: day.day_alternatives ? JSON.parse(day.day_alternatives) : {},
+                });
             }
 
             // ============================================================
-            // 3. 交通方式 API
+            // 4. 更新行程（PUT）
             // ============================================================
-            if (path.startsWith('/api/transport')) {
-                const parts = path.split('/');
-                const idParam = parts[parts.length - 1];
-                const id = parseInt(idParam);
+            if (path.startsWith('/api/itinerary/') && method === 'PUT') {
+                const dayNum = parseInt(path.split('/').pop());
+                if (isNaN(dayNum)) return jsonResponse({ error: 'Invalid day' }, 400);
 
-                // ---- GET（查询某一天的交通） ----
-                if (method === 'GET') {
-                    if (!isNaN(id) && id > 0) {
-                        // 查询某一天的交通
-                        const results = await db.prepare(
-                            'SELECT * FROM transport WHERE day = ? ORDER BY sort_order'
-                        ).bind(id).all();
-                        return jsonResponse(results.results);
-                    }
-                    // 查询所有交通
-                    const results = await db.prepare(
-                        'SELECT * FROM transport ORDER BY day, sort_order'
-                    ).all();
-                    return jsonResponse(results.results);
+                const body = await request.json();
+                const { password, title, subtitle, walk_badge, rest_note, breakfast, lunch, dinner, place_order, day_alternatives, notes } = body;
+
+                // 验证密码
+                const hash = await sha256(password);
+                const admin = await db.prepare(
+                    'SELECT username FROM admin WHERE password_hash = ?'
+                ).bind(hash).first();
+                if (!admin) return jsonResponse({ error: '密码错误' }, 401);
+
+                const existing = await db.prepare(
+                    'SELECT day FROM itinerary WHERE day = ?'
+                ).bind(dayNum).first();
+                if (!existing) return jsonResponse({ error: 'Day not found' }, 404);
+
+                const updates = [];
+                const values = [];
+                if (title !== undefined) { updates.push('title = ?');
+                    values.push(title); }
+                if (subtitle !== undefined) { updates.push('subtitle = ?');
+                    values.push(subtitle); }
+                if (walk_badge !== undefined) { updates.push('walk_badge = ?');
+                    values.push(walk_badge); }
+                if (rest_note !== undefined) { updates.push('rest_note = ?');
+                    values.push(rest_note); }
+                if (breakfast !== undefined) { updates.push('breakfast = ?');
+                    values.push(breakfast); }
+                if (lunch !== undefined) { updates.push('lunch = ?');
+                    values.push(lunch); }
+                if (dinner !== undefined) { updates.push('dinner = ?');
+                    values.push(dinner); }
+                if (place_order !== undefined) { updates.push('place_order = ?');
+                    values.push(JSON.stringify(place_order)); }
+                if (day_alternatives !== undefined) { updates.push('day_alternatives = ?');
+                    values.push(JSON.stringify(day_alternatives)); }
+                if (notes !== undefined) { updates.push('notes = ?');
+                    values.push(notes); }
+
+                if (updates.length === 0) return jsonResponse({ error: 'No fields' }, 400);
+
+                values.push(dayNum);
+                await db.prepare(
+                    `UPDATE itinerary SET ${updates.join(', ')} WHERE day = ?`
+                ).bind(...values).run();
+
+                // 返回更新后的数据
+                const updated = await db.prepare(
+                    'SELECT * FROM itinerary WHERE day = ?'
+                ).bind(dayNum).first();
+
+                const placeIds = updated.place_order ? JSON.parse(updated.place_order) : [];
+                let places = [];
+                if (placeIds.length > 0) {
+                    const placeholders = placeIds.map(() => '?').join(',');
+                    const { results } = await db.prepare(
+                        `SELECT * FROM places WHERE id IN (${placeholders})`
+                    ).bind(...placeIds).all();
+                    const placeMap = {};
+                    results.forEach(p => placeMap[p.id] = p);
+                    places = placeIds.map(id => placeMap[id]).filter(p => p !== undefined);
                 }
 
-                // ---- POST（新增交通） ----
-                if (method === 'POST') {
-                    const body = await request.json();
-                    const { password, day, from_place, to_place, mode, detail, departure, arrival, duration, notes } = body;
-
-                    const hash = await sha256(password);
-                    const admin = await db.prepare(
-                        'SELECT username FROM admin WHERE password_hash = ?'
-                    ).bind(hash).first();
-                    if (!admin) return jsonResponse({ error: '密码错误' }, 401);
-
-                    const result = await db.prepare(
-                        `INSERT INTO transport (day, from_place, to_place, mode, detail, departure, arrival, duration, notes, sort_order)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM transport WHERE day = ?))`
-                    ).bind(day, from_place, to_place, mode, detail || '', departure || '', arrival || '', duration || '', notes || '', day).run();
-
-                    return jsonResponse({ success: true, id: result.meta.last_row_id }, 201);
-                }
-
-                // ---- PUT（更新交通） ----
-                if (method === 'PUT') {
-                    if (isNaN(id) || id <= 0) return jsonResponse({ error: 'Invalid id' }, 400);
-                    const body = await request.json();
-                    const { password, from_place, to_place, mode, detail, departure, arrival, duration, notes, sort_order } = body;
-
-                    const hash = await sha256(password);
-                    const admin = await db.prepare(
-                        'SELECT username FROM admin WHERE password_hash = ?'
-                    ).bind(hash).first();
-                    if (!admin) return jsonResponse({ error: '密码错误' }, 401);
-
-                    const existing = await db.prepare(
-                        'SELECT id FROM transport WHERE id = ?'
-                    ).bind(id).first();
-                    if (!existing) return jsonResponse({ error: 'Not found' }, 404);
-
-                    const updates = [];
-                    const values = [];
-                    if (from_place !== undefined) { updates.push('from_place = ?');
-                        values.push(from_place); }
-                    if (to_place !== undefined) { updates.push('to_place = ?');
-                        values.push(to_place); }
-                    if (mode !== undefined) { updates.push('mode = ?');
-                        values.push(mode); }
-                    if (detail !== undefined) { updates.push('detail = ?');
-                        values.push(detail); }
-                    if (departure !== undefined) { updates.push('departure = ?');
-                        values.push(departure); }
-                    if (arrival !== undefined) { updates.push('arrival = ?');
-                        values.push(arrival); }
-                    if (duration !== undefined) { updates.push('duration = ?');
-                        values.push(duration); }
-                    if (notes !== undefined) { updates.push('notes = ?');
-                        values.push(notes); }
-                    if (sort_order !== undefined) { updates.push('sort_order = ?');
-                        values.push(sort_order); }
-
-                    if (updates.length === 0) return jsonResponse({ error: 'No fields' }, 400);
-                    values.push(id);
-                    await db.prepare(
-                        `UPDATE transport SET ${updates.join(', ')} WHERE id = ?`
-                    ).bind(...values).run();
-
-                    const updated = await db.prepare(
-                        'SELECT * FROM transport WHERE id = ?'
-                    ).bind(id).first();
-                    return jsonResponse({ success: true, data: updated });
-                }
-
-                // ---- DELETE ----
-                if (method === 'DELETE') {
-                    if (isNaN(id) || id <= 0) return jsonResponse({ error: 'Invalid id' }, 400);
-                    const body = await request.json();
-                    const { password } = body;
-                    const hash = await sha256(password);
-                    const admin = await db.prepare(
-                        'SELECT username FROM admin WHERE password_hash = ?'
-                    ).bind(hash).first();
-                    if (!admin) return jsonResponse({ error: '密码错误' }, 401);
-
-                    const existing = await db.prepare(
-                        'SELECT id FROM transport WHERE id = ?'
-                    ).bind(id).first();
-                    if (!existing) return jsonResponse({ error: 'Not found' }, 404);
-
-                    await db.prepare('DELETE FROM transport WHERE id = ?').bind(id).run();
-
-                    // 同时从 itinerary 的 transport_ids 中移除
-                    // 这个需要遍历所有 itinerary 更新，简单起见留空，但前端可处理
-                    return jsonResponse({ success: true, deleted: id });
-                }
-
-                return jsonResponse({ error: 'Method not allowed' }, 405);
+                return jsonResponse({
+                    ...updated,
+                    places: places,
+                    place_order: placeIds,
+                    day_alternatives: updated.day_alternatives ? JSON.parse(updated.day_alternatives) : {},
+                });
             }
 
             // ============================================================
-            // 4. 其他 API
+            // 5. 景点 CRUD
+            // ============================================================
+            // 5.1 新增景点
+            if (path === '/api/places' && method === 'POST') {
+                const body = await request.json();
+                const { password, name, type, day, time_start, time_end, duration, intro, address, nav_link, image_url, platform_links, remark, map_x, map_y, sort_order, peak_alternative, congestion_alternative, rainy_alternative } = body;
+
+                const hash = await sha256(password);
+                const admin = await db.prepare(
+                    'SELECT username FROM admin WHERE password_hash = ?'
+                ).bind(hash).first();
+                if (!admin) return jsonResponse({ error: '密码错误' }, 401);
+
+                const result = await db.prepare(
+                    `INSERT INTO places 
+                     (name, type, day, time_start, time_end, duration, intro, address, nav_link, image_url, platform_links, remark, map_x, map_y, sort_order, peak_alternative, congestion_alternative, rainy_alternative)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                ).bind(
+                    name, type, day, time_start || '', time_end || '', duration || '',
+                    intro || '', address || '', nav_link || '', image_url || '',
+                    platform_links || '', remark || '', map_x || 0, map_y || 0,
+                    sort_order || 0, peak_alternative || '', congestion_alternative || '', rainy_alternative || ''
+                ).run();
+
+                return jsonResponse({ success: true, id: result.meta.last_row_id }, 201);
+            }
+
+            // 5.2 更新景点
+            if (path.startsWith('/api/places/') && method === 'PUT') {
+                const id = parseInt(path.split('/').pop());
+                if (isNaN(id)) return jsonResponse({ error: 'Invalid id' }, 400);
+
+                const body = await request.json();
+                const { password, name, type, day, time_start, time_end, duration, intro, address, nav_link, image_url, platform_links, remark, map_x, map_y, sort_order, peak_alternative, congestion_alternative, rainy_alternative } = body;
+
+                const hash = await sha256(password);
+                const admin = await db.prepare(
+                    'SELECT username FROM admin WHERE password_hash = ?'
+                ).bind(hash).first();
+                if (!admin) return jsonResponse({ error: '密码错误' }, 401);
+
+                const existing = await db.prepare(
+                    'SELECT id FROM places WHERE id = ?'
+                ).bind(id).first();
+                if (!existing) return jsonResponse({ error: 'Place not found' }, 404);
+
+                const updates = [];
+                const values = [];
+                if (name !== undefined) { updates.push('name = ?');
+                    values.push(name); }
+                if (type !== undefined) { updates.push('type = ?');
+                    values.push(type); }
+                if (day !== undefined) { updates.push('day = ?');
+                    values.push(day); }
+                if (time_start !== undefined) { updates.push('time_start = ?');
+                    values.push(time_start); }
+                if (time_end !== undefined) { updates.push('time_end = ?');
+                    values.push(time_end); }
+                if (duration !== undefined) { updates.push('duration = ?');
+                    values.push(duration); }
+                if (intro !== undefined) { updates.push('intro = ?');
+                    values.push(intro); }
+                if (address !== undefined) { updates.push('address = ?');
+                    values.push(address); }
+                if (nav_link !== undefined) { updates.push('nav_link = ?');
+                    values.push(nav_link); }
+                if (image_url !== undefined) { updates.push('image_url = ?');
+                    values.push(image_url); }
+                if (platform_links !== undefined) { updates.push('platform_links = ?');
+                    values.push(platform_links); }
+                if (remark !== undefined) { updates.push('remark = ?');
+                    values.push(remark); }
+                if (map_x !== undefined) { updates.push('map_x = ?');
+                    values.push(map_x); }
+                if (map_y !== undefined) { updates.push('map_y = ?');
+                    values.push(map_y); }
+                if (sort_order !== undefined) { updates.push('sort_order = ?');
+                    values.push(sort_order); }
+                if (peak_alternative !== undefined) { updates.push('peak_alternative = ?');
+                    values.push(peak_alternative); }
+                if (congestion_alternative !== undefined) { updates.push('congestion_alternative = ?');
+                    values.push(congestion_alternative); }
+                if (rainy_alternative !== undefined) { updates.push('rainy_alternative = ?');
+                    values.push(rainy_alternative); }
+
+                if (updates.length === 0) return jsonResponse({ error: 'No fields' }, 400);
+
+                values.push(id);
+                await db.prepare(
+                    `UPDATE places SET ${updates.join(', ')} WHERE id = ?`
+                ).bind(...values).run();
+
+                const updated = await db.prepare(
+                    'SELECT * FROM places WHERE id = ?'
+                ).bind(id).first();
+
+                return jsonResponse({ success: true, data: updated });
+            }
+
+            // 5.3 删除景点
+            if (path.startsWith('/api/places/') && method === 'DELETE') {
+                const id = parseInt(path.split('/').pop());
+                if (isNaN(id)) return jsonResponse({ error: 'Invalid id' }, 400);
+
+                const body = await request.json();
+                const { password } = body;
+
+                const hash = await sha256(password);
+                const admin = await db.prepare(
+                    'SELECT username FROM admin WHERE password_hash = ?'
+                ).bind(hash).first();
+                if (!admin) return jsonResponse({ error: '密码错误' }, 401);
+
+                const existing = await db.prepare(
+                    'SELECT id FROM places WHERE id = ?'
+                ).bind(id).first();
+                if (!existing) return jsonResponse({ error: 'Place not found' }, 404);
+
+                await db.prepare('DELETE FROM places WHERE id = ?').bind(id).run();
+
+                return jsonResponse({ success: true, deleted: id });
+            }
+
+            // ============================================================
+            // 6. 获取所有景点（用于管理）
+            // ============================================================
+            if (path === '/api/places' && method === 'GET') {
+                const { results } = await db.prepare(
+                    'SELECT * FROM places ORDER BY day, sort_order'
+                ).all();
+                return jsonResponse(results);
+            }
+
+            // ============================================================
+            // 7. 高德导航链接
             // ============================================================
             if (path === '/api/amap-link') {
                 const params = url.searchParams;
@@ -359,7 +340,9 @@ export default {
                 const lat = params.get('lat');
                 const name = params.get('name') || '目的地';
                 if (!lng || !lat) return jsonResponse({ error: '缺少经纬度' }, 400);
-                return jsonResponse({ link: `${AMAP_URI_BASE}?position=${lng},${lat}&name=${encodeURIComponent(name)}` });
+                return jsonResponse({
+                    link: `${AMAP_URI_BASE}?position=${lng},${lat}&name=${encodeURIComponent(name)}`
+                });
             }
 
             if (path === '/api/images/base') {
@@ -367,7 +350,7 @@ export default {
             }
 
             // ============================================================
-            // 5. 静态资源
+            // 8. 静态资源
             // ============================================================
             return env.ASSETS.fetch(request);
 
@@ -376,4 +359,4 @@ export default {
             return jsonResponse({ error: error.message }, 500);
         }
     }
-};
+};     
