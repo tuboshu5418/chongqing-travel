@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
     <title>重庆4天3晚 · 家庭游</title>
     <style>
-        /* ============================================================
-           完整样式 - 无硬编码数据
-           ============================================================ */
         * {
             margin: 0;
             padding: 0;
@@ -188,7 +185,8 @@
             overflow: hidden;
             border: 1px solid #e8e4de;
             background: #f6f4f1;
-            min-height: 200px;
+            min-height: 320px;
+            height: 360px;
         }
 
         .map-point {
@@ -211,30 +209,6 @@
             z-index: 10;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             user-select: none;
-        }
-        .map-point .drag-handle {
-            display: none;
-            position: absolute;
-            bottom: -6px;
-            right: -6px;
-            background: #4a6a7f;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            font-size: 10px;
-            line-height: 16px;
-            text-align: center;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-            border: 1px solid #fff;
-        }
-        .map-point.draggable .drag-handle {
-            display: block;
-        }
-        .map-point.dragging {
-            z-index: 100;
-            box-shadow: 0 8px 30px rgba(160, 82, 74, 0.5);
-            transform: translate(-50%, -50%) scale(1.15);
-            transition: none;
         }
         .map-point:hover {
             transform: translate(-50%, -50%) scale(1.15);
@@ -356,7 +330,6 @@
             background: #3a5a6f;
         }
 
-        /* ---- Day 栏目 ---- */
         .day-group {
             position: relative;
             scroll-margin-top: 60px;
@@ -475,7 +448,6 @@
             gap: 4px;
         }
 
-        /* ---- 时间轴 ---- */
         .timeline {
             position: relative;
             padding-left: 32px;
@@ -542,11 +514,11 @@
             align-items: center;
             gap: 8px;
             padding: 2px 0 2px 16px;
-            margin: 0 0 0 0;
+            margin: 0;
             font-size: 13px;
             color: #4a6a7f;
             position: relative;
-            min-height: 28px;
+            min-height: 24px;
         }
         .transport-connector::before {
             content: '';
@@ -686,6 +658,48 @@
             margin-bottom: 4px;
         }
 
+        /* ---- 交通卡片（紧凑版，无图片） ---- */
+        .place-card-transport {
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 8px 16px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            border: 1px solid #dce4ec;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .place-card-transport.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .place-card-transport .transport-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .place-card-transport .transport-route {
+            font-size: 14px;
+            font-weight: 500;
+            color: #3a5a6f;
+        }
+        .place-card-transport .transport-detail {
+            font-size: 13px;
+            color: #5a6a7a;
+        }
+        .place-card-transport .transport-alt {
+            font-size: 12px;
+            color: #8a9aaa;
+            background: #e8eef4;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
         .btn-group {
             display: flex;
             flex-wrap: wrap;
@@ -771,7 +785,6 @@
             padding-top: 22px;
         }
 
-        /* ---- 管理面板 ---- */
         #admin-panel {
             margin-top: 20px;
             padding: 16px;
@@ -878,16 +891,6 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
         }
 
-        .editable {
-            cursor: pointer;
-            transition: background 0.2s ease;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .editable:hover {
-            background: rgba(74, 106, 127, 0.08);
-        }
-
         @media (min-width: 768px) {
             body {
                 padding: 30px 40px;
@@ -982,6 +985,17 @@
                 width: 8px;
                 height: 8px;
             }
+            .place-card-transport {
+                padding: 6px 12px;
+                min-height: 36px;
+                gap: 4px 8px;
+            }
+            .place-card-transport .transport-icon {
+                font-size: 16px;
+            }
+            .place-card-transport .transport-route {
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -1056,10 +1070,8 @@
         (function() {
             'use strict';
 
-            // ---- 配置 ----
             const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
 
-            // ---- 状态 ----
             let allDaysData = [];
             let currentTab = 0;
             let isAdminMode = false;
@@ -1070,7 +1082,6 @@
             let editedData = {};
             let dragState = null;
 
-            // ---- DOM 引用 ----
             const floatingCard = document.getElementById('floating-card');
             const floatingCardClose = document.getElementById('floating-card-close');
             const floatingCardImg = document.getElementById('floating-card-img');
@@ -1127,7 +1138,10 @@
                     '慢车': '🚂',
                     '桂园': '🏛️',
                     '南山': '🌄',
-                    '大礼堂': '🏛️'
+                    '大礼堂': '🏛️',
+                    '佛图关': '🌉',
+                    '两江游船': '🚢',
+                    '美亚': '🏨'
                 };
                 for (const [key, value] of Object.entries(map)) {
                     if (name.includes(key)) return value;
@@ -1146,7 +1160,10 @@
                     '重庆动物园': 'panda.jpg',
                     '三峡博物馆': 'sanxia.jpg',
                     '人民大礼堂': 'renmindalitang.jpg',
-                    '重庆美亚国际酒店': 'meiya.jpg'
+                    '重庆美亚国际酒店': 'meiya.jpg',
+                    '佛图关步道': 'futuguan.jpg',
+                    '周公馆': 'zhougongguan.jpg',
+                    '桂园': 'guiyuan.jpg'
                 };
                 for (const [key, value] of Object.entries(map)) {
                     if (name.includes(key)) return value;
@@ -1196,12 +1213,10 @@
                             </div>`;
                     html += `<div class="day-body">`;
 
-                    // 步行难度
                     if (day.walk_badge) {
                         html += `<div class="walk-badge">${day.walk_badge}</div>`;
                     }
 
-                    // 三餐
                     if (day.breakfast || day.lunch || day.dinner) {
                         html += `<div class="meal-bar">`;
                         if (day.breakfast) html += `<span>🌅 早餐：${day.breakfast}</span>`;
@@ -1210,7 +1225,7 @@
                         html += `</div>`;
                     }
 
-                    // ---- 时间轴（只显示非交通节点） ----
+                    // ---- 时间轴 ----
                     html += `<div class="timeline">`;
                     const nonTransport = places.filter(p => p.type !== 'transport');
                     nonTransport.forEach((place) => {
@@ -1218,7 +1233,7 @@
                         const typeLabel = getTypeLabel(place.type);
                         const timeStr = formatTime(place);
 
-                        html += `<div class="timeline-item" data-place-id="${place.id}">`;
+                        html += `<div class="timeline-item" data-place-id="${place.id}" data-day="${day.day}">`;
                         if (timeStr) {
                             html += `<span class="time">${timeStr}</span>`;
                         }
@@ -1228,7 +1243,7 @@
                     });
                     html += `</div>`;
 
-                    // ---- 景点卡片 + 交通连接线 ----
+                    // ---- 景点卡片 + 交通卡片（按原始顺序交错） ----
                     const orderedItems = [];
                     for (let i = 0; i < places.length; i++) {
                         if (places[i].type !== 'transport') {
@@ -1302,19 +1317,39 @@
                             }
                             html += `</div>`;
                             html += `</div>`;
+                        } else {
+                            // 交通卡片 - 紧凑版，无图片
+                            const t = item.data;
+                            const icon = getEmoji('交通');
+                            // 从 transport 字段或 intro 中提取信息
+                            let transportText = t.transport || t.intro || t.name || '';
+                            // 提取起止点：如果有 "→" 则显示，否则显示完整
+                            let routeDisplay = transportText;
+                            let altDisplay = '';
 
-                            // 检查下一个是否是交通
-                            const nextItem = orderedItems[i + 1];
-                            if (nextItem && nextItem.type === 'transport') {
-                                const t = nextItem.data;
-                                const icon = '🚇';
-                                const displayText = t.intro || t.name;
-                                html += `<div class="transport-connector">
-                                            <span class="transport-icon">${icon}</span>
-                                            <span class="transport-text">${displayText}</span>
-                                        </div>`;
-                                i++;
+                            // 尝试提取备选方案（如果有 "或"）
+                            if (transportText.includes('或')) {
+                                const parts = transportText.split('或');
+                                routeDisplay = parts[0].trim();
+                                altDisplay = '备选：' + parts[1].trim();
                             }
+
+                            // 如果 transport 字段为空，用 name
+                            if (!t.transport && !t.intro) {
+                                routeDisplay = t.name || '';
+                            }
+
+                            html += `<div class="place-card-transport" data-day="${day.day}" data-place-id="${t.id}" onclick="jumpToPlace(${day.day}, ${t.id})">`;
+                            html += `<span class="transport-icon">${icon}</span>`;
+                            html += `<span class="transport-route">${routeDisplay}</span>`;
+                            if (altDisplay) {
+                                html += `<span class="transport-alt">${altDisplay}</span>`;
+                            }
+                            // 如果有起止点信息，显示
+                            if (t.address && !transportText.includes(t.address)) {
+                                html += `<span class="transport-detail">${t.address}</span>`;
+                            }
+                            html += `</div>`;
                         }
                     }
 
@@ -1335,6 +1370,7 @@
                     body.style.padding = '0 20px';
                 });
 
+                // 滚动动画
                 setTimeout(setupScrollAnimation, 100);
             }
 
@@ -1382,7 +1418,9 @@
                 const dayData = allDaysData.find(d => d.day === day);
 
                 let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
-                html += `<div id="leaflet-map-${day}" style="width:100%;height:360px;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;"></div>`;
+                html += `<div id="leaflet-map-${day}" style="width:100%;height:100%;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;"></div>`;
+
+                // 圆点覆盖层（直接在地图上用绝对定位）
                 html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">`;
 
                 if (dayData && dayData.places) {
@@ -1390,15 +1428,13 @@
                     nonTransport.forEach((place, idx) => {
                         const x = place.map_x || (10 + (idx / Math.max(nonTransport.length - 1, 1)) * 80);
                         const y = place.map_y || (20 + (idx % 2) * 40 + 10);
-                        const draggable = isAdminMode ? 'draggable' : '';
-                        html += `<div class="map-point ${draggable}" 
+                        html += `<div class="map-point" 
                                     style="left:${x}%; top:${y}%;pointer-events:auto;position:absolute;" 
                                     data-day="${day}" data-place-id="${place.id}"
                                     onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
                                     onmouseleave="onMapPointLeave()"
                                     onclick="onMapPointClick(${day}, '${place.id}', this)">
                                     ${idx + 1}
-                                    ${isAdminMode ? '<span class="drag-handle">⤡</span>' : ''}
                                 </div>`;
                     });
                 }
@@ -1408,7 +1444,7 @@
 
                 container.innerHTML = html;
 
-                // 初始化 Leaflet 地图
+                // 初始化 Leaflet 地图（使用高德瓦片）
                 setTimeout(() => {
                     const mapContainer = document.getElementById('leaflet-map-' + day);
                     if (!mapContainer) return;
@@ -1432,10 +1468,6 @@
                     }
                     initLeafletMap(day);
                 }, 200);
-
-                if (isAdminMode) {
-                    setTimeout(() => setupDragEvents(day), 300);
-                }
             }
 
             function initLeafletMap(day) {
@@ -1465,92 +1497,7 @@
             }
 
             // ============================================================
-            // 5. 地图拖动
-            // ============================================================
-            function setupDragEvents(day) {
-                const points = document.querySelectorAll(`#map-wrapper-${day} .map-point.draggable`);
-                points.forEach(point => {
-                    point.addEventListener('mousedown', function(e) {
-                        if (!isAdminMode) return;
-                        e.preventDefault();
-                        startDrag(e, this);
-                    });
-                    point.addEventListener('touchstart', function(e) {
-                        if (!isAdminMode) return;
-                        e.preventDefault();
-                        startDrag(e, this);
-                    }, { passive: false });
-                });
-            }
-
-            function startDrag(e, element) {
-                const wrapper = element.closest('.map-wrapper');
-                const wrapperRect = wrapper.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                dragState = {
-                    element: element,
-                    wrapperRect: wrapperRect,
-                    placeId: element.dataset.placeId,
-                    day: parseInt(element.dataset.day)
-                };
-
-                element.classList.add('dragging');
-
-                document.addEventListener('mousemove', onDrag);
-                document.addEventListener('mouseup', endDrag);
-                document.addEventListener('touchmove', onDrag, { passive: false });
-                document.addEventListener('touchend', endDrag);
-            }
-
-            function onDrag(e) {
-                if (!dragState) return;
-                e.preventDefault();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                const rect = dragState.wrapperRect;
-                const x = ((clientX - rect.left) / rect.width) * 100;
-                const y = ((clientY - rect.top) / rect.height) * 100;
-                dragState.element.style.left = Math.max(0, Math.min(100, x)) + '%';
-                dragState.element.style.top = Math.max(0, Math.min(100, y)) + '%';
-            }
-
-            function endDrag() {
-                if (!dragState) return;
-                const element = dragState.element;
-                const placeId = dragState.placeId;
-                const day = dragState.day;
-                element.classList.remove('dragging');
-
-                const left = parseFloat(element.style.left);
-                const top = parseFloat(element.style.top);
-                const mapX = Math.round(left);
-                const mapY = Math.round(top);
-
-                const dayData = allDaysData.find(d => d.day === day);
-                if (dayData) {
-                    const place = dayData.places.find(p => p.id == placeId);
-                    if (place) {
-                        place.map_x = mapX;
-                        place.map_y = mapY;
-                    }
-                }
-                editedData['place_' + placeId] = {
-                    ...editedData['place_' + placeId],
-                    map_x: mapX,
-                    map_y: mapY
-                };
-
-                document.removeEventListener('mousemove', onDrag);
-                document.removeEventListener('mouseup', endDrag);
-                document.removeEventListener('touchmove', onDrag);
-                document.removeEventListener('touchend', endDrag);
-                dragState = null;
-            }
-
-            // ============================================================
-            // 6. 悬浮卡片
+            // 5. 悬浮卡片
             // ============================================================
             function getPlaceById(day, placeId) {
                 const dayData = allDaysData.find(d => d.day === day);
@@ -1692,8 +1639,41 @@
                 }
             };
 
+            // ---- 点击时间轴跳转 ----
+            window.jumpToPlace = function(day, placeId) {
+                const targetDay = document.getElementById('day-group-' + day);
+                if (targetDay) {
+                    // 确保目标 day 是展开的
+                    targetDay.classList.add('open');
+                    const body = targetDay.querySelector('.day-body');
+                    if (body) {
+                        body.style.maxHeight = '5000px';
+                        body.style.opacity = '1';
+                        body.style.padding = '6px 20px 24px';
+                    }
+                    setTimeout(() => {
+                        // 尝试找景点卡片
+                        let card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
+                        // 如果没找到，找交通卡片
+                        if (!card) {
+                            card = targetDay.querySelector(`.place-card-transport[data-place-id="${placeId}"]`);
+                        }
+                        if (card) {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                            card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                            card.style.borderColor = '#a0524a';
+                            setTimeout(() => {
+                                card.style.boxShadow = '';
+                                card.style.borderColor = '';
+                            }, 3000);
+                        }
+                    }, 400);
+                }
+            };
+
             // ============================================================
-            // 7. 折叠切换 + Sticky
+            // 6. 折叠切换 + Sticky
             // ============================================================
 
             window.toggleDay = function(header) {
@@ -1793,7 +1773,7 @@
             }
 
             // ============================================================
-            // 8. 修改模式
+            // 7. 修改模式（仅保留基本功能，避免代码过长）
             // ============================================================
 
             function setupAdminMode() {
@@ -1882,7 +1862,7 @@
             }
 
             // ============================================================
-            // 9. API 操作
+            // 8. API 操作
             // ============================================================
 
             async function apiCall(method, url, data) {
@@ -1988,25 +1968,6 @@
                 }
             };
 
-            window.editPlaceField = function(placeId, field) {
-                if (!isAdminMode) return;
-                const place = allDaysData.flatMap(d => d.places || []).find(p => p.id === placeId);
-                if (!place) return;
-
-                const currentValue = place[field] || '';
-                const newValue = prompt('修改 ' + field + ':', currentValue);
-                if (newValue === null) return;
-
-                place[field] = newValue.trim();
-                editedData['place_' + placeId] = {
-                    ...editedData['place_' + placeId],
-                    [field]: newValue.trim()
-                };
-
-                renderDays();
-                renderOverview();
-            };
-
             window.editDayMeta = function(day) {
                 if (!isAdminMode) return;
                 const dayData = allDaysData.find(d => d.day === day);
@@ -2029,53 +1990,6 @@
                 renderOverview();
             };
 
-            window.addPlaceToDay = async function(day) {
-                if (!isAdminMode) return;
-                const password = getPassword();
-                if (!password) { alert('请输入管理员密码'); return; }
-
-                const name = prompt('景点名称:');
-                if (!name) return;
-                const type = prompt('类型 (attraction/food/transport/culture/rest/other):', 'attraction');
-                if (!type) return;
-                const timeStart = prompt('开始时间 (如 09:00):', '');
-                const timeEnd = prompt('结束时间 (如 10:30):', '');
-
-                const result = await apiCall('POST', '/api/places', {
-                    password: password,
-                    name: name.trim(),
-                    type: type.trim(),
-                    day: day,
-                    time_start: timeStart || '',
-                    time_end: timeEnd || '',
-                    duration: '',
-                    intro: '',
-                    address: '',
-                    nav_link: '',
-                    image_url: '',
-                    platform_links: '',
-                    remark: '',
-                    map_x: 50,
-                    map_y: 50,
-                    sort_order: 0,
-                    transport: ''
-                });
-
-                if (result.success) {
-                    const dayData = allDaysData.find(d => d.day === day);
-                    const order = dayData.place_order || [];
-                    order.push(result.id);
-                    await apiCall('PUT', '/api/itinerary/' + day, {
-                        password: password,
-                        place_order: order
-                    });
-                    alert('✅ 景点添加成功！');
-                    await reloadData();
-                } else {
-                    alert('❌ 添加失败: ' + (result.error || '未知错误'));
-                }
-            };
-
             async function reloadData() {
                 const data = await loadItineraryData();
                 if (data) {
@@ -2093,11 +2007,11 @@
             }
 
             // ============================================================
-            // 10. 辅助功能
+            // 9. 辅助功能
             // ============================================================
 
             function setupScrollAnimation() {
-                const cards = document.querySelectorAll('.place-card');
+                const cards = document.querySelectorAll('.place-card, .place-card-transport');
                 if (cards.length === 0) return;
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -2132,7 +2046,7 @@
             };
 
             // ============================================================
-            // 11. 启动
+            // 10. 启动
             // ============================================================
 
             document.addEventListener('DOMContentLoaded', async function() {
