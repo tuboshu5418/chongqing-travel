@@ -1065,6 +1065,97 @@
                 height: 8px;
             }
         }
+        /* ---- 管理面板 ---- */
+        #admin-panel {
+                margin-top: 20px;
+                padding: 16px;
+                background: #f5f2ef;
+                border-radius: 16px;
+                border: 1px solid #e0dbd3;
+        }
+
+        .admin-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+        }
+
+        .admin-row .btn-ctrl {
+                padding: 8px 20px;
+                border-radius: 30px;
+                border: 1px solid #c0b0a8;
+                background: #f0ede8;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.2s ease;
+        }
+
+        .admin-row .btn-ctrl:hover {
+                background: #e5e0d8;
+        }
+
+        .admin-row .btn-ctrl.btn-primary {
+                background: #4a6a7f;
+                border-color: #4a6a7f;
+                color: #fff;
+        }
+
+        .admin-row .btn-ctrl.btn-primary:hover {
+                background: #3a5a6f;
+        }
+
+        .admin-row input[type="password"] {
+                padding: 8px 14px;
+                border-radius: 30px;
+                border: 1px solid #ddd9d2;
+                font-size: 14px;
+                width: 160px;
+                background: #fff;
+        }
+
+        .admin-row .btn-login {
+                padding: 8px 20px;
+                border-radius: 30px;
+                border: none;
+                background: #4a6a7f;
+                color: #fff;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background 0.2s;
+        }
+
+        .admin-row .btn-login:hover {
+                background: #3a5a6f;
+        }
+
+        .admin-row .status {
+                font-size: 13px;
+                color: #a0524a;
+        }
+
+        .admin-row .edit-area {
+                display: none;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+        }
+
+        .admin-row .edit-area .badge {
+                font-size: 13px;
+                color: #4a6a7f;
+        }
+
+        .save-hint {
+                font-size: 12px;
+                color: #8a8a8a;
+                margin-top: 4px;
+                display: none;
+        }
+
+        .save-hint.show {
+                display: block;
+        }
     </style>
 </head>
 <body>
@@ -1127,7 +1218,7 @@
             </div>
             <div class="save-hint" id="admin-save-hint">修改完后记得按「保存修改」</div>
         </div>
-
+        
         <div class="footer">📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快</div>
     </div>
 
@@ -1517,19 +1608,17 @@
                     legend.appendChild(span);
                 });
             }
-
             function renderMap(day) {
                 const container = document.getElementById('overview-maps');
                 const dayData = allDaysData.find(d => d.day === day);
-                const imgUrl = MAP_IMAGE_BASE + '/day' + day + '_overview.png';
 
-                let html = `<div class="map-wrapper" id="map-wrapper-${day}">`;
-                html += `<img src="${imgUrl}" alt="Day ${day} 路线图" 
-                            onerror="this.style.display='none'; document.getElementById('map-error-${day}').style.display='flex';" />`;
-                html += `<div id="map-error-${day}" style="display:none; height:300px; align-items:center; justify-content:center; color:#8a8a8a; background:#f6f4f1; border-radius:14px; flex-direction:column; gap:8px;">
-                            <span>🖼️ 图片加载失败</span>
-                            <span style="font-size:13px;">请确认 maps/day${day}_overview.png 已上传</span>
-                        </div>`;
+                let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
+
+                // Leaflet 地图容器
+                html += `<div id="leaflet-map-${day}" style="width:100%;height:360px;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;"></div>`;
+
+                // 圆点叠加层（保持原有交互）
+                html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">`;
 
                 if (dayData && dayData.places) {
                     const nonTransport = dayData.places.filter(p => p.type !== 'transport');
@@ -1538,7 +1627,7 @@
                         const y = place.map_y || (20 + (idx % 2) * 40 + 10);
                         const draggable = isAdminMode ? 'draggable' : '';
                         html += `<div class="map-point ${draggable}" 
-                                    style="left:${x}%; top:${y}%;" 
+                                    style="left:${x}%; top:${y}%;pointer-events:auto;position:absolute;" 
                                     data-day="${day}" data-place-id="${place.id}"
                                     onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
                                     onmouseleave="onMapPointLeave()"
@@ -1549,12 +1638,58 @@
                     });
                 }
 
-                html += '</div>';
+                html += `</div>`;
+                html += `</div>`;
+
                 container.innerHTML = html;
 
+                // 初始化 Leaflet 地图
+                setTimeout(() => {
+                    const mapContainer = document.getElementById('leaflet-map-' + day);
+                    if (!mapContainer) return;
+
+                    // 检查 Leaflet 是否已加载
+                    if (typeof L === 'undefined') {
+                        if (!document.querySelector('link[href*="leaflet"]')) {
+                            const link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                            document.head.appendChild(link);
+                        }
+                        if (!document.querySelector('script[src*="leaflet"]')) {
+                            const script = document.createElement('script');
+                            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                            script.onload = function() {
+                                initLeafletMap(day);
+                            };
+                            document.head.appendChild(script);
+                            return;
+                        }
+                    }
+                    initLeafletMap(day);
+                }, 200);
+
                 if (isAdminMode) {
-                    setupDragEvents(day);
+                    setTimeout(() => setupDragEvents(day), 300);
                 }
+            }
+
+            function initLeafletMap(day) {
+                const mapContainer = document.getElementById('leaflet-map-' + day);
+                if (!mapContainer) return;
+                if (mapContainer._leaflet_map) return;
+
+                const map = L.map(mapContainer).setView([29.57, 106.55], 12);
+                mapContainer._leaflet_map = map;
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '',
+                    maxZoom: 19,
+                    minZoom: 8
+                }).addTo(map);
+
+                window._leafletMaps = window._leafletMaps || {};
+                window._leafletMaps[day] = map;
             }
 
             function switchTab(day) {
