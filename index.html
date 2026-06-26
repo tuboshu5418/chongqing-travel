@@ -1251,927 +1251,298 @@
         <div class="map-point"></div>
     </template>
 
-    <!-- ============================================================
-    JavaScript - 模块化单文件架构
-    ============================================================ -->
-    <script type="module">
+    <script>
         // ============================================================
-        // 模块 1: 常量与配置
+        // 简化版 JavaScript - 直接执行，非模块
         // ============================================================
-        const CONFIG = {
-            GITHUB_IMAGE_BASE: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main',
-            MAP_IMAGE_BASE: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/maps',
-            DAY_COLORS: ['#4a6a7f', '#6a7f8a', '#8a7a6a', '#9a8a7a', '#b0a090', '#a0524a'],
-            TYPE_LABELS: {
-                attraction: '景点',
-                food: '用餐',
-                transport: '交通',
-                culture: '红色文化',
-                rest: '休息',
-                shopping: '购物',
-                other: '其他'
-            },
-            EMOJI_MAP: {
-                '机场': '✈️',
-                '解放碑': '🏛️',
-                '好吃街': '🍜',
-                '白象居': '🏚️',
-                '索道': '🚠',
-                '洪崖洞': '🏮',
-                '李子坝': '🚇',
-                '鹅岭': '🎨',
-                '山城步道': '🚶',
-                '十八梯': '🪜',
-                '动物园': '🐼',
-                '博物馆': '🏺',
-                '观音桥': '🛍️',
-                '弹子石': '🏘️',
-                '盘龙': '🛣️',
-                '龙门浩': '🏡',
-                'WFC': '🌆',
-                '周公馆': '🏛️',
-                '红岩': '⭐',
-                '双桂山': '🌳',
-                '码头': '⚓',
-                '家乡': '🏠',
-                '慢车': '🚂',
-                '桂园': '🏛️',
-                '南山': '🌄',
-                '交通': '🚌'
-            },
-            IMAGE_MAP: {
-                '解放碑': 'jiefangbei.jpg',
-                '八一好吃街': 'bayihaochijie.jpg',
-                '白象居': 'baixiangju.jpg',
-                '长江索道': 'changjiangsuodao.jpg',
-                '洪崖洞': 'hongyadong.jpg',
-                '李子坝': 'liziba.jpg',
-                '鹅岭二厂': 'erling.jpg',
-                '山城步道': 'shancheng.jpg',
-                '十八梯': 'shibati.jpg',
-                '重庆动物园': 'panda.jpg',
-                '红岩革命纪念馆': 'hongyan.jpg',
-                '观音桥': 'guanyinqiao.jpg',
-                '弹子石老街': 'danzishi.jpg',
-                '盘龙立交': 'panlong.jpg',
-                '龙门浩老街': 'longmenhao.jpg',
-                'WFC会仙楼': 'wfc.jpg',
-                '周公馆': 'zhougongguan.jpg',
-                '双桂山': 'shuanggui.jpg',
-                '丰都码头': 'fengdumatou.jpg',
-                '桂园': 'guiyuan.jpg',
-                '南山一棵树': 'nanshan.jpg'
-            }
-        };
+        (function() {
+            'use strict';
 
-        // ============================================================
-        // 模块 2: 工具函数
-        // ============================================================
-        const Utils = {
-            getEmoji(name) {
-                for (const [key, val] of Object.entries(CONFIG.EMOJI_MAP)) {
-                    if (name.includes(key)) return val;
+            console.log('🚀 应用启动...');
+
+            const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
+            const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
+
+            let allDaysData = [];
+            let currentTab = 1;
+            let isAdminMode = false;
+            let floatingCardPinned = false;
+            let floatingCardData = null;
+            let hideTimeout = null;
+            let isHovering = false;
+            let editedData = {};
+            let dragState = null;
+
+            // ---- DOM 引用 ----
+            const floatingCard = document.getElementById('floating-card');
+            const floatingCardClose = document.getElementById('floating-card-close');
+            const floatingCardImg = document.getElementById('floating-card-img');
+            const floatingCardName = document.getElementById('floating-card-name');
+            const floatingCardDesc = document.getElementById('floating-card-desc');
+            const floatingCardJump = document.getElementById('floating-card-jump');
+
+            // ============================================================
+            // 1. 数据加载
+            // ============================================================
+            async function loadItineraryData() {
+                try {
+                    console.log('📡 正在请求 /api/itinerary...');
+                    const response = await fetch('/api/itinerary');
+                    if (!response.ok) {
+                        throw new Error('API 返回状态: ' + response.status);
+                    }
+                    const data = await response.json();
+                    console.log('✅ 数据加载成功，共', data.length, '天');
+                    allDaysData = data;
+                    return data;
+                } catch (error) {
+                    console.error('❌ 加载行程数据失败:', error);
+                    // 显示错误信息
+                    document.getElementById('day-groups-container').innerHTML =
+                        '<p style="padding:40px;text-align:center;color:#a0524a;">❌ 加载失败：' + error.message +
+                        '<br><span style="font-size:13px;color:#8a8a8a;">请检查 API 是否正常</span></p>';
+                    return null;
+                }
+            }
+
+            // ============================================================
+            // 2. 工具函数
+            // ============================================================
+            function getEmoji(name) {
+                const map = {
+                    '机场': '✈️',
+                    '解放碑': '🏛️',
+                    '好吃街': '🍜',
+                    '白象居': '🏚️',
+                    '索道': '🚠',
+                    '洪崖洞': '🏮',
+                    '李子坝': '🚇',
+                    '鹅岭': '🎨',
+                    '山城步道': '🚶',
+                    '十八梯': '🪜',
+                    '动物园': '🐼',
+                    '博物馆': '🏺',
+                    '观音桥': '🛍️',
+                    '弹子石': '🏘️',
+                    '盘龙': '🛣️',
+                    '龙门浩': '🏡',
+                    'WFC': '🌆',
+                    '周公馆': '🏛️',
+                    '红岩': '⭐',
+                    '双桂山': '🌳',
+                    '码头': '⚓',
+                    '家乡': '🏠',
+                    '慢车': '🚂',
+                    '桂园': '🏛️',
+                    '南山': '🌄',
+                    '交通': '🚌'
+                };
+                for (const [key, value] of Object.entries(map)) {
+                    if (name.includes(key)) return value;
                 }
                 return '📍';
-            },
-            getImageName(name) {
-                for (const [key, val] of Object.entries(CONFIG.IMAGE_MAP)) {
-                    if (name.includes(key) || key.includes(name)) return val;
-                }
-                return null;
-            },
-            getTypeLabel(type) {
-                return CONFIG.TYPE_LABELS[type] || type;
-            },
-            formatTime(place) {
-                if (place.time_start && place.time_end) return `${place.time_start} - ${place.time_end}`;
-                return place.time_start || '';
-            },
-            clamp(v, min, max) { return Math.max(min, Math.min(max, v)); },
-            sha256: async function(message) {
-                const buf = new TextEncoder().encode(message);
-                const hash = await crypto.subtle.digest('SHA-256', buf);
-                return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
             }
-        };
 
-        // ============================================================
-        // 模块 3: API 服务
-        // ============================================================
-        class ApiService {
-            static async request(method, path, data) {
-                const options = {
-                    method,
-                    headers: { 'Content-Type': 'application/json' }
+            function getImageName(name) {
+                const map = {
+                    '解放碑': 'jiefangbei.jpg',
+                    '八一好吃街': 'bayihaochijie.jpg',
+                    '白象居': 'baixiangju.jpg',
+                    '长江索道': 'changjiangsuodao.jpg',
+                    '洪崖洞': 'hongyadong.jpg',
+                    '李子坝': 'liziba.jpg',
+                    '鹅岭二厂': 'erling.jpg',
+                    '山城步道': 'shancheng.jpg',
+                    '十八梯': 'shibati.jpg',
+                    '重庆动物园': 'panda.jpg',
+                    '红岩革命纪念馆': 'hongyan.jpg',
+                    '观音桥': 'guanyinqiao.jpg',
+                    '弹子石老街': 'danzishi.jpg',
+                    '盘龙立交': 'panlong.jpg',
+                    '龙门浩老街': 'longmenhao.jpg',
+                    'WFC会仙楼': 'wfc.jpg',
+                    '周公馆': 'zhougongguan.jpg',
+                    '双桂山': 'shuanggui.jpg',
+                    '丰都码头': 'fengdumatou.jpg',
+                    '桂园': 'guiyuan.jpg',
+                    '南山一棵树': 'nanshan.jpg'
                 };
-                if (data) options.body = JSON.stringify(data);
-                const response = await fetch(path, options);
-                return await response.json();
-            }
-
-            static async fetchItinerary() {
-                return this.request('GET', '/api/itinerary');
-            }
-
-            static async verifyAdmin(password) {
-                return this.request('POST', '/api/admin/verify', { password });
-            }
-
-            static async updateDay(day, data, password) {
-                return this.request('PUT', `/api/itinerary/${day}`, { password, ...data });
-            }
-
-            static async updatePlace(id, data, password) {
-                return this.request('PUT', `/api/places/${id}`, { password, ...data });
-            }
-
-            static async createPlace(data, password) {
-                return this.request('POST', '/api/places', { password, ...data });
-            }
-
-            static async deletePlace(id, password) {
-                return this.request('DELETE', `/api/places/${id}`, { password });
-            }
-
-            static async createDay(data, password) {
-                return this.request('POST', '/api/itinerary', { password, ...data });
-            }
-
-            static async deleteDay(day, password) {
-                return this.request('DELETE', `/api/itinerary/${day}`, { password });
-            }
-        }
-
-        // ============================================================
-        // 模块 4: 响应式 Store
-        // ============================================================
-        class Store {
-            #data = [];
-            #listeners = [];
-            #draft = {};
-
-            get days() { return this.#data; }
-            get draft() { return this.#draft; }
-
-            setDays(data) {
-                this.#data = data;
-                this.#notify();
-            }
-
-            setDraft(updates) {
-                this.#draft = { ...this.#draft, ...updates };
-                this.#notify();
-            }
-
-            clearDraft() {
-                this.#draft = {};
-                this.#notify();
-            }
-
-            subscribe(fn) {
-                this.#listeners.push(fn);
-                return () => { this.#listeners = this.#listeners.filter(l => l !== fn); };
-            }
-
-            #notify() {
-                this.#listeners.forEach(fn => fn(this.#data, this.#draft));
-            }
-
-            // 查找辅助
-            findDay(day) { return this.#data.find(d => d.day === day); }
-
-            findPlace(day, id) {
-                const d = this.findDay(day);
-                if (!d) return null;
-                return d.places?.find(p => p.id === id) || null;
-            }
-
-            getPlace(id) {
-                for (const d of this.#data) {
-                    const found = d.places?.find(p => p.id === id);
-                    if (found) return found;
+                for (const [key, value] of Object.entries(map)) {
+                    if (name.includes(key) || key.includes(name)) return value;
                 }
                 return null;
             }
-        }
 
-        // ============================================================
-        // 模块 5: 组件 - TimelineItem
-        // ============================================================
-        class TimelineItem {
-            #element;
-            #place;
-
-            constructor(place, isAdmin, handlers) {
-                this.#place = place;
-                this.#element = this.#createElement(place, isAdmin, handlers);
-                return this.#element;
+            function getTypeLabel(type) {
+                const map = {
+                    'attraction': '景点',
+                    'food': '用餐',
+                    'transport': '交通',
+                    'culture': '红色文化',
+                    'rest': '休息',
+                    'shopping': '购物',
+                    'other': '其他'
+                };
+                return map[type] || type;
             }
 
-            #createElement(place, isAdmin, handlers) {
-                const tmpl = document.getElementById('tmpl-timeline-item');
-                const el = tmpl.content.cloneNode(true).firstElementChild;
-
-                const isTransport = place.type === 'transport';
-                if (isTransport) el.classList.add('timeline-item--transport');
-
-                const timeEl = el.querySelector('.time');
-                const timeStr = Utils.formatTime(place);
-                if (timeStr) timeEl.textContent = timeStr;
-                else timeEl.style.display = 'none';
-
-                const activityEl = el.querySelector('.activity');
-                const emoji = Utils.getEmoji(place.name);
-                const typeLabel = Utils.getTypeLabel(place.type);
-                const icon = isTransport ? '🚌 ' : '';
-                activityEl.innerHTML =
-                    `${icon}${emoji} ${place.name} <span class="tag">${typeLabel}</span>`;
-
-                if (isAdmin) {
-                    const actions = el.querySelector('.admin-actions');
-                    actions.innerHTML = `
-                        <button class="btn--mini" data-action="edit-place">✏️</button>
-                        ${isTransport ?
-                            `<button class="btn--mini btn--mini-primary" data-action="edit-transport">🚌</button>` :
-                            `<button class="btn--mini btn--mini-primary" data-action="add-transport">➕</button>`
-                        }
-                        <button class="btn--mini btn--mini-danger" data-action="delete">🗑️</button>
-                    `;
-                    actions.querySelector('[data-action="edit-place"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers?.onEditPlace?.(place);
-                    });
-                    actions.querySelector('[data-action="edit-transport"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers?.onEditTransport?.(place);
-                    });
-                    actions.querySelector('[data-action="add-transport"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers?.onAddTransport?.(place);
-                    });
-                    actions.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers?.onDelete?.(place);
-                    });
-                }
-
-                return el;
-            }
-
-            update(place, isAdmin) {
-                // 简单更新：重新创建
-                const parent = this.#element.parentNode;
-                if (parent) {
-                    const newEl = this.#createElement(place, isAdmin, {});
-                    parent.replaceChild(newEl, this.#element);
-                    this.#element = newEl;
-                }
-                return this.#element;
-            }
-        }
-
-        // ============================================================
-        // 模块 6: 组件 - PlaceCard
-        // ============================================================
-        class PlaceCard {
-            #element;
-            #place;
-
-            constructor(place, isAdmin, handlers) {
-                this.#place = place;
-                this.#element = this.#createElement(place, isAdmin, handlers);
-                return this.#element;
-            }
-
-            #createElement(place, isAdmin, handlers) {
-                const isTransport = place.type === 'transport';
-                const tmplId = isTransport ? 'tmpl-place-card-transport' : 'tmpl-place-card';
-                const tmpl = document.getElementById(tmplId);
-                const el = tmpl.content.cloneNode(true).firstElementChild;
-
-                // 名称
-                const nameEl = el.querySelector('.place-name');
-                const emoji = Utils.getEmoji(place.name);
-                const typeLabel = Utils.getTypeLabel(place.type);
-                const timeStr = Utils.formatTime(place);
-                nameEl.innerHTML = `
-                    <span>${emoji} ${place.name}</span>
-                    <span class="tag">${typeLabel}</span>
-                    ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
-                    ${isAdmin ? `<button class="btn--ghost" data-action="edit-name">✏️</button>` : ''}
-                `;
-
-                // 图片（交通卡片无图片）
-                const imgEl = el.querySelector('.place-image');
-                if (imgEl && !isTransport) {
-                    const imgName = Utils.getImageName(place.name);
-                    const imgUrl = imgName ? CONFIG.GITHUB_IMAGE_BASE + '/' + imgName : '';
-                    if (imgUrl) {
-                        imgEl.innerHTML =
-                            `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
-                        imgEl.innerHTML +=
-                            `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
-                    } else {
-                        imgEl.innerHTML = `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
-                    }
-                } else if (imgEl) {
-                    imgEl.style.display = 'none';
-                }
-
-                // 简介
-                const descEl = el.querySelector('.place-desc');
-                if (descEl) {
-                    if (place.intro) {
-                        descEl.textContent = place.intro;
-                        if (isAdmin) {
-                            descEl.after(
-                                `<button class="btn--ghost" data-action="edit-intro">✏️</button>`
-                            );
-                        }
-                    } else {
-                        descEl.style.display = 'none';
-                    }
-                }
-
-                // 元信息
-                const metaEl = el.querySelector('.meta');
-                if (metaEl) {
-                    const parts = [];
-                    if (place.duration) parts.push(`⏱️ ${place.duration}`);
-                    if (place.address) parts.push(`📍 ${place.address}`);
-                    if (parts.length > 0) {
-                        metaEl.textContent = parts.join(' · ');
-                        if (isAdmin) {
-                            metaEl.after(
-                                `<button class="btn--ghost" data-action="edit-meta">✏️</button>`
-                            );
-                        }
-                    } else {
-                        metaEl.style.display = 'none';
-                    }
-                }
-
-                // 贴心提示
-                const remarkEl = el.querySelector('.remark');
-                if (remarkEl) {
-                    if (place.remark) {
-                        remarkEl.textContent = `💡 ${place.remark}`;
-                        if (isAdmin) {
-                            remarkEl.after(
-                                `<button class="btn--ghost" data-action="edit-remark">✏️</button>`
-                            );
-                        }
-                    } else {
-                        remarkEl.style.display = 'none';
-                    }
-                }
-
-                // 备选方案
-                const altBlock = el.querySelector('.alternatives-block');
-                if (altBlock) {
-                    let altHtml = '';
-                    if (place.peak_alternative) altHtml +=
-                        `<div class="alt-item"><strong>⏰ 错峰备选</strong>：${place.peak_alternative}</div>`;
-                    if (place.congestion_alternative) altHtml +=
-                        `<div class="alt-item"><strong>🚧 拥堵备选</strong>：${place.congestion_alternative}</div>`;
-                    if (place.rainy_alternative) altHtml +=
-                        `<div class="alt-item"><strong>🌧️ 雨天备选</strong>：${place.rainy_alternative}</div>`;
-                    if (altHtml) {
-                        altBlock.innerHTML = altHtml;
-                    } else {
-                        altBlock.style.display = 'none';
-                    }
-                }
-
-                // 按钮组
-                const btnGroup = el.querySelector('.btn-group');
-                if (btnGroup) {
-                    if (place.nav_link) {
-                        btnGroup.innerHTML +=
-                            `<a class="btn btn--nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
-                    }
-                    const links = place.platform_links ? JSON.parse(place.platform_links) : {};
-                    if (links.dianping) {
-                        btnGroup.innerHTML +=
-                            `<a class="btn" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
-                    }
-                    if (links.meituan) {
-                        btnGroup.innerHTML += `<a class="btn" href="${links.meituan}" target="_blank">🍜 美团</a>`;
-                    }
-                    if (links.douyin) {
-                        btnGroup.innerHTML += `<a class="btn" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
-                    }
-                }
-
-                // 绑定事件
-                if (isAdmin && handlers) {
-                    el.querySelector('[data-action="edit-name"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers.onEditField?.(place, 'name');
-                    });
-                    el.querySelector('[data-action="edit-intro"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers.onEditField?.(place, 'intro');
-                    });
-                    el.querySelector('[data-action="edit-meta"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        // 编辑 duration 或 address
-                        const current = place.duration || '';
-                        const newVal = prompt('修改时长 (如 1.5小时):', current);
-                        if (newVal !== null) handlers.onEditField?.(place, 'duration', newVal);
-                    });
-                    el.querySelector('[data-action="edit-remark"]')?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handlers.onEditField?.(place, 'remark');
-                    });
-                }
-
-                // 点击卡片跳转（非编辑模式）
-                if (!isAdmin) {
-                    el.style.cursor = 'pointer';
-                    el.addEventListener('click', () => {
-                        handlers?.onCardClick?.(place);
-                    });
-                }
-
-                return el;
-            }
-        }
-
-        // ============================================================
-        // 模块 7: 组件 - DayGroup
-        // ============================================================
-        class DayGroup {
-            #element;
-            #dayData;
-            #store;
-            #isAdmin;
-            #handlers;
-
-            constructor(dayData, store, isAdmin, handlers) {
-                this.#dayData = dayData;
-                this.#store = store;
-                this.#isAdmin = isAdmin;
-                this.#handlers = handlers;
-                this.#element = this.#build();
-                return this.#element;
-            }
-
-            #build() {
-                const day = this.#dayData;
-                const isAdmin = this.#isAdmin;
-                const group = document.createElement('div');
-                group.className = `day-group${isAdmin ? ' is-admin' : ''}`;
-                group.id = `day-group-${day.day}`;
-
-                // Header
-                const header = document.createElement('div');
-                header.className = 'day-header';
-                header.innerHTML = `
-                    <span class="title">${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small></span>
-                    <span class="arrow">▾</span>
-                `;
-                header.addEventListener('click', () => this.#toggle());
-                group.appendChild(header);
-
-                // Body
-                const body = document.createElement('div');
-                body.className = 'day-body';
-                body.innerHTML = this.#renderBody();
-                group.appendChild(body);
-
-                return group;
-            }
-
-            #renderBody() {
-                const day = this.#dayData;
-                const isAdmin = this.#isAdmin;
-                const places = day.places || [];
-                let html = '';
-
-                // 步行难度
-                if (day.walk_badge) {
-                    html += `<div class="walk-badge" id="walk-badge-${day.day}">${day.walk_badge}</div>`;
-                    if (isAdmin) {
-                        html +=
-                            `<button class="btn--ghost" data-action="edit-walk-badge">✏️</button>`;
-                    }
-                }
-
-                // 三餐
-                const meals = ['breakfast', 'lunch', 'dinner'];
-                const mealIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
-                const mealLabels = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' };
-                let mealHtml = '';
-                meals.forEach(key => {
-                    if (day[key]) {
-                        mealHtml +=
-                            `<span id="${key}-${day.day}">${mealIcons[key]} ${mealLabels[key]}：${day[key]}</span>`;
-                        if (isAdmin) {
-                            mealHtml +=
-                                `<button class="btn--ghost" data-action="edit-${key}">✏️</button>`;
-                        }
-                    }
-                });
-                if (mealHtml) {
-                    html += `<div class="meal-bar">${mealHtml}</div>`;
-                }
-
-                // 当天备选
-                const alts = day.day_alternatives || {};
-                const altLabels = { congestion: '🚧 拥堵备选', peak: '⏰ 高峰备选', rainy: '🌧️ 雨天备选' };
-                let altHtml = '';
-                for (const [key, label] of Object.entries(altLabels)) {
-                    if (alts[key]) {
-                        altHtml += `<div class="alt-item"><strong>${label}</strong>：${alts[key]}</div>`;
-                    }
-                }
-                if (altHtml) {
-                    html += `<div class="alternatives-block">${altHtml}</div>`;
-                }
-
-                // 时间轴
-                html += `<div class="timeline">`;
-                places.forEach((place, idx) => {
-                    const item = new TimelineItem(place, isAdmin, {
-                        onEditPlace: () => this.#handlers?.onEditPlace?.(place),
-                        onEditTransport: () => this.#handlers?.onEditTransport?.(place),
-                        onAddTransport: () => this.#handlers?.onAddTransport?.(place, idx),
-                        onDelete: () => this.#handlers?.onDeletePlace?.(place)
-                    });
-                    html += item.outerHTML;
-                });
-                html += `</div>`;
-
-                // 景点卡片
-                places.forEach(place => {
-                    const card = new PlaceCard(place, isAdmin, {
-                        onEditField: (p, field, val) => this.#handlers?.onEditField?.(p, field, val),
-                        onCardClick: () => this.#handlers?.onCardClick?.(place)
-                    });
-                    html += card.outerHTML;
-                });
-
-                if (day.rest_note) {
-                    html += `<div class="rest-note" id="rest-note-${day.day}">☕ ${day.rest_note}</div>`;
-                    if (isAdmin) {
-                        html +=
-                            `<button class="btn--ghost" data-action="edit-rest-note">✏️</button>`;
-                    }
-                }
-
-                if (isAdmin) {
-                    html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                <button class="btn btn--primary btn--small" data-action="edit-day-meta">✏️ 编辑标题</button>
-                                <button class="btn btn--danger btn--small" data-action="delete-day">🗑️ 删除这一天</button>
-                                <button class="btn btn--small" data-action="add-place">➕ 添加景点</button>
-                            </div>`;
-                }
-
-                return html;
-            }
-
-            #toggle() {
-                const body = this.#element.querySelector('.day-body');
-                const header = this.#element.querySelector('.day-header');
-                const isOpen = this.#element.classList.contains('open');
-                if (isOpen) {
-                    body.style.maxHeight = body.scrollHeight + 'px';
-                    requestAnimationFrame(() => {
-                        body.style.maxHeight = '0';
-                        body.style.opacity = '0';
-                        body.style.padding = '0 20px';
-                    });
-                    this.#element.classList.remove('open');
-                    header.classList.remove('sticky');
-                } else {
-                    this.#element.classList.add('open');
-                    body.style.maxHeight = '0';
-                    body.style.opacity = '0';
-                    body.style.padding = '0 20px';
-                    requestAnimationFrame(() => {
-                        body.style.maxHeight = '5000px';
-                        body.style.opacity = '1';
-                        body.style.padding = '6px 20px 24px';
-                    });
-                    setTimeout(() => this.#checkSticky(), 150);
-                }
-            }
-
-            #checkSticky() {
-                const header = this.#element.querySelector('.day-header');
-                if (!header) return;
-                const rect = header.getBoundingClientRect();
-                if (rect.top <= 0) header.classList.add('sticky');
-                else header.classList.remove('sticky');
-            }
-
-            update(dayData, isAdmin) {
-                this.#dayData = dayData;
-                this.#isAdmin = isAdmin;
-                const body = this.#element.querySelector('.day-body');
-                if (body) {
-                    const wasOpen = this.#element.classList.contains('open');
-                    body.innerHTML = this.#renderBody();
-                    // 恢复展开状态
-                    if (wasOpen) {
-                        this.#element.classList.add('open');
-                        body.style.maxHeight = '5000px';
-                        body.style.opacity = '1';
-                        body.style.padding = '6px 20px 24px';
-                    } else {
-                        body.style.maxHeight = '0';
-                        body.style.opacity = '0';
-                        body.style.padding = '0 20px';
-                    }
-                    // 重新绑定动作
-                    this.#bindActions();
-                }
-                const header = this.#element.querySelector('.day-header');
-                if (header) {
-                    const day = this.#dayData;
-                    header.querySelector('.title').innerHTML =
-                        `${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small>`;
-                }
-                return this.#element;
-            }
-
-            #bindActions() {
-                const day = this.#dayData;
-                const body = this.#element.querySelector('.day-body');
-                if (!body) return;
-
-                // walk-badge
-                body.querySelector('[data-action="edit-walk-badge"]')?.addEventListener('click', () => {
-                    this.#handlers?.onEditField?.(day, 'walk_badge');
-                });
-
-                // meals
-                ['breakfast', 'lunch', 'dinner'].forEach(key => {
-                    body.querySelector(`[data-action="edit-${key}"]`)?.addEventListener('click', () => {
-                        this.#handlers?.onEditField?.(day, key);
-                    });
-                });
-
-                // rest-note
-                body.querySelector('[data-action="edit-rest-note"]')?.addEventListener('click', () => {
-                    this.#handlers?.onEditField?.(day, 'rest_note');
-                });
-
-                // day meta
-                body.querySelector('[data-action="edit-day-meta"]')?.addEventListener('click', () => {
-                    this.#handlers?.onEditDayMeta?.(day);
-                });
-
-                body.querySelector('[data-action="delete-day"]')?.addEventListener('click', () => {
-                    this.#handlers?.onDeleteDay?.(day);
-                });
-
-                body.querySelector('[data-action="add-place"]')?.addEventListener('click', () => {
-                    this.#handlers?.onAddPlace?.(day);
-                });
-            }
-
-            scrollToPlace(placeId) {
-                const card = this.#element.querySelector(`.place-card[data-place-id="${placeId}"]`);
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
-                    card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
-                    card.style.borderColor = '#a0524a';
-                    setTimeout(() => {
-                        card.style.boxShadow = '';
-                        card.style.borderColor = '';
-                    }, 3000);
-                }
-            }
-
-            open() {
-                this.#element.classList.add('open');
-                const body = this.#element.querySelector('.day-body');
-                if (body) {
-                    body.style.maxHeight = '5000px';
-                    body.style.opacity = '1';
-                    body.style.padding = '6px 20px 24px';
-                }
-            }
-        }
-
-        // ============================================================
-        // 模块 8: 应用主控
-        // ============================================================
-        class App {
-            #store = new Store();
-            #dayGroupComponents = [];
-            #currentTab = 1;
-            #isAdmin = false;
-            #password = '';
-            #floatingCardData = null;
-            #floatingCardPinned = false;
-            #hideTimeout = null;
-            #isHovering = false;
-
-            constructor() {
-                this.#initDOMRefs();
-                this.#bindEvents();
-                this.#init();
-            }
-
-            #initDOMRefs() {
-                this.$container = document.getElementById('day-groups-container');
-                this.$tabBar = document.getElementById('tab-bar');
-                this.$mapContainer = document.getElementById('overview-maps');
-                this.$legend = document.getElementById('route-legend');
-                this.$floatingCard = document.getElementById('floating-card');
-                this.$floatingCardImg = document.getElementById('floating-card-img');
-                this.$floatingCardName = document.getElementById('floating-card-name');
-                this.$floatingCardDesc = document.getElementById('floating-card-desc');
-                this.$floatingCardJump = document.getElementById('floating-card-jump');
-                this.$floatingCardClose = document.getElementById('floating-card-close');
-                this.$adminToggle = document.getElementById('admin-toggle-btn');
-                this.$adminLoginBtn = document.getElementById('admin-login-btn');
-                this.$adminPassword = document.getElementById('admin-password-input');
-                this.$adminStatus = document.getElementById('admin-login-status');
-                this.$adminEditArea = document.getElementById('admin-edit-area');
-                this.$adminLoginArea = document.getElementById('admin-login-area');
-                this.$adminSaveHint = document.getElementById('admin-save-hint');
-                this.$adminAddDayBtn = document.getElementById('admin-add-day-btn');
-                this.$adminSaveBtn = document.getElementById('admin-save-btn');
-                this.$expandAllBtn = document.getElementById('expand-all-btn');
-                this.$collapseAllBtn = document.getElementById('collapse-all-btn');
-                this.$overviewToggle = document.getElementById('overview-toggle');
-                this.$progressBar = document.getElementById('reading-progress-bar');
-                this.$backTop = document.getElementById('back-to-top');
-                this.$overviewGroup = document.getElementById('overview-group');
-            }
-
-            #bindEvents() {
-                // 悬浮卡片关闭
-                this.$floatingCardClose.addEventListener('click', () => {
-                    this.#floatingCardPinned = false;
-                    this.#hideFloatingCard(true);
-                });
-
-                // 悬浮卡片跳转
-                this.$floatingCardJump.addEventListener('click', () => {
-                    if (!this.#floatingCardData) return;
-                    const { day, placeId } = this.#floatingCardData;
-                    this.#floatingCardPinned = false;
-                    this.#hideFloatingCard(true);
-                    const targetGroup = this.#dayGroupComponents.find(g => g.dataset?.day == day);
-                    if (targetGroup) {
-                        // 展开所有
-                        this.#dayGroupComponents.forEach(g => {
-                            const dayData = this.#store.findDay(parseInt(g.dataset.day));
-                            if (dayData) {
-                                g.classList.add('open');
-                                const body = g.querySelector('.day-body');
-                                if (body) {
-                                    body.style.maxHeight = '5000px';
-                                    body.style.opacity = '1';
-                                    body.style.padding = '6px 20px 24px';
-                                }
-                            }
-                        });
-                        setTimeout(() => {
-                            targetGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            // 高亮目标卡片
-                            const card = targetGroup.querySelector(`.place-card[data-place-id="${placeId}"]`);
-                            if (card) {
-                                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
-                                card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
-                                card.style.borderColor = '#a0524a';
-                                setTimeout(() => {
-                                    card.style.boxShadow = '';
-                                    card.style.borderColor = '';
-                                }, 3000);
-                            }
-                        }, 400);
-                    }
-                });
-
-                // 点击外部关闭悬浮卡片
-                document.addEventListener('click', (e) => {
-                    if (this.$floatingCard.style.display === 'block' &&
-                        !this.$floatingCard.contains(e.target) &&
-                        !e.target.closest('.map-point')) {
-                        if (!this.#floatingCardPinned) {
-                            this.#hideFloatingCard(true);
-                        }
-                    }
-                });
-
-                // 管理员登录
-                this.$adminLoginBtn.addEventListener('click', () => this.#handleLogin());
-                this.$adminPassword.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') this.#handleLogin();
-                });
-
-                // 管理员切换
-                this.$adminToggle.addEventListener('click', () => this.#toggleAdmin());
-
-                // 新增一天
-                this.$adminAddDayBtn.addEventListener('click', () => this.#handleAddDay());
-
-                // 保存修改
-                this.$adminSaveBtn.addEventListener('click', () => this.#handleSaveAll());
-
-                // 全部展开/收起
-                this.$expandAllBtn.addEventListener('click', () => this.#expandAll());
-                this.$collapseAllBtn.addEventListener('click', () => this.#collapseAll());
-
-                // 路线总览切换
-                this.$overviewToggle.addEventListener('click', () => {
-                    this.$overviewGroup.classList.toggle('open');
-                });
-
-                // 滚动事件
-                window.addEventListener('scroll', () => {
-                    this.#updateProgress();
-                    this.#checkStickyAll();
-                }, { passive: true });
-
-                window.addEventListener('resize', () => {
-                    this.#checkStickyAll();
-                }, { passive: true });
-
-                // 返回顶部
-                this.$backTop.addEventListener('click', () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-
-                // Store 订阅
-                this.#store.subscribe((data, draft) => {
-                    this.#renderDays(data);
-                    this.#renderOverview(data);
-                    this.#renderLegend(data);
-                    this.#updateAdminUI();
-                });
+            function formatTime(place) {
+                if (place.time_start && place.time_end) return place.time_start + ' - ' + place.time_end;
+                return place.time_start || '';
             }
 
             // ============================================================
-            // 初始化
+            // 3. 渲染函数
             // ============================================================
-            async #init() {
-                try {
-                    const data = await ApiService.fetchItinerary();
-                    if (data && data.length > 0) {
-                        this.#store.setDays(data);
-                        this.#currentTab = data[0].day;
-                        this.#renderDays(data);
-                        this.#renderOverview(data);
-                        this.#renderLegend(data);
-                        // 初始折叠
-                        document.querySelectorAll('.day-group .day-body').forEach(body => {
-                            body.style.maxHeight = '0';
-                            body.style.opacity = '0';
-                            body.style.padding = '0 20px';
-                        });
-                    } else {
-                        this.$container.innerHTML =
-                            '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据</p>';
-                    }
-                } catch (e) {
-                    console.error('初始化失败:', e);
-                    this.$container.innerHTML =
-                        '<p style="padding:40px;text-align:center;color:#a0524a;">❌ 加载失败，请刷新重试</p>';
-                }
-                this.#updateBackTop();
-                this.#updateProgress();
-            }
+            function renderDays() {
+                const container = document.getElementById('day-groups-container');
+                if (!container) return;
 
-            // ============================================================
-            // 渲染 - 行程列表
-            // ============================================================
-            #renderDays(data) {
-                if (!data || data.length === 0) {
-                    this.$container.innerHTML =
+                if (!allDaysData || allDaysData.length === 0) {
+                    container.innerHTML =
                         '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据</p>';
-                    this.#dayGroupComponents = [];
                     return;
                 }
 
-                this.$container.innerHTML = '';
-                this.#dayGroupComponents = [];
+                let html = '';
+                allDaysData.forEach((day) => {
+                    const places = day.places || [];
+                    const isAdmin = isAdminMode ? 'is-admin' : '';
 
-                data.forEach(day => {
-                    const group = new DayGroup(day, this.#store, this.#isAdmin, {
-                        onEditField: (target, field, val) => this.#handleEditField(target, field, val),
-                        onEditTransport: (place) => this.#handleEditTransport(place),
-                        onAddTransport: (place, idx) => this.#handleAddTransport(place, idx),
-                        onDeletePlace: (place) => this.#handleDeletePlace(place),
-                        onCardClick: (place) => this.#handleCardClick(place),
-                        onEditDayMeta: (day) => this.#handleEditDayMeta(day),
-                        onDeleteDay: (day) => this.#handleDeleteDay(day),
-                        onAddPlace: (day) => this.#handleAddPlace(day)
+                    html += `<div class="day-group ${isAdmin}" id="day-group-${day.day}">`;
+                    html += `<div class="day-header" onclick="toggleDay(this)">
+                                <span class="title">${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small></span>
+                                <span class="arrow">▾</span>
+                            </div>`;
+                    html += `<div class="day-body">`;
+
+                    // 步行难度
+                    if (day.walk_badge) {
+                        html += `<div class="walk-badge">${day.walk_badge}</div>`;
+                    }
+
+                    // 三餐
+                    if (day.breakfast || day.lunch || day.dinner) {
+                        html += `<div class="meal-bar">`;
+                        if (day.breakfast) html += `<span>🌅 早餐：${day.breakfast}</span>`;
+                        if (day.lunch) html += `<span>☀️ 午餐：${day.lunch}</span>`;
+                        if (day.dinner) html += `<span>🌙 晚餐：${day.dinner}</span>`;
+                        html += `</div>`;
+                    }
+
+                    // 时间轴
+                    html += `<div class="timeline">`;
+                    places.forEach((place) => {
+                        const emoji = getEmoji(place.name);
+                        const typeLabel = getTypeLabel(place.type);
+                        const timeStr = formatTime(place);
+                        const isTransport = place.type === 'transport';
+                        const transportClass = isTransport ? 'timeline-item--transport' : '';
+                        const transportIcon = isTransport ? '🚌 ' : '';
+
+                        html += `<div class="timeline-item ${transportClass}" data-place-id="${place.id}">`;
+                        if (timeStr) {
+                            html += `<span class="time">${timeStr}</span>`;
+                        }
+                        html +=
+                            `<span class="activity">${transportIcon}${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
+                        if (isAdminMode) {
+                            html += `<span class="admin-actions">
+                                        <button class="btn--mini" onclick="editPlaceField(${place.id}, 'name')">✏️</button>
+                                        ${isTransport ? `<button class="btn--mini btn--mini-primary" onclick="editTransport(${place.id})">🚌</button>` : `<button class="btn--mini btn--mini-primary" onclick="addTransportBefore(${day.day}, ${places.indexOf(place)})">➕</button>`}
+                                        <button class="btn--mini btn--mini-danger" onclick="deletePlace(${day.day}, ${place.id})">🗑️</button>
+                                    </span>`;
+                        }
+                        html += `</div>`;
                     });
-                    group.dataset.day = day.day;
-                    this.$container.appendChild(group);
-                    this.#dayGroupComponents.push(group);
+                    html += `</div>`;
+
+                    // 景点卡片
+                    places.forEach((place) => {
+                        const imgName = getImageName(place.name);
+                        const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
+                        const emoji = getEmoji(place.name);
+                        const typeLabel = getTypeLabel(place.type);
+                        const timeStr = formatTime(place);
+                        const isTransport = place.type === 'transport';
+
+                        const cardClass = isTransport ? 'place-card place-card--transport' : 'place-card';
+
+                        html += `<div class="${cardClass}" data-day="${day.day}" data-place-id="${place.id}">`;
+                        html += `<div class="place-name">
+                                    ${emoji} ${place.name}
+                                    <span class="tag">${typeLabel}</span>
+                                    ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                                </div>`;
+
+                        // 非交通卡片显示图片
+                        if (!isTransport) {
+                            html += `<div class="place-image">`;
+                            if (imgUrl) {
+                                html +=
+                                    `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
+                                html +=
+                                    `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
+                            } else {
+                                html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
+                            }
+                            html += `</div>`;
+                        }
+
+                        if (place.intro) {
+                            html += `<div class="place-desc">${place.intro}</div>`;
+                        }
+
+                        // 元信息
+                        if (place.address || place.duration) {
+                            let parts = [];
+                            if (place.duration) parts.push('⏱️ ' + place.duration);
+                            if (place.address) parts.push('📍 ' + place.address);
+                            html += `<div class="meta">${parts.join(' · ')}</div>`;
+                        }
+
+                        if (place.remark) {
+                            html += `<div class="remark">💡 ${place.remark}</div>`;
+                        }
+
+                        // 按钮
+                        html += `<div class="btn-group">`;
+                        if (place.nav_link) {
+                            html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
+                        }
+                        const links = place.platform_links ? JSON.parse(place.platform_links) : {};
+                        if (links.dianping) {
+                            html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                        }
+                        if (links.meituan) {
+                            html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+                        }
+                        if (links.douyin) {
+                            html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                        }
+                        html += `</div>`;
+                        html += `</div>`;
+                    });
+
+                    if (day.rest_note) {
+                        html += `<div class="rest-note">☕ ${day.rest_note}</div>`;
+                    }
+
+                    if (isAdminMode) {
+                        html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                                    <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑标题</button>
+                                    <button class="btn-ctrl btn-danger" onclick="deleteDay(${day.day})">🗑️ 删除这一天</button>
+                                    <button class="btn-ctrl" onclick="addPlaceToDay(${day.day})">➕ 添加景点</button>
+                                </div>`;
+                    }
+
+                    html += `</div>`;
+                    html += `</div>`;
                 });
 
-                // 初始折叠
+                container.innerHTML = html;
+
+                // 初始化折叠状态
                 document.querySelectorAll('.day-group .day-body').forEach(body => {
                     body.style.maxHeight = '0';
                     body.style.opacity = '0';
@@ -2179,148 +1550,151 @@
                 });
 
                 // 滚动动画
-                this.#setupScrollAnimation();
+                setTimeout(setupScrollAnimation, 100);
             }
 
             // ============================================================
-            // 渲染 - 路线总览
+            // 4. 路线总览
             // ============================================================
-            #renderOverview(data) {
-                const tabBar = this.$tabBar;
+            function renderOverview() {
+                const tabBar = document.getElementById('tab-bar');
                 tabBar.innerHTML = '';
-                if (!data || data.length === 0) {
+                if (!allDaysData || allDaysData.length === 0) {
                     tabBar.innerHTML = '<span style="color:#8a8a8a;font-size:14px;">暂无行程数据</span>';
-                    this.$mapContainer.innerHTML = '';
+                    document.getElementById('overview-maps').innerHTML = '';
+                    document.getElementById('route-legend').innerHTML = '';
                     return;
                 }
 
-                data.forEach(day => {
+                allDaysData.forEach((day) => {
                     const btn = document.createElement('button');
-                    btn.className = `tab-btn${day.day === this.#currentTab ? ' active' : ''}`;
+                    btn.className = 'tab-btn' + (day.day === currentTab ? ' active' : '');
                     btn.dataset.day = day.day;
                     btn.textContent = 'Day ' + day.day;
-                    btn.addEventListener('click', () => this.#switchTab(day.day));
+                    btn.onclick = () => switchTab(day.day);
                     tabBar.appendChild(btn);
                 });
 
-                this.#renderMap(data);
+                renderMap(currentTab);
+                renderLegend();
             }
 
-            #renderMap(data) {
-                const day = data.find(d => d.day === this.#currentTab);
-                const imgUrl = CONFIG.MAP_IMAGE_BASE + '/day' + this.#currentTab + '_overview.png';
+            function renderLegend() {
+                const legend = document.getElementById('route-legend');
+                legend.innerHTML = '';
+                if (!allDaysData || allDaysData.length === 0) return;
+                const colors = ['#4a6a7f', '#6a7f8a', '#8a7a6a', '#9a8a7a', '#b0a090', '#a0524a'];
+                allDaysData.forEach((day, idx) => {
+                    const span = document.createElement('span');
+                    span.innerHTML =
+                        `<span class="dot" style="background:${colors[idx % colors.length]};"></span> Day ${day.day}`;
+                    legend.appendChild(span);
+                });
+            }
 
-                let html = `<div class="map-wrapper" id="map-wrapper-${this.#currentTab}">`;
-                html += `<img src="${imgUrl}" alt="Day ${this.#currentTab} 路线图" 
-                            onerror="this.style.display='none'; document.getElementById('map-error-${this.#currentTab}').style.display='flex';" />`;
-                html += `<div id="map-error-${this.#currentTab}" style="display:none; height:300px; align-items:center; justify-content:center; color:#8a8a8a; background:#f6f4f1; border-radius:14px; flex-direction:column; gap:8px;">
+            function renderMap(day) {
+                const container = document.getElementById('overview-maps');
+                const dayData = allDaysData.find(d => d.day === day);
+                const imgUrl = MAP_IMAGE_BASE + '/day' + day + '_overview.png';
+
+                let html = `<div class="map-wrapper" id="map-wrapper-${day}">`;
+                html += `<img src="${imgUrl}" alt="Day ${day} 路线图" 
+                            onerror="this.style.display='none'; document.getElementById('map-error-${day}').style.display='flex';" />`;
+                html += `<div id="map-error-${day}" style="display:none; height:300px; align-items:center; justify-content:center; color:#8a8a8a; background:#f6f4f1; border-radius:14px; flex-direction:column; gap:8px;">
                             <span>🖼️ 图片加载失败</span>
-                            <span style="font-size:13px;">请确认 maps/day${this.#currentTab}_overview.png 已上传</span>
+                            <span style="font-size:13px;">请确认 maps/day${day}_overview.png 已上传</span>
                         </div>`;
 
-                if (day && day.places) {
-                    day.places.forEach((place, idx) => {
-                        const x = place.map_x || (10 + (idx / Math.max(day.places.length - 1, 1)) * 80);
+                if (dayData && dayData.places) {
+                    dayData.places.forEach((place, idx) => {
+                        const x = place.map_x || (10 + (idx / Math.max(dayData.places.length - 1, 1)) * 80);
                         const y = place.map_y || (20 + (idx % 2) * 40 + 10);
-                        const draggable = this.#isAdmin ? 'draggable' : '';
+                        const draggable = isAdminMode ? 'draggable' : '';
                         html += `<div class="map-point ${draggable}" 
                                     style="left:${x}%; top:${y}%;" 
-                                    data-day="${day.day}" data-place-id="${place.id}"
-                                    data-original-x="${x}" data-original-y="${y}">
+                                    data-day="${day}" data-place-id="${place.id}"
+                                    onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
+                                    onmouseleave="onMapPointLeave()"
+                                    onclick="onMapPointClick(${day}, '${place.id}', this)">
                                     ${idx + 1}
-                                    ${this.#isAdmin ? '<span class="drag-handle">⤡</span>' : ''}
+                                    ${isAdminMode ? '<span class="drag-handle">⤡</span>' : ''}
                                 </div>`;
                     });
                 }
 
                 html += '</div>';
-                this.$mapContainer.innerHTML = html;
+                container.innerHTML = html;
 
-                // 绑定拖动事件
-                if (this.#isAdmin) {
-                    this.#setupDragEvents();
+                if (isAdminMode) {
+                    setupDragEvents(day);
                 }
-
-                // 绑定地图点事件
-                this.$mapContainer.querySelectorAll('.map-point').forEach(point => {
-                    const day = parseInt(point.dataset.day);
-                    const placeId = point.dataset.placeId;
-                    point.addEventListener('mouseenter', () => this.#onMapPointEnter(day, placeId, point));
-                    point.addEventListener('mouseleave', () => this.#onMapPointLeave());
-                    point.addEventListener('click', () => this.#onMapPointClick(day, placeId, point));
-                });
             }
 
-            #renderLegend(data) {
-                this.$legend.innerHTML = '';
-                if (!data || data.length === 0) return;
-                data.forEach((day, idx) => {
-                    const span = document.createElement('span');
-                    const color = CONFIG.DAY_COLORS[idx % CONFIG.DAY_COLORS.length];
-                    span.innerHTML =
-                        `<span class="dot" style="background:${color};"></span> Day ${day.day}`;
-                    this.$legend.appendChild(span);
-                });
-            }
-
-            #switchTab(day) {
-                this.#currentTab = day;
+            function switchTab(day) {
+                currentTab = day;
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.classList.toggle('active', parseInt(btn.dataset.day) === day);
                 });
-                this.#renderMap(this.#store.days);
+                renderMap(day);
             }
 
             // ============================================================
-            // 地图拖动
+            // 5. 地图拖动
             // ============================================================
-            #dragState = null;
-
-            #setupDragEvents() {
-                const points = this.$mapContainer.querySelectorAll('.map-point.draggable');
+            function setupDragEvents(day) {
+                const points = document.querySelectorAll(`#map-wrapper-${day} .map-point.draggable`);
                 points.forEach(point => {
-                    point.addEventListener('mousedown', (e) => this.#startDrag(e, point));
-                    point.addEventListener('touchstart', (e) => this.#startDrag(e, point), { passive: false });
+                    point.addEventListener('mousedown', function(e) {
+                        if (!isAdminMode) return;
+                        e.preventDefault();
+                        startDrag(e, this);
+                    });
+                    point.addEventListener('touchstart', function(e) {
+                        if (!isAdminMode) return;
+                        e.preventDefault();
+                        startDrag(e, this);
+                    }, { passive: false });
                 });
             }
 
-            #startDrag(e, element) {
-                if (!this.#isAdmin) return;
-                e.preventDefault();
+            function startDrag(e, element) {
                 const wrapper = element.closest('.map-wrapper');
-                const rect = wrapper.getBoundingClientRect();
+                const wrapperRect = wrapper.getBoundingClientRect();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-                this.#dragState = {
-                    element,
-                    wrapperRect: rect,
+                dragState = {
+                    element: element,
+                    wrapperRect: wrapperRect,
                     placeId: element.dataset.placeId,
                     day: parseInt(element.dataset.day)
                 };
+
                 element.classList.add('dragging');
 
-                document.addEventListener('mousemove', this.#onDrag);
-                document.addEventListener('mouseup', this.#endDrag);
-                document.addEventListener('touchmove', this.#onDrag, { passive: false });
-                document.addEventListener('touchend', this.#endDrag);
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', endDrag);
+                document.addEventListener('touchmove', onDrag, { passive: false });
+                document.addEventListener('touchend', endDrag);
             }
 
-            #onDrag = (e) => {
-                if (!this.#dragState) return;
+            function onDrag(e) {
+                if (!dragState) return;
                 e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                const rect = this.#dragState.wrapperRect;
+                const rect = dragState.wrapperRect;
                 const x = ((clientX - rect.left) / rect.width) * 100;
                 const y = ((clientY - rect.top) / rect.height) * 100;
-                this.#dragState.element.style.left = Utils.clamp(x, 0, 100) + '%';
-                this.#dragState.element.style.top = Utils.clamp(y, 0, 100) + '%';
+                dragState.element.style.left = Math.max(0, Math.min(100, x)) + '%';
+                dragState.element.style.top = Math.max(0, Math.min(100, y)) + '%';
             }
 
-            #endDrag = () => {
-                if (!this.#dragState) return;
-                const { element, placeId, day } = this.#dragState;
+            function endDrag() {
+                if (!dragState) return;
+                const element = dragState.element;
+                const placeId = dragState.placeId;
+                const day = dragState.day;
                 element.classList.remove('dragging');
 
                 const left = parseFloat(element.style.left);
@@ -2328,233 +1702,156 @@
                 const mapX = Math.round(left);
                 const mapY = Math.round(top);
 
-                // 更新 store
-                const dayData = this.#store.findDay(day);
+                const dayData = allDaysData.find(d => d.day === day);
                 if (dayData) {
-                    const place = dayData.places?.find(p => p.id == placeId);
+                    const place = dayData.places.find(p => p.id == placeId);
                     if (place) {
                         place.map_x = mapX;
                         place.map_y = mapY;
                     }
                 }
-                this.#store.setDraft({ [`place_${placeId}`]: { map_x: mapX, map_y: mapY } });
+                editedData['place_' + placeId] = {
+                    ...editedData['place_' + placeId],
+                    map_x: mapX,
+                    map_y: mapY
+                };
 
-                document.removeEventListener('mousemove', this.#onDrag);
-                document.removeEventListener('mouseup', this.#endDrag);
-                document.removeEventListener('touchmove', this.#onDrag);
-                document.removeEventListener('touchend', this.#endDrag);
-                this.#dragState = null;
-
-                this.$adminSaveHint.textContent = '📍 圆点位置已修改，记得按「保存修改」提交';
-                this.$adminSaveHint.style.color = '#a0524a';
-                setTimeout(() => {
-                    this.$adminSaveHint.textContent = '修改完后记得按「保存修改」';
-                    this.$adminSaveHint.style.color = '';
-                }, 3000);
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', endDrag);
+                document.removeEventListener('touchmove', onDrag);
+                document.removeEventListener('touchend', endDrag);
+                dragState = null;
             }
 
             // ============================================================
-            // 悬浮卡片
+            // 6. 悬浮卡片
             // ============================================================
-            #onMapPointEnter(day, placeId, element) {
-                this.#isHovering = true;
-                if (this.#hideTimeout) { clearTimeout(this.#hideTimeout);
-                    this.#hideTimeout = null; }
-                if (!this.#floatingCardPinned) {
-                    this.#showFloatingCard(day, placeId, element);
-                }
+            function getPlaceById(day, placeId) {
+                const dayData = allDaysData.find(d => d.day === day);
+                if (!dayData || !dayData.places) return null;
+                return dayData.places.find(p => p.id == placeId);
             }
 
-            #onMapPointLeave() {
-                this.#isHovering = false;
-                if (!this.#floatingCardPinned) {
-                    this.#hideFloatingCard(false);
-                }
-            }
-
-            #onMapPointClick(day, placeId, element) {
-                if (this.#floatingCardPinned && this.#floatingCardData &&
-                    this.#floatingCardData.day === day && this.#floatingCardData.placeId == placeId) {
-                    this.#floatingCardPinned = false;
-                    this.#hideFloatingCard(true);
-                    element.classList.remove('active');
-                    return;
-                }
-                if (this.#hideTimeout) { clearTimeout(this.#hideTimeout);
-                    this.#hideTimeout = null; }
-                document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
-                element.classList.add('active');
-                this.#showFloatingCard(day, placeId, element, true);
-            }
-
-            #showFloatingCard(day, placeId, element, pinned = false) {
-                const place = this.#store.findPlace(day, placeId);
+            function showFloatingCard(day, placeId, event, isPinned = false) {
+                const place = getPlaceById(day, placeId);
                 if (!place) return;
+                if (hideTimeout) { clearTimeout(hideTimeout);
+                    hideTimeout = null; }
 
-                this.#floatingCardData = { day, placeId };
-                this.$floatingCardName.textContent = place.name;
-                this.$floatingCardDesc.textContent = place.intro || '暂无介绍';
+                floatingCardData = { day, placeId };
+                floatingCardName.textContent = place.name;
+                floatingCardDesc.textContent = place.intro || '暂无介绍';
 
-                const imgName = Utils.getImageName(place.name);
+                const imgName = getImageName(place.name);
                 if (imgName) {
-                    this.$floatingCardImg.src = CONFIG.GITHUB_IMAGE_BASE + '/' + imgName;
-                    this.$floatingCardImg.style.display = 'block';
-                    this.$floatingCardImg.onerror = () => { this.$floatingCardImg.style.display = 'none'; };
+                    floatingCardImg.src = GITHUB_IMAGE_BASE + '/' + imgName;
+                    floatingCardImg.style.display = 'block';
+                    floatingCardImg.onerror = () => { floatingCardImg.style.display = 'none'; };
                 } else {
-                    this.$floatingCardImg.style.display = 'none';
+                    floatingCardImg.style.display = 'none';
                 }
 
-                const rect = element.getBoundingClientRect();
+                const rect = event.getBoundingClientRect();
                 let left = rect.left + rect.width / 2 - 140;
                 let top = rect.bottom + 12;
                 if (left < 10) left = 10;
                 if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
                 if (top + 300 > window.innerHeight - 10) { top = rect.top - 300 - 12; }
 
-                this.$floatingCard.style.left = left + 'px';
-                this.$floatingCard.style.top = top + 'px';
-                this.$floatingCard.style.display = 'block';
-                this.#floatingCardPinned = pinned;
-                this.$floatingCard.dataset.pinned = pinned ? 'true' : 'false';
+                floatingCard.style.left = left + 'px';
+                floatingCard.style.top = top + 'px';
+                floatingCard.style.display = 'block';
+                floatingCardPinned = isPinned;
+                floatingCard.dataset.pinned = isPinned ? 'true' : 'false';
 
-                requestAnimationFrame(() => {
-                    this.$floatingCard.classList.add('show');
-                });
+                requestAnimationFrame(() => { floatingCard.classList.add('show'); });
             }
 
-            #hideFloatingCard(immediate = false) {
-                if (this.#floatingCardPinned) return;
-                if (this.#hideTimeout) { clearTimeout(this.#hideTimeout);
-                    this.#hideTimeout = null; }
+            function hideFloatingCard(immediate = false) {
+                if (floatingCardPinned) return;
+                if (hideTimeout) { clearTimeout(hideTimeout);
+                    hideTimeout = null; }
                 const delay = immediate ? 0 : 300;
-                this.#hideTimeout = setTimeout(() => {
-                    if (!this.#floatingCardPinned && !this.#isHovering) {
-                        this.$floatingCard.classList.remove('show');
-                        setTimeout(() => {
-                            if (!this.#floatingCardPinned) {
-                                this.$floatingCard.style.display = 'none';
-                            }
-                        }, 300);
+                hideTimeout = setTimeout(() => {
+                    if (!floatingCardPinned && !isHovering) {
+                        floatingCard.classList.remove('show');
+                        setTimeout(() => { if (!floatingCardPinned) floatingCard.style.display = 'none'; }, 300);
                     }
-                    this.#hideTimeout = null;
+                    hideTimeout = null;
                 }, delay);
             }
 
-            // ============================================================
-            // 内联编辑处理器
-            // ============================================================
-            #handleEditField(target, field, val) {
-                if (!this.#isAdmin) return;
-                const current = target[field] || '';
-                const newVal = val !== undefined ? val : prompt(`修改 ${field}:`, current);
-                if (newVal === null) return;
+            function onMapPointEnter(day, placeId, element) {
+                isHovering = true;
+                if (hideTimeout) { clearTimeout(hideTimeout);
+                    hideTimeout = null; }
+                if (!floatingCardPinned) { showFloatingCard(day, placeId, element, false); }
+            }
 
-                target[field] = newVal.trim();
+            function onMapPointLeave() {
+                isHovering = false;
+                if (!floatingCardPinned) { hideFloatingCard(false); }
+            }
 
-                // 判断是 day 还是 place
-                if (target.hasOwnProperty('day') && target.hasOwnProperty('places')) {
-                    // 是 day
-                    this.#store.setDraft({ [`day_${target.day}`]: { [field]: newVal.trim() } });
-                } else if (target.id) {
-                    // 是 place
-                    this.#store.setDraft({ [`place_${target.id}`]: { [field]: newVal.trim() } });
+            function onMapPointClick(day, placeId, element) {
+                if (floatingCardPinned && floatingCardData &&
+                    floatingCardData.day === day && floatingCardData.placeId == placeId) {
+                    floatingCardPinned = false;
+                    floatingCard.dataset.pinned = 'false';
+                    isHovering = false;
+                    hideFloatingCard(true);
+                    element.classList.remove('active');
+                    return;
                 }
-
-                this.#renderDays(this.#store.days);
-                this.#renderOverview(this.#store.days);
+                if (hideTimeout) { clearTimeout(hideTimeout);
+                    hideTimeout = null; }
+                document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+                showFloatingCard(day, placeId, element, true);
             }
 
-            #handleEditTransport(place) {
-                if (!this.#isAdmin) return;
-                const newName = prompt('交通方式名称:', place.name);
-                if (newName === null) return;
-                const newIntro = prompt('交通详情:', place.intro || '');
-                if (newIntro === null) return;
+            floatingCardClose.onclick = function(e) {
+                e.stopPropagation();
+                floatingCardPinned = false;
+                floatingCard.dataset.pinned = 'false';
+                document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+                isHovering = false;
+                hideFloatingCard(true);
+            };
 
-                place.name = newName.trim();
-                place.intro = newIntro.trim();
-                this.#store.setDraft({ [`place_${place.id}`]: { name: newName.trim(), intro: newIntro.trim() } });
-                this.#renderDays(this.#store.days);
-                this.#renderOverview(this.#store.days);
-            }
+            document.addEventListener('click', function(e) {
+                if (floatingCard.style.display === 'block' &&
+                    !floatingCard.contains(e.target) &&
+                    !e.target.closest('.map-point')) {
+                    if (!floatingCardPinned) { isHovering = false;
+                        hideFloatingCard(true); }
+                }
+            });
 
-            #handleAddTransport(place, idx) {
-                if (!this.#isAdmin) return;
-                const dayData = this.#store.findDay(place.day);
-                if (!dayData) return;
+            floatingCardJump.onclick = function() {
+                if (!floatingCardData) return;
+                const { day, placeId } = floatingCardData;
+                floatingCardPinned = false;
+                floatingCard.dataset.pinned = 'false';
+                document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+                hideFloatingCard(true);
 
-                const name = prompt('交通方式名称 (如 公交307路):');
-                if (!name) return;
-                const intro = prompt('交通详情:');
-                if (intro === null) return;
-
-                const newPlace = {
-                    id: -Date.now(),
-                    name: name.trim(),
-                    type: 'transport',
-                    day: place.day,
-                    time_start: '',
-                    time_end: '',
-                    duration: '',
-                    intro: intro.trim(),
-                    address: '',
-                    nav_link: '',
-                    image_url: '',
-                    platform_links: '',
-                    remark: '',
-                    map_x: 50,
-                    map_y: 50,
-                    sort_order: idx + 0.5,
-                    peak_alternative: '',
-                    congestion_alternative: '',
-                    rainy_alternative: ''
-                };
-
-                dayData.places.splice(idx + 1, 0, newPlace);
-                const order = dayData.place_order || [];
-                order.splice(idx + 1, 0, newPlace.id);
-
-                this.#store.setDraft({ [`day_${place.day}`]: { place_order: order } });
-                this.#renderDays(this.#store.days);
-                this.#renderOverview(this.#store.days);
-                alert('✅ 交通已添加，记得按「保存修改」提交。');
-            }
-
-            #handleDeletePlace(place) {
-                if (!confirm('确定删除此景点/交通吗？')) return;
-                const dayData = this.#store.findDay(place.day);
-                if (!dayData) return;
-
-                const idx = dayData.places.findIndex(p => p.id === place.id);
-                if (idx === -1) return;
-                dayData.places.splice(idx, 1);
-                const order = dayData.place_order || [];
-                const oIdx = order.indexOf(place.id);
-                if (oIdx !== -1) order.splice(oIdx, 1);
-
-                this.#store.setDraft({ [`day_${place.day}`]: { place_order: order } });
-                this.#renderDays(this.#store.days);
-                this.#renderOverview(this.#store.days);
-                alert('✅ 已删除，记得按「保存修改」提交。');
-            }
-
-            #handleCardClick(place) {
-                // 跳转到对应 day
-                const group = this.#dayGroupComponents.find(g => g.dataset.day == place.day);
-                if (group) {
-                    // 展开所有
-                    this.#dayGroupComponents.forEach(g => {
-                        g.classList.add('open');
-                        const body = g.querySelector('.day-body');
-                        if (body) {
+                const targetDay = document.getElementById('day-group-' + day);
+                if (targetDay) {
+                    targetDay.classList.add('open');
+                    const body = targetDay.querySelector('.day-body');
+                    if (body) {
+                        body.style.maxHeight = '0';
+                        body.style.opacity = '0';
+                        body.style.padding = '0 20px';
+                        requestAnimationFrame(() => {
                             body.style.maxHeight = '5000px';
                             body.style.opacity = '1';
                             body.style.padding = '6px 20px 24px';
-                        }
-                    });
+                        });
+                    }
                     setTimeout(() => {
-                        group.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        const card = group.querySelector(`.place-card[data-place-id="${place.id}"]`);
+                        const card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
                         if (card) {
                             card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
@@ -2567,41 +1864,441 @@
                         }
                     }, 400);
                 }
+            };
+
+            // ============================================================
+            // 7. 折叠切换 + Sticky
+            // ============================================================
+
+            window.toggleDay = function(header) {
+                const group = header.closest('.day-group');
+                if (!group) return;
+                const body = group.querySelector('.day-body');
+                if (!body) return;
+
+                const isOpen = group.classList.contains('open');
+                if (isOpen) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        body.style.maxHeight = '0';
+                        body.style.opacity = '0';
+                        body.style.padding = '0 20px';
+                    });
+                    group.classList.remove('open');
+                    header.classList.remove('sticky');
+                } else {
+                    group.classList.add('open');
+                    body.style.maxHeight = '0';
+                    body.style.opacity = '0';
+                    body.style.padding = '0 20px';
+                    requestAnimationFrame(() => {
+                        body.style.maxHeight = '5000px';
+                        body.style.opacity = '1';
+                        body.style.padding = '6px 20px 24px';
+                    });
+                    setTimeout(() => checkSticky(), 150);
+                }
+            };
+
+            function checkSticky() {
+                document.querySelectorAll('.day-group .day-header').forEach(header => {
+                    const rect = header.getBoundingClientRect();
+                    if (rect.top <= 0) {
+                        header.classList.add('sticky');
+                    } else {
+                        header.classList.remove('sticky');
+                    }
+                });
             }
 
-            #handleEditDayMeta(day) {
-                if (!this.#isAdmin) return;
-                const newTitle = prompt('标题:', day.title || '');
+            function setupStickyDays() {
+                window.addEventListener('scroll', function() {
+                    requestAnimationFrame(checkSticky);
+                }, { passive: true });
+                window.addEventListener('resize', function() {
+                    requestAnimationFrame(checkSticky);
+                }, { passive: true });
+                setTimeout(checkSticky, 100);
+                setTimeout(checkSticky, 500);
+            }
+
+            function setupExpandCollapse() {
+                const expandBtn = document.getElementById('expand-all-btn');
+                const collapseBtn = document.getElementById('collapse-all-btn');
+
+                if (expandBtn) {
+                    expandBtn.onclick = function() {
+                        document.querySelectorAll('.day-group').forEach(group => {
+                            const body = group.querySelector('.day-body');
+                            if (body && !group.classList.contains('open')) {
+                                group.classList.add('open');
+                                body.style.maxHeight = '0';
+                                body.style.opacity = '0';
+                                body.style.padding = '0 20px';
+                                requestAnimationFrame(() => {
+                                    body.style.maxHeight = '5000px';
+                                    body.style.opacity = '1';
+                                    body.style.padding = '6px 20px 24px';
+                                });
+                            }
+                        });
+                        setTimeout(checkSticky, 300);
+                    };
+                }
+
+                if (collapseBtn) {
+                    collapseBtn.onclick = function() {
+                        document.querySelectorAll('.day-group').forEach(group => {
+                            const body = group.querySelector('.day-body');
+                            const header = group.querySelector('.day-header');
+                            if (body && group.classList.contains('open')) {
+                                body.style.maxHeight = body.scrollHeight + 'px';
+                                requestAnimationFrame(() => {
+                                    body.style.maxHeight = '0';
+                                    body.style.opacity = '0';
+                                    body.style.padding = '0 20px';
+                                });
+                                group.classList.remove('open');
+                                if (header) header.classList.remove('sticky');
+                            }
+                        });
+                    };
+                }
+            }
+
+            // ============================================================
+            // 8. 修改模式
+            // ============================================================
+
+            function setupAdminMode() {
+                const toggleBtn = document.getElementById('admin-toggle-btn');
+                const loginArea = document.getElementById('admin-login-area');
+                const editArea = document.getElementById('admin-edit-area');
+                const saveHint = document.getElementById('admin-save-hint');
+                const passwordInput = document.getElementById('admin-password-input');
+                const loginBtn = document.getElementById('admin-login-btn');
+                const statusSpan = document.getElementById('admin-login-status');
+                const saveBtn = document.getElementById('admin-save-btn');
+
+                if (!toggleBtn) return;
+
+                toggleBtn.onclick = function() {
+                    if (isAdminMode) {
+                        isAdminMode = false;
+                        loginArea.style.display = 'flex';
+                        editArea.style.display = 'none';
+                        saveHint.classList.remove('show');
+                        statusSpan.textContent = '';
+                        toggleBtn.textContent = '🔧 修改模式';
+                        toggleBtn.style.borderColor = '#c0b0a8';
+                        editedData = {};
+                        renderDays();
+                        renderOverview();
+                    } else {
+                        loginArea.style.display = 'flex';
+                        toggleBtn.textContent = '🔧 退出修改';
+                        toggleBtn.style.borderColor = '#a0524a';
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                        statusSpan.textContent = '';
+                        saveHint.classList.add('show');
+                        editedData = {};
+                        renderDays();
+                        renderOverview();
+                    }
+                };
+
+                loginBtn.onclick = async function() {
+                    const password = passwordInput.value.trim();
+                    if (!password) {
+                        statusSpan.textContent = '请输入密码';
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/admin/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password })
+                        });
+                        const result = await response.json();
+
+                        if (result.success) {
+                            isAdminMode = true;
+                            statusSpan.textContent = '✅ 验证成功！';
+                            editArea.style.display = 'flex';
+                            loginArea.style.display = 'none';
+                            toggleBtn.textContent = '🔧 退出修改';
+                            saveHint.classList.add('show');
+                            renderDays();
+                            renderOverview();
+                        } else {
+                            statusSpan.textContent = '❌ ' + (result.error || '密码错误');
+                        }
+                    } catch (e) {
+                        statusSpan.textContent = '❌ 网络错误';
+                    }
+                };
+
+                passwordInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { loginBtn.click(); }
+                });
+
+                document.getElementById('admin-add-day-btn').onclick = function() {
+                    if (!isAdminMode) { alert('请先进入修改模式'); return; }
+                    addNewDay();
+                };
+
+                saveBtn.onclick = function() {
+                    if (!isAdminMode) { alert('请先进入修改模式'); return; }
+                    saveAllChanges();
+                };
+            }
+
+            // ============================================================
+            // 9. API 操作
+            // ============================================================
+
+            async function apiCall(method, url, data) {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (data) options.body = JSON.stringify(data);
+                const response = await fetch(url, options);
+                return await response.json();
+            }
+
+            function getPassword() {
+                return document.getElementById('admin-password-input').value.trim();
+            }
+
+            async function sha256(message) {
+                const buf = new TextEncoder().encode(message);
+                const hash = await crypto.subtle.digest('SHA-256', buf);
+                return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            async function saveAllChanges() {
+                const password = getPassword();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const [key, value] of Object.entries(editedData)) {
+                    try {
+                        if (key.startsWith('day_')) {
+                            const dayNum = parseInt(key.replace('day_', ''));
+                            const result = await apiCall('PUT', '/api/itinerary/' + dayNum, {
+                                password: password,
+                                ...value
+                            });
+                            if (result.success) successCount++;
+                            else failCount++;
+                        } else if (key.startsWith('place_')) {
+                            const placeId = parseInt(key.replace('place_', ''));
+                            const result = await apiCall('PUT', '/api/places/' + placeId, {
+                                password: password,
+                                ...value
+                            });
+                            if (result.success) successCount++;
+                            else failCount++;
+                        }
+                    } catch (e) {
+                        failCount++;
+                    }
+                }
+
+                if (failCount === 0 && successCount > 0) {
+                    alert('✅ 所有修改已保存成功！');
+                    editedData = {};
+                    await reloadData();
+                } else if (successCount > 0 && failCount > 0) {
+                    alert('⚠️ 部分修改保存失败。成功 ' + successCount + ' 项，失败 ' + failCount + ' 项。');
+                    await reloadData();
+                } else {
+                    alert('⚠️ 没有检测到需要保存的修改，或全部保存失败。');
+                }
+            }
+
+            async function addNewDay() {
+                const password = getPassword();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const dayNum = allDaysData.length > 0 ? Math.max(...allDaysData.map(d => d.day)) + 1 : 1;
+                const result = await apiCall('POST', '/api/itinerary', {
+                    password: password,
+                    title: 'Day ' + dayNum,
+                    subtitle: '新行程',
+                    walk_badge: '',
+                    rest_note: '',
+                    breakfast: '',
+                    lunch: '',
+                    dinner: '',
+                    place_order: [],
+                    day_alternatives: {},
+                    notes: ''
+                });
+
+                if (result.success) {
+                    alert('✅ 新增成功！');
+                    await reloadData();
+                } else {
+                    alert('❌ 新增失败: ' + (result.error || '未知错误'));
+                }
+            }
+
+            window.deleteDay = async function(day) {
+                if (!confirm('确定要删除 Day ' + day + ' 吗？此操作不可恢复！')) return;
+                const password = getPassword();
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const result = await apiCall('DELETE', '/api/itinerary/' + day, { password: password });
+                if (result.success) {
+                    alert('✅ 删除成功！');
+                    await reloadData();
+                } else {
+                    alert('❌ 删除失败: ' + (result.error || '未知错误'));
+                }
+            };
+
+            window.editPlaceField = function(placeId, field) {
+                if (!isAdminMode) return;
+                const place = allDaysData.flatMap(d => d.places || []).find(p => p.id === placeId);
+                if (!place) return;
+
+                const currentValue = place[field] || '';
+                const newValue = prompt('修改 ' + field + ':', currentValue);
+                if (newValue === null) return;
+
+                place[field] = newValue.trim();
+                editedData['place_' + placeId] = {
+                    ...editedData['place_' + placeId],
+                    [field]: newValue.trim()
+                };
+
+                renderDays();
+                renderOverview();
+            };
+
+            window.editTransport = function(placeId) {
+                if (!isAdminMode) return;
+                const place = allDaysData.flatMap(d => d.places || []).find(p => p.id === placeId);
+                if (!place) return;
+
+                const newName = prompt('交通方式名称:', place.name);
+                if (newName === null) return;
+                const newIntro = prompt('交通详情:', place.intro || '');
+                if (newIntro === null) return;
+
+                place.name = newName.trim();
+                place.intro = newIntro.trim();
+                editedData['place_' + placeId] = {
+                    ...editedData['place_' + placeId],
+                    name: newName.trim(),
+                    intro: newIntro.trim()
+                };
+
+                renderDays();
+                renderOverview();
+            };
+
+            window.addTransportBefore = function(day, index) {
+                if (!isAdminMode) return;
+                const dayData = allDaysData.find(d => d.day === day);
+                if (!dayData) return;
+
+                const name = prompt('交通方式名称 (如 公交307路):');
+                if (!name) return;
+                const intro = prompt('交通详情:');
+                if (intro === null) return;
+
+                const newPlace = {
+                    id: -Date.now(),
+                    name: name.trim(),
+                    type: 'transport',
+                    day: day,
+                    time_start: '',
+                    time_end: '',
+                    duration: '',
+                    intro: intro.trim(),
+                    address: '',
+                    nav_link: '',
+                    image_url: '',
+                    platform_links: '',
+                    remark: '',
+                    map_x: 50,
+                    map_y: 50,
+                    sort_order: index + 0.5,
+                    peak_alternative: '',
+                    congestion_alternative: '',
+                    rainy_alternative: ''
+                };
+
+                dayData.places.splice(index + 1, 0, newPlace);
+                const order = dayData.place_order || [];
+                order.splice(index + 1, 0, newPlace.id);
+
+                editedData['day_' + day] = {
+                    ...editedData['day_' + day],
+                    place_order: order
+                };
+
+                renderDays();
+                renderOverview();
+                alert('✅ 交通已添加，记得按「保存修改」提交。');
+            };
+
+            window.deletePlace = function(day, placeId) {
+                if (!confirm('确定删除此景点/交通吗？')) return;
+                const dayData = allDaysData.find(d => d.day === day);
+                if (!dayData) return;
+
+                const idx = dayData.places.findIndex(p => p.id === placeId);
+                if (idx === -1) return;
+                dayData.places.splice(idx, 1);
+                const order = dayData.place_order || [];
+                const oIdx = order.indexOf(placeId);
+                if (oIdx !== -1) order.splice(oIdx, 1);
+
+                editedData['day_' + day] = {
+                    ...editedData['day_' + day],
+                    place_order: order
+                };
+
+                renderDays();
+                renderOverview();
+                alert('✅ 已删除，记得按「保存修改」提交。');
+            };
+
+            window.editDayMeta = function(day) {
+                if (!isAdminMode) return;
+                const dayData = allDaysData.find(d => d.day === day);
+                if (!dayData) return;
+
+                const newTitle = prompt('标题:', dayData.title || '');
                 if (newTitle === null) return;
-                const newSubtitle = prompt('副标题:', day.subtitle || '');
+                const newSubtitle = prompt('副标题:', dayData.subtitle || '');
                 if (newSubtitle === null) return;
 
-                day.title = newTitle.trim();
-                day.subtitle = newSubtitle.trim();
-                this.#store.setDraft({
-                    [`day_${day.day}`]: { title: newTitle.trim(), subtitle: newSubtitle.trim() }
-                });
-                this.#renderDays(this.#store.days);
-                this.#renderOverview(this.#store.days);
-            }
+                dayData.title = newTitle.trim();
+                dayData.subtitle = newSubtitle.trim();
+                editedData['day_' + day] = {
+                    ...editedData['day_' + day],
+                    title: newTitle.trim(),
+                    subtitle: newSubtitle.trim()
+                };
 
-            #handleDeleteDay(day) {
-                if (!confirm(`确定要删除 Day ${day.day} 吗？不可恢复！`)) return;
-                this.#store.setDraft({ [`_delete_day_${day.day}`]: true });
-                // 直接从本地移除
-                const data = this.#store.days.filter(d => d.day !== day.day);
-                this.#store.setDays(data);
-                this.#renderDays(data);
-                this.#renderOverview(data);
-                this.#renderLegend(data);
-            }
+                renderDays();
+                renderOverview();
+            };
 
-            #handleAddDay(day) {
-                // 由按钮触发
-            }
+            window.addPlaceToDay = async function(day) {
+                if (!isAdminMode) return;
+                const password = getPassword();
+                if (!password) { alert('请输入管理员密码'); return; }
 
-            #handleAddPlace(day) {
-                if (!this.#isAdmin) return;
                 const name = prompt('景点名称:');
                 if (!name) return;
                 const type = prompt('类型 (attraction/food/transport/culture/rest/shopping/other):', 'attraction');
@@ -2609,11 +2306,11 @@
                 const timeStart = prompt('开始时间 (如 09:00):', '');
                 const timeEnd = prompt('结束时间 (如 10:30):', '');
 
-                const newPlace = {
-                    id: -Date.now(),
+                const result = await apiCall('POST', '/api/places', {
+                    password: password,
                     name: name.trim(),
                     type: type.trim(),
-                    day: day.day,
+                    day: day,
                     time_start: timeStart || '',
                     time_end: timeEnd || '',
                     duration: '',
@@ -2625,236 +2322,48 @@
                     remark: '',
                     map_x: 50,
                     map_y: 50,
-                    sort_order: day.places.length + 1,
+                    sort_order: 0,
                     peak_alternative: '',
                     congestion_alternative: '',
                     rainy_alternative: ''
-                };
-
-                day.places.push(newPlace);
-                const order = day.place_order || [];
-                order.push(newPlace.id);
-
-                this.#store.setDraft({ [`day_${day.day}`]: { place_order: order } });
-                this.#renderDays(this.#store.days);
-                this.#renderOverview(this.#store.days);
-                alert('✅ 景点已添加，记得按「保存修改」提交。');
-            }
-
-            // ============================================================
-            // 管理员
-            // ============================================================
-            async #handleLogin() {
-                const password = this.$adminPassword.value.trim();
-                if (!password) { this.$adminStatus.textContent = '请输入密码'; return; }
-
-                try {
-                    const result = await ApiService.verifyAdmin(password);
-                    if (result.success) {
-                        this.#password = password;
-                        this.#isAdmin = true;
-                        this.$adminStatus.textContent = '✅ 验证成功！';
-                        this.$adminEditArea.style.display = 'flex';
-                        this.$adminLoginArea.style.display = 'none';
-                        this.$adminToggle.textContent = '🔧 退出修改';
-                        this.$adminSaveHint.classList.add('show');
-                        this.#renderDays(this.#store.days);
-                        this.#renderOverview(this.#store.days);
-                    } else {
-                        this.$adminStatus.textContent = '❌ ' + (result.error || '密码错误');
-                    }
-                } catch (e) {
-                    this.$adminStatus.textContent = '❌ 网络错误';
-                }
-            }
-
-            #toggleAdmin() {
-                if (this.#isAdmin) {
-                    this.#isAdmin = false;
-                    this.#password = '';
-                    this.$adminLoginArea.style.display = 'flex';
-                    this.$adminEditArea.style.display = 'none';
-                    this.$adminSaveHint.classList.remove('show');
-                    this.$adminStatus.textContent = '';
-                    this.$adminToggle.textContent = '🔧 修改模式';
-                    this.#store.clearDraft();
-                    this.#renderDays(this.#store.days);
-                    this.#renderOverview(this.#store.days);
-                } else {
-                    this.$adminLoginArea.style.display = 'flex';
-                    this.$adminToggle.textContent = '🔧 退出修改';
-                    this.$adminPassword.value = '';
-                    this.$adminPassword.focus();
-                    this.$adminStatus.textContent = '';
-                    this.$adminSaveHint.classList.add('show');
-                }
-            }
-
-            #updateAdminUI() {
-                if (this.#isAdmin) {
-                    this.$adminEditArea.style.display = 'flex';
-                    this.$adminLoginArea.style.display = 'none';
-                }
-            }
-
-            // ============================================================
-            // 保存
-            // ============================================================
-            async #handleSaveAll() {
-                if (!this.#isAdmin) { alert('请先进入修改模式'); return; }
-                const password = this.#password;
-                if (!password) { alert('请输入管理员密码'); return; }
-
-                const draft = this.#store.draft;
-                const entries = Object.entries(draft);
-                if (entries.length === 0) {
-                    alert('ℹ️ 没有需要保存的修改。');
-                    return;
-                }
-
-                let success = 0,
-                    fail = 0;
-
-                for (const [key, value] of entries) {
-                    try {
-                        if (key === '_delete_day_') continue;
-                        if (key.startsWith('day_')) {
-                            const dayNum = parseInt(key.replace('day_', ''));
-                            const result = await ApiService.updateDay(dayNum, value, password);
-                            if (result.success) success++;
-                            else fail++;
-                        } else if (key.startsWith('place_')) {
-                            const placeId = parseInt(key.replace('place_', ''));
-                            const result = await ApiService.updatePlace(placeId, value, password);
-                            if (result.success) success++;
-                            else fail++;
-                        }
-                    } catch (e) {
-                        fail++;
-                    }
-                }
-
-                // 处理删除
-                const deleteKeys = Object.keys(draft).filter(k => k.startsWith('_delete_day_'));
-                for (const key of deleteKeys) {
-                    const dayNum = parseInt(key.replace('_delete_day_', ''));
-                    try {
-                        const result = await ApiService.deleteDay(dayNum, password);
-                        if (result.success) success++;
-                        else fail++;
-                    } catch (e) {
-                        fail++;
-                    }
-                }
-
-                if (fail === 0 && success > 0) {
-                    alert(`✅ 所有修改已保存成功！`);
-                    this.#store.clearDraft();
-                    const data = await ApiService.fetchItinerary();
-                    if (data) {
-                        this.#store.setDays(data);
-                        this.#renderDays(data);
-                        this.#renderOverview(data);
-                        this.#renderLegend(data);
-                    }
-                } else if (success > 0 && fail > 0) {
-                    alert(`⚠️ 部分保存失败。成功 ${success} 项，失败 ${fail} 项。`);
-                } else {
-                    alert('⚠️ 全部保存失败。');
-                }
-            }
-
-            async #handleAddDay() {
-                if (!this.#isAdmin) { alert('请先进入修改模式'); return; }
-                const password = this.#password;
-                if (!password) { alert('请输入管理员密码'); return; }
-
-                const days = this.#store.days;
-                const dayNum = days.length > 0 ? Math.max(...days.map(d => d.day)) + 1 : 1;
-                const result = await ApiService.createDay({
-                    title: 'Day ' + dayNum,
-                    subtitle: '新行程',
-                    walk_badge: '',
-                    rest_note: '',
-                    breakfast: '',
-                    lunch: '',
-                    dinner: '',
-                    place_order: [],
-                    day_alternatives: {},
-                    notes: ''
-                }, password);
+                });
 
                 if (result.success) {
-                    alert('✅ 新增成功！');
-                    const data = await ApiService.fetchItinerary();
-                    if (data) {
-                        this.#store.setDays(data);
-                        this.#renderDays(data);
-                        this.#renderOverview(data);
-                        this.#renderLegend(data);
-                    }
+                    const dayData = allDaysData.find(d => d.day === day);
+                    const order = dayData.place_order || [];
+                    order.push(result.id);
+                    await apiCall('PUT', '/api/itinerary/' + day, {
+                        password: password,
+                        place_order: order
+                    });
+                    alert('✅ 景点添加成功！');
+                    await reloadData();
                 } else {
-                    alert('❌ 新增失败: ' + (result.error || '未知错误'));
+                    alert('❌ 添加失败: ' + (result.error || '未知错误'));
+                }
+            };
+
+            async function reloadData() {
+                const data = await loadItineraryData();
+                if (data) {
+                    allDaysData = data;
+                    renderDays();
+                    renderOverview();
+                    if (currentTab) {
+                        const exists = data.some(d => d.day === currentTab);
+                        if (!exists && data.length > 0) {
+                            currentTab = data[0].day;
+                        }
+                        renderMap(currentTab);
+                    }
                 }
             }
 
             // ============================================================
-            // 工具
+            // 10. 辅助功能
             // ============================================================
-            #expandAll() {
-                this.#dayGroupComponents.forEach(g => {
-                    g.classList.add('open');
-                    const body = g.querySelector('.day-body');
-                    if (body) {
-                        body.style.maxHeight = '5000px';
-                        body.style.opacity = '1';
-                        body.style.padding = '6px 20px 24px';
-                    }
-                });
-                setTimeout(() => this.#checkStickyAll(), 300);
-            }
 
-            #collapseAll() {
-                this.#dayGroupComponents.forEach(g => {
-                    const body = g.querySelector('.day-body');
-                    const header = g.querySelector('.day-header');
-                    if (body && g.classList.contains('open')) {
-                        body.style.maxHeight = body.scrollHeight + 'px';
-                        requestAnimationFrame(() => {
-                            body.style.maxHeight = '0';
-                            body.style.opacity = '0';
-                            body.style.padding = '0 20px';
-                        });
-                        g.classList.remove('open');
-                        if (header) header.classList.remove('sticky');
-                    }
-                });
-            }
-
-            #checkStickyAll() {
-                document.querySelectorAll('.day-group .day-header').forEach(header => {
-                    const rect = header.getBoundingClientRect();
-                    if (rect.top <= 0) header.classList.add('sticky');
-                    else header.classList.remove('sticky');
-                });
-            }
-
-            #updateProgress() {
-                const scrollTop = window.scrollY;
-                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-                this.$progressBar.style.width = Math.min(progress, 100) + '%';
-            }
-
-            #updateBackTop() {
-                const toggle = () => {
-                    this.$backTop.classList.toggle('show', window.scrollY > 500);
-                };
-                window.addEventListener('scroll', toggle, { passive: true });
-                toggle();
-            }
-
-            #setupScrollAnimation() {
+            function setupScrollAnimation() {
                 const cards = document.querySelectorAll('.place-card');
                 if (cards.length === 0) return;
                 const observer = new IntersectionObserver((entries) => {
@@ -2866,14 +2375,67 @@
                 }, { threshold: 0.15 });
                 cards.forEach(card => observer.observe(card));
             }
-        }
 
-        // ============================================================
-        // 启动应用
-        // ============================================================
-        const app = new App();
-        window.__app = app;
+            function updateReadingProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                const bar = document.getElementById('reading-progress-bar');
+                if (bar) bar.style.width = Math.min(progress, 100) + '%';
+            }
+
+            function setupBackToTop() {
+                const btn = document.getElementById('back-to-top');
+                if (!btn) return;
+                const toggle = () => btn.classList.toggle('show', window.scrollY > 500);
+                btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+                window.addEventListener('scroll', toggle, { passive: true });
+                toggle();
+            }
+
+            window.toggleOverview = function(header) {
+                const group = header.closest('.overview-group');
+                if (group) group.classList.toggle('open');
+            };
+
+            // ============================================================
+            // 11. 启动
+            // ============================================================
+
+            document.addEventListener('DOMContentLoaded', async function() {
+                console.log('📄 DOM 已加载，开始初始化...');
+
+                // 加载数据
+                const data = await loadItineraryData();
+                if (data && data.length > 0) {
+                    allDaysData = data;
+                    if (data.length > 0) currentTab = data[0].day;
+                    renderDays();
+                    renderOverview();
+                    setupStickyDays();
+                    setupExpandCollapse();
+                    setupAdminMode();
+                    setupBackToTop();
+                    window.addEventListener('scroll', updateReadingProgress, { passive: true });
+                    updateReadingProgress();
+
+                    document.querySelectorAll('.day-group .day-body').forEach(body => {
+                        body.style.maxHeight = '0';
+                        body.style.opacity = '0';
+                        body.style.padding = '0 20px';
+                    });
+                } else {
+                    document.getElementById('day-groups-container').innerHTML =
+                        '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据</p>';
+                    renderOverview();
+                    setupAdminMode();
+                    setupBackToTop();
+                }
+            });
+
+            console.log('🚀 应用脚本已加载，等待 DOM 就绪...');
+
+        })(); // IIFE 结束
     </script>
-
 </body>
 </html>
