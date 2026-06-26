@@ -508,38 +508,38 @@
             margin-left: 6px;
         }
 
+        /* 交通连接线 - 用箭头代替圆点 */
         .transport-connector {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 2px 0 2px 16px;
+            padding: 4px 0 4px 16px;
             margin: 0;
             font-size: 13px;
             color: #4a6a7f;
             position: relative;
-            min-height: 24px;
+            min-height: 28px;
             cursor: pointer;
         }
-        .transport-connector::before {
-            content: '';
-            position: absolute;
-            left: -26.65px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4a6a7f;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 2px #4a6a7f;
-        }
-        .transport-connector .transport-icon {
-            font-size: 16px;
+        .transport-connector .arrow-icon {
+            font-size: 18px;
+            color: #8a9aaa;
             flex-shrink: 0;
         }
         .transport-connector .transport-text {
             font-size: 13px;
             color: #4a5a6a;
+        }
+        .transport-connector .transport-link {
+            font-size: 12px;
+            color: #4a6a7f;
+            background: #eef2f5;
+            padding: 0 10px;
+            border-radius: 20px;
+            text-decoration: none;
+        }
+        .transport-connector .transport-link:hover {
+            background: #dce4ec;
         }
 
         .place-card {
@@ -657,19 +657,19 @@
             margin-bottom: 4px;
         }
 
-        /* 紧凑卡片：用餐 + 交通 共用这个样式 */
+        /* 紧凑卡片：用餐 + 交通 - 高度是原来的3倍（约60-70px） */
         .place-card-compact {
             background: #f0f4f8;
             border-radius: 12px;
-            padding: 8px 16px;
-            margin-top: 8px;
+            padding: 14px 18px;
+            margin-top: 10px;
             margin-bottom: 4px;
             border: 1px solid #dce4ec;
-            min-height: 44px;
+            min-height: 60px;
             display: flex;
             align-items: center;
             flex-wrap: wrap;
-            gap: 6px 12px;
+            gap: 8px 14px;
             opacity: 0;
             transform: translateY(30px);
             transition: opacity 0.6s ease, transform 0.6s ease;
@@ -679,32 +679,36 @@
             transform: translateY(0);
         }
         .place-card-compact .compact-icon {
-            font-size: 20px;
+            font-size: 22px;
             flex-shrink: 0;
         }
         .place-card-compact .compact-name {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
             color: #3a5a6f;
         }
         .place-card-compact .compact-detail {
-            font-size: 13px;
+            font-size: 14px;
             color: #5a6a7a;
         }
-        .place-card-compact .compact-alt {
-            font-size: 12px;
-            color: #8a9aaa;
-            background: #e8eef4;
-            padding: 2px 10px;
-            border-radius: 20px;
-        }
         .place-card-compact .compact-tag {
-            font-size: 11px;
+            font-size: 12px;
             background: #dce4ec;
             color: #4a5a6a;
-            padding: 0 10px;
+            padding: 0 12px;
             border-radius: 20px;
             font-weight: 400;
+        }
+        .place-card-compact .compact-link {
+            font-size: 13px;
+            color: #4a6a7f;
+            text-decoration: none;
+            background: #e8eef4;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+        .place-card-compact .compact-link:hover {
+            background: #dce4ec;
         }
 
         .btn-group {
@@ -987,20 +991,18 @@
                 font-size: 12px;
                 padding-left: 12px;
             }
-            .transport-connector::before {
-                left: -22px;
-                width: 8px;
-                height: 8px;
-            }
             .place-card-compact {
-                padding: 6px 12px;
-                min-height: 36px;
-                gap: 4px 8px;
+                padding: 10px 14px;
+                min-height: 50px;
+                gap: 6px 10px;
             }
             .place-card-compact .compact-icon {
-                font-size: 16px;
+                font-size: 18px;
             }
             .place-card-compact .compact-name {
+                font-size: 14px;
+            }
+            .place-card-compact .compact-detail {
                 font-size: 13px;
             }
         }
@@ -1192,6 +1194,11 @@
                 return place.time_start || '';
             }
 
+            // 生成高德步行导航链接
+            function getWalkNavLink(fromLng, fromLat, fromName, toLng, toLat, toName) {
+                return `https://uri.amap.com/navigation?from=${fromLng},${fromLat},${encodeURIComponent(fromName)}&to=${toLng},${toLat},${encodeURIComponent(toName)}&mode=walk`;
+            }
+
             // ============================================================
             // 3. 渲染函数
             // ============================================================
@@ -1229,9 +1236,8 @@
                         html += `</div>`;
                     }
 
-                    // ---- 时间轴：景点 + 交通连接线 ----
+                    // ---- 时间轴：景点 + 交通连接线（用箭头） ----
                     html += `<div class="timeline">`;
-                    let prevWasTransport = false;
                     places.forEach((place) => {
                         const isTransport = place.type === 'transport';
                         const emoji = getEmoji(place.name);
@@ -1239,12 +1245,38 @@
                         const timeStr = formatTime(place);
 
                         if (isTransport) {
+                            // 交通连接线：用箭头，不用圆点
                             const transportText = place.transport || place.intro || place.name || '';
+                            // 检测是否包含步行，如果是则生成导航链接
+                            let navLink = '';
+                            if (transportText.includes('🚶') || transportText.includes('步行')) {
+                                // 尝试从 name 中提取起点终点
+                                const nameParts = place.name.split('→');
+                                if (nameParts.length === 2) {
+                                    const fromName = nameParts[0].trim();
+                                    const toName = nameParts[1].trim();
+                                    // 尝试匹配已有景点的经纬度
+                                    const fromPlace = places.find(p => p.name.includes(fromName) && p.type !== 'transport');
+                                    const toPlace = places.find(p => p.name.includes(toName) && p.type !== 'transport');
+                                    if (fromPlace && toPlace) {
+                                        const fromCoords = fromPlace.nav_link ? fromPlace.nav_link.match(/position=([^&]+)/) : null;
+                                        const toCoords = toPlace.nav_link ? toPlace.nav_link.match(/position=([^&]+)/) : null;
+                                        if (fromCoords && toCoords) {
+                                            const fromLngLat = fromCoords[1].split(',');
+                                            const toLngLat = toCoords[1].split(',');
+                                            navLink = getWalkNavLink(
+                                                fromLngLat[0], fromLngLat[1], fromName,
+                                                toLngLat[0], toLngLat[1], toName
+                                            );
+                                        }
+                                    }
+                                }
+                            }
                             html += `<div class="transport-connector" data-place-id="${place.id}" data-day="${day.day}" onclick="jumpToPlace(${day.day}, ${place.id})">
-                                        <span class="transport-icon">🚇</span>
+                                        <span class="arrow-icon">→</span>
                                         <span class="transport-text">${transportText}</span>
+                                        ${navLink ? `<a href="${navLink}" class="transport-link" target="_blank">🗺️ 导航</a>` : ''}
                                     </div>`;
-                            prevWasTransport = true;
                             return;
                         }
 
@@ -1255,28 +1287,52 @@
                         html +=
                             `<span class="activity">${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
                         html += `</div>`;
-                        prevWasTransport = false;
                     });
                     html += `</div>`;
 
-                    // ---- 卡片列表：景点(完整) + 用餐/交通(紧凑) ----
+                    // ---- 卡片列表：景点(完整) + 用餐/交通(紧凑，高度约60-70px) ----
                     places.forEach((place) => {
                         const isTransport = place.type === 'transport';
                         const isFood = place.type === 'food';
                         const isCompact = isTransport || isFood;
 
                         if (isCompact) {
-                            // 紧凑卡片（用餐/交通）
                             const icon = isTransport ? '🚇' : getEmoji(place.name);
                             const displayName = place.name || '';
                             const detailText = place.transport || place.intro || '';
-                            const altText = ''; // 备选暂不显示
+                            const tagText = isFood ? '用餐' : (isTransport ? '交通' : '');
+
+                            // 为步行路段生成导航链接
+                            let navLink = '';
+                            if (isTransport && (detailText.includes('🚶') || detailText.includes('步行'))) {
+                                const nameParts = displayName.split('→');
+                                if (nameParts.length === 2) {
+                                    const fromName = nameParts[0].trim();
+                                    const toName = nameParts[1].trim();
+                                    const fromPlace = places.find(p => p.name.includes(fromName) && p.type !== 'transport');
+                                    const toPlace = places.find(p => p.name.includes(toName) && p.type !== 'transport');
+                                    if (fromPlace && toPlace) {
+                                        const fromCoords = fromPlace.nav_link ? fromPlace.nav_link.match(/position=([^&]+)/) :
+                                        null;
+                                        const toCoords = toPlace.nav_link ? toPlace.nav_link.match(/position=([^&]+)/) : null;
+                                        if (fromCoords && toCoords) {
+                                            const fromLngLat = fromCoords[1].split(',');
+                                            const toLngLat = toCoords[1].split(',');
+                                            navLink = getWalkNavLink(
+                                                fromLngLat[0], fromLngLat[1], fromName,
+                                                toLngLat[0], toLngLat[1], toName
+                                            );
+                                        }
+                                    }
+                                }
+                            }
 
                             html += `<div class="place-card-compact" data-day="${day.day}" data-place-id="${place.id}" onclick="jumpToPlace(${day.day}, ${place.id})">
                                         <span class="compact-icon">${icon}</span>
                                         <span class="compact-name">${displayName}</span>
                                         ${detailText ? `<span class="compact-detail">${detailText}</span>` : ''}
-                                        ${isFood ? `<span class="compact-tag">用餐</span>` : ''}
+                                        ${tagText ? `<span class="compact-tag">${tagText}</span>` : ''}
+                                        ${navLink ? `<a href="${navLink}" class="compact-link" target="_blank">🗺️ 导航</a>` : ''}
                                     </div>`;
                             return;
                         }
@@ -1408,7 +1464,7 @@
                 let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
                 html += `<div id="leaflet-map-${day}" style="width:100%;height:100%;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;z-index:1;"></div>`;
 
-                // 圆点覆盖层（z-index 高于地图）
+                // 圆点覆盖层
                 html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;">`;
 
                 if (dayData && dayData.places) {
@@ -1461,7 +1517,6 @@
                 const mapContainer = document.getElementById('leaflet-map-' + day);
                 if (!mapContainer) return;
                 if (mapContainer._leaflet_map) {
-                    // 如果地图已存在，更新视图
                     mapContainer._leaflet_map.invalidateSize();
                     return;
                 }
@@ -1633,7 +1688,6 @@
             window.jumpToPlace = function(day, placeId) {
                 const targetDay = document.getElementById('day-group-' + day);
                 if (!targetDay) {
-                    // 尝试展开所有天
                     document.querySelectorAll('.day-group').forEach(g => g.classList.add('open'));
                     setTimeout(() => {
                         const d = document.getElementById('day-group-' + day);
@@ -1644,7 +1698,6 @@
                                 body.style.opacity = '1';
                                 body.style.padding = '6px 20px 24px';
                             }
-                            // 找卡片
                             let card = d.querySelector(`.place-card[data-place-id="${placeId}"]`);
                             if (!card) card = d.querySelector(`.place-card-compact[data-place-id="${placeId}"]`);
                             if (card) {
@@ -1662,7 +1715,6 @@
                     return;
                 }
 
-                // 目标天存在，展开它
                 targetDay.classList.add('open');
                 const body = targetDay.querySelector('.day-body');
                 if (body) {
@@ -1788,7 +1840,7 @@
             }
 
             // ============================================================
-            // 7. 修改模式（保留基本功能）
+            // 7. 修改模式
             // ============================================================
 
             function setupAdminMode() {
@@ -1877,7 +1929,7 @@
             }
 
             // ============================================================
-            // 8. API 操作（精简）
+            // 8. API 操作
             // ============================================================
 
             async function apiCall(method, url, data) {
