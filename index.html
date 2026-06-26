@@ -6,1151 +6,1072 @@
     <title>重庆-丰都家庭游 · 动态行程</title>
     <style>
         /* ============================================================
-           CSS Layers - 分层管理
+           完整样式
            ============================================================ */
-        @layer base, components, utilities, overrides;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        /* ============================================================
-           Layer: base
-           ============================================================ */
-        @layer base {
-            *,
-            *::before,
-            *::after {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            :root {
-                --color-bg: #f0eeeb;
-                --color-surface: #fafaf8;
-                --color-text: #333;
-                --color-text-light: #6a6a6a;
-                --color-primary: #4a6a7f;
-                --color-primary-dark: #3a5a6f;
-                --color-accent: #a0524a;
-                --color-accent-light: #c06a5a;
-                --color-border: #e8e4de;
-                --color-shadow: rgba(0, 0, 0, 0.06);
-                --radius: 18px;
-                --radius-sm: 12px;
-                --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0eeeb;
+            color: #333;
+            padding: 20px 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #reading-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #a0524a, #4a6a7f);
+            z-index: 9999;
+            transition: width 0.15s ease-out;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .app-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: #fafaf8;
+            border-radius: 28px;
+            padding: 24px 20px 40px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            position: relative;
+            margin-top: 8px;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e8e4de;
+            margin-bottom: 8px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #4a4a4a;
+            letter-spacing: 1.5px;
+        }
+        .header .sub {
+            font-size: 15px;
+            color: #8a8a8a;
+            margin-top: 4px;
+        }
+        .header .family-tag {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 20px;
+            background-color: #e8e4de;
+            border-radius: 30px;
+            font-size: 14px;
+            color: #5a5a5a;
+        }
+
+        #control-bar {
+            display: flex;
+            gap: 10px;
+            margin: 12px 0 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        #control-bar .btn-ctrl {
+            padding: 6px 18px;
+            border-radius: 30px;
+            border: 1px solid #ddd9d2;
+            background: #f5f3f0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #4a4a4a;
+            transition: all 0.2s ease;
+        }
+        #control-bar .btn-ctrl:hover {
+            background: #ede8e0;
+        }
+        #control-bar .btn-primary {
+            background: #4a6a7f;
+            border-color: #4a6a7f;
+            color: #fff;
+        }
+        #control-bar .btn-primary:hover {
+            background: #3a5a6f;
+        }
+        #control-bar .btn-danger {
+            background: #a0524a;
+            border-color: #a0524a;
+            color: #fff;
+        }
+        #control-bar .btn-danger:hover {
+            background: #8a423a;
+        }
+
+        .overview-group {
+            margin-top: 16px;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            border: 1px solid #efedea;
+        }
+        .overview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #fafaf8;
+            cursor: pointer;
+            user-select: none;
+            border-left: 5px solid #4a6a7f;
+            transition: background 0.2s ease;
+        }
+        .overview-header:hover {
+            background: #f0f4f6;
+        }
+        .overview-header .title {
+            font-size: 19px;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+        .overview-header .title small {
+            font-weight: 400;
+            font-size: 14px;
+            color: #8a8a8a;
+            margin-left: 10px;
+        }
+        .overview-header .arrow {
+            font-size: 32px;
+            color: #4a6a7f;
+            transition: transform 0.35s ease;
+            display: inline-block;
+            line-height: 1;
+        }
+        .overview-group.open .overview-header {
+            border-left-color: #a0524a;
+            background: #f5f2ef;
+        }
+        .overview-group.open .overview-header .arrow {
+            transform: rotate(180deg);
+        }
+        .overview-body {
+            display: none;
+            padding: 10px 20px 24px;
+            background: #fff;
+        }
+        .overview-group.open .overview-body {
+            display: block;
+        }
+
+        .tab-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .tab-btn {
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid #ddd9d2;
+            background: #f5f3f0;
+            color: #6a6a6a;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            background: #ede8e0;
+        }
+        .tab-btn.active {
+            background: #4a6a7f;
+            border-color: #4a6a7f;
+            color: #fff;
+        }
+
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e8e4de;
+            background: #f6f4f1;
+            min-height: 200px;
+        }
+        .map-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .map-point {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #a0524a;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 10;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+        .map-point .drag-handle {
+            display: none;
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            background: #4a6a7f;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            line-height: 16px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            border: 1px solid #fff;
+        }
+        .map-point.draggable .drag-handle {
+            display: block;
+        }
+        .map-point.dragging {
+            z-index: 100;
+            box-shadow: 0 8px 30px rgba(160, 82, 74, 0.5);
+            transform: translate(-50%, -50%) scale(1.15);
+            transition: none;
+        }
+        .map-point:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+            box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
+            z-index: 20;
+        }
+        .map-point.active {
+            transform: translate(-50%, -50%) scale(1.15);
+            box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5);
+        }
+
+        .route-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            justify-content: center;
+            margin: 10px 0 4px;
+            font-size: 13px;
+            color: #5a5a5a;
+            border-top: 1px dashed #e0dbd3;
+            padding-top: 12px;
+        }
+        .route-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .route-legend .dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 2px;
+        }
+        .route-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #8a8a8a;
+            margin-top: 6px;
+        }
+        .route-hint span {
+            background: #e8e4de;
+            padding: 2px 12px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        #floating-card {
+            position: fixed;
+            z-index: 999;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            padding: 20px 24px 24px;
+            width: 280px;
+            max-width: 85vw;
+            border: 1px solid #e8e4de;
+            transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px) scale(0.96);
+        }
+        #floating-card.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+        #floating-card[data-pinned="true"] {
+            box-shadow: 0 12px 40px rgba(160, 82, 74, 0.2), 0 0 0 2px #a0524a;
+        }
+        #floating-card-close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 22px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #8a8a8a;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        #floating-card-close:hover {
+            color: #4a4a4a;
+        }
+        #floating-card-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background: #f0ede8;
+        }
+        #floating-card-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3a3a3a;
+            margin-bottom: 6px;
+        }
+        #floating-card-desc {
+            font-size: 14px;
+            color: #5a5a5a;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        #floating-card-jump {
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: none;
+            background: #4a6a7f;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        #floating-card-jump:hover {
+            background: #3a5a6f;
+        }
+
+        .day-group {
+            position: relative;
+            scroll-margin-top: 60px;
+            margin-top: 22px;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            border: 1px solid #efedea;
+            overflow: visible;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: #fafaf8;
+            cursor: pointer;
+            user-select: none;
+            border-left: 5px solid #c0b0a8;
+            transition: background 0.2s ease, box-shadow 0.3s ease;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            will-change: transform;
+        }
+        .day-header:hover {
+            background: #f3f0ec;
+        }
+        .day-header.sticky {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background: #fff;
+        }
+        .day-group.open .day-header {
+            border-left-color: #a0524a;
+            background: #f8f5f2;
+        }
+        .day-group.open .day-header.sticky {
+            background: #f8f5f2;
+        }
+        .day-header .title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+        .day-header .title small {
+            font-weight: 400;
+            font-size: 15px;
+            color: #8a8a8a;
+            margin-left: 10px;
+        }
+        .day-header .arrow {
+            font-size: 32px;
+            color: #a0524a;
+            transition: transform 0.35s ease;
+            display: inline-block;
+            line-height: 1;
+        }
+        .day-group.open .day-header .arrow {
+            transform: rotate(180deg);
+        }
+        .day-header::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.04), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .day-header.sticky::after {
+            opacity: 1;
+        }
+
+        .day-body {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 20px;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, padding 0.3s ease;
+        }
+        .day-group.open .day-body {
+            max-height: 5000px;
+            opacity: 1;
+            padding: 6px 20px 24px;
+        }
+
+        .walk-badge {
+            display: inline-block;
+            background: #e8f0f5;
+            color: #4a6a7f;
+            font-size: 14px;
+            padding: 4px 18px;
+            border-radius: 30px;
+            margin: 10px 0 6px;
+            border: 1px solid #d4e0e8;
+            font-weight: 500;
+        }
+
+        .meal-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            background: #f9f6f2;
+            padding: 10px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .meal-bar span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ---- 时间轴 ---- */
+        .timeline {
+            position: relative;
+            padding-left: 32px;
+            margin: 10px 0 14px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: #d0ccc4;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 4px 0 4px 16px;
+            margin-bottom: 1px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            min-height: 32px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26.65px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #a0524a;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #a0524a;
+        }
+        .timeline-item .time {
+            font-weight: 600;
+            color: #4a6a7f;
+            font-size: 14px;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+        .timeline-item .activity {
+            font-size: 15px;
+            color: #3a3a3a;
+            flex: 1;
+            min-width: 120px;
+        }
+        .timeline-item .activity .tag {
+            font-size: 12px;
+            background: #e8e4de;
+            color: #6a6a6a;
+            padding: 0 10px;
+            border-radius: 20px;
+            margin-left: 6px;
+        }
+
+        /* ---- 交通连接线（在景点之间） ---- */
+        .transport-connector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 0 2px 16px;
+            margin: 0 0 0 0;
+            font-size: 13px;
+            color: #4a6a7f;
+            position: relative;
+            min-height: 28px;
+        }
+        .transport-connector::before {
+            content: '';
+            position: absolute;
+            left: -26.65px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4a6a7f;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #4a6a7f;
+        }
+        .transport-connector .transport-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .transport-connector .transport-text {
+            font-size: 13px;
+            color: #4a5a6a;
+        }
+        .transport-connector .arrow {
+            color: #8a9aaa;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .alternatives-block {
+            background: #f5f2ef;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 6px 0 12px;
+            font-size: 13px;
+            border-left: 3px solid #a0524a;
+        }
+        .alternatives-block .alt-item {
+            padding: 2px 0;
+            color: #5a5a5a;
+        }
+        .alternatives-block .alt-item strong {
+            color: #4a6a7f;
+        }
+
+        .place-card {
+            background: #f9f8f6;
+            border-radius: 16px;
+            padding: 16px 18px 18px;
+            margin-top: 16px;
+            border: 1px solid #efedea;
+            transition: box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease, transform 0.6s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            scroll-margin-top: 20px;
+            position: relative;
+            overflow: visible;
+        }
+        .place-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .place-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            background: #fcfbf9;
+        }
+        .place-card .place-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3a3a3a;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        .place-card .place-name .tag {
+            font-size: 12px;
+            background: #e8e4de;
+            color: #6a6a6a;
+            padding: 0 12px;
+            border-radius: 20px;
+            font-weight: 400;
+        }
+        .place-card .place-name .time-badge {
+            font-size: 13px;
+            color: #4a6a7f;
+            font-weight: 500;
+            margin-left: auto;
+        }
+        .place-card .place-desc {
+            font-size: 15px;
+            color: #4a4a4a;
+            margin: 8px 0 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .place-card .meta {
+            font-size: 14px;
+            color: #6a6a6a;
+            background: #f0eee9;
+            padding: 6px 14px;
+            border-radius: 30px;
+            margin-bottom: 12px;
+            display: inline-block;
+            border: 1px solid #e6e2db;
+            position: relative;
+            z-index: 1;
+        }
+        .place-card .remark {
+            font-size: 13px;
+            color: #a0524a;
+            background: #f9f0ec;
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .place-image {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            max-height: 400px;
+            background: #e8e4de;
+            border-radius: 14px;
+            margin: 6px 0 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0dbd3;
+            position: relative;
+            z-index: 1;
+        }
+        .place-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            background: #f6f4f1;
+        }
+        .place-image .placeholder-text {
+            color: #9a9a9a;
+            font-size: 14px;
+            text-align: center;
+            background: #e8e4de;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .place-image .placeholder-text span {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+            margin-top: 8px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            background: #edebe7;
+            color: #4a4a4a;
+            border: 1px solid #ddd9d2;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            min-height: 44px;
+            line-height: 1.2;
+            letter-spacing: 0.4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+        }
+        .btn-nav {
+            background: #4a6a7f;
+            border-color: #4a6a7f;
+            color: #fff;
+        }
+        .btn-nav:hover {
+            background: #3a5a6f;
+            border-color: #3a5a6f;
+        }
+        .btn-dp {
+            background: #f0ede8;
+            border-color: #ccc6bd;
+            color: #4a4a4a;
+        }
+        .btn-dp:hover {
+            background: #e5e0d8;
+        }
+        .btn-mt {
+            background: #f0f0e8;
+            border-color: #c8c8b8;
+            color: #4a4a4a;
+        }
+        .btn-mt:hover {
+            background: #e5e5d8;
+        }
+        .btn-dy {
+            background: #f0e8f0;
+            border-color: #c8b8d0;
+            color: #4a3a5a;
+        }
+        .btn-dy:hover {
+            background: #e5dce8;
+        }
+
+        .rest-note {
+            margin-top: 14px;
+            font-size: 14px;
+            color: #7a7a7a;
+            background: #f0ede8;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border-left: 3px solid #c0b0a8;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #b0aaa2;
+            border-top: 1px solid #e8e4de;
+            padding-top: 22px;
+        }
+
+        #admin-panel {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f5f2ef;
+            border-radius: 16px;
+            border: 1px solid #e0dbd3;
+        }
+        #admin-panel .admin-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        #admin-panel .admin-row .btn-ctrl {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid #c0b0a8;
+            background: #f0ede8;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        #admin-panel .admin-row .btn-ctrl:hover {
+            background: #e5e0d8;
+        }
+        #admin-panel .admin-row input {
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #ddd9d2;
+            font-size: 14px;
+            width: 160px;
+            background: #fff;
+        }
+        #admin-panel .admin-row .btn-login {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            background: #4a6a7f;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        #admin-panel .admin-row .btn-login:hover {
+            background: #3a5a6f;
+        }
+        #admin-panel .admin-row .status {
+            font-size: 13px;
+            color: #a0524a;
+        }
+        #admin-panel .admin-row .edit-area {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        #admin-panel .admin-row .edit-area .badge {
+            font-size: 13px;
+            color: #4a6a7f;
+        }
+        #admin-panel .save-hint {
+            font-size: 12px;
+            color: #8a8a8a;
+            margin-top: 4px;
+            display: none;
+        }
+        #admin-panel .save-hint.show {
+            display: block;
+        }
+
+        #back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #fafaf8;
+            border: 1px solid #ddd9d2;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            color: #4a6a7f;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(16px);
+            z-index: 999;
+            user-select: none;
+            padding: 0;
+            line-height: 1;
+        }
+        #back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        #back-to-top:hover {
+            background: #f5f3f0;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+        }
+
+        .editable {
+            cursor: pointer;
+            transition: background 0.2s ease;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .editable:hover {
+            background: rgba(74, 106, 127, 0.08);
+        }
+        .editable-input {
+            border: 1px solid #4a6a7f;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: inherit;
+            font-family: inherit;
+            background: #fff;
+            width: auto;
+            min-width: 60px;
+        }
+        .editable-input:focus {
+            outline: 2px solid #4a6a7f;
+            outline-offset: 1px;
+        }
+
+        .btn--mini {
+            padding: 2px 8px;
+            font-size: 11px;
+            min-height: 22px;
+            border-radius: 20px;
+            background: #f0ede8;
+            border: 1px solid #ddd9d2;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn--mini:hover {
+            background: #e5e0d8;
+        }
+        .btn--mini-primary {
+            background: #4a6a7f;
+            border-color: #4a6a7f;
+            color: #fff;
+        }
+        .btn--mini-primary:hover {
+            background: #3a5a6f;
+        }
+        .btn--mini-danger {
+            background: #a0524a;
+            border-color: #a0524a;
+            color: #fff;
+        }
+        .btn--mini-danger:hover {
+            background: #8a423a;
+        }
+
+        @media (min-width: 768px) {
             body {
-                font-family: var(--font);
-                background-color: var(--color-bg);
-                color: var(--color-text);
-                padding: 20px 16px;
-                line-height: 1.6;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+                padding: 30px 40px;
+                background: #eae8e4;
             }
             .app-container {
-                max-width: 900px;
-                width: 100%;
-                margin: 0 auto;
-                background-color: var(--color-surface);
-                border-radius: 28px;
-                padding: 24px 20px 40px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-                position: relative;
-                margin-top: 8px;
+                padding: 36px 40px 48px;
+                border-radius: 36px;
             }
-            #reading-progress-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 0%;
-                height: 4px;
-                background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
-                z-index: 9999;
-                transition: width 0.15s ease-out;
-                border-radius: 0 2px 2px 0;
-            }
-            .header {
-                text-align: center;
-                padding-bottom: 20px;
-                border-bottom: 2px solid var(--color-border);
-                margin-bottom: 8px;
-            }
-            .header h1 {
-                font-size: 28px;
-                font-weight: 600;
-                color: #4a4a4a;
-                letter-spacing: 1.5px;
-            }
-            .header .sub {
-                font-size: 15px;
-                color: #8a8a8a;
-                margin-top: 4px;
-            }
-            .header .family-tag {
-                display: inline-block;
-                margin-top: 10px;
-                padding: 5px 20px;
-                background-color: var(--color-border);
-                border-radius: 30px;
-                font-size: 14px;
-                color: #5a5a5a;
-            }
-            .footer {
-                margin-top: 40px;
-                text-align: center;
-                font-size: 13px;
-                color: #b0aaa2;
-                border-top: 1px solid var(--color-border);
-                padding-top: 22px;
+            .place-image {
+                aspect-ratio: 16/9;
+                max-height: 500px;
             }
             #back-to-top {
-                position: fixed;
-                bottom: 30px;
-                right: 24px;
-                width: 52px;
-                height: 52px;
-                border-radius: 50%;
-                background: var(--color-surface);
-                border: 1px solid #ddd9d2;
-                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-                color: var(--color-primary);
-                font-size: 24px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
-                opacity: 0;
-                visibility: hidden;
-                transform: translateY(16px);
-                z-index: 999;
-                user-select: none;
-                padding: 0;
-                line-height: 1;
-            }
-            #back-to-top.show {
-                opacity: 1;
-                visibility: visible;
-                transform: translateY(0);
-            }
-            #back-to-top:hover {
-                background: #f5f3f0;
-                transform: translateY(-4px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
-            }
-        }
-
-        /* ============================================================
-           Layer: components
-           ============================================================ */
-        @layer components {
-            /* ---- 控制栏 ---- */
-            .control-bar {
-                display: flex;
-                gap: 10px;
-                margin: 12px 0 8px;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-            .btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 8px 22px;
-                border-radius: 40px;
-                font-size: 15px;
-                font-weight: 500;
-                text-decoration: none;
-                background: #edebe7;
-                color: #4a4a4a;
-                border: 1px solid #ddd9d2;
-                transition: all 0.2s ease;
-                cursor: pointer;
-                min-height: 44px;
-                line-height: 1.2;
-                letter-spacing: 0.4px;
-                position: relative;
-                overflow: hidden;
-            }
-            .btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
-            }
-            .btn--primary {
-                background: var(--color-primary);
-                border-color: var(--color-primary);
-                color: #fff;
-            }
-            .btn--primary:hover {
-                background: var(--color-primary-dark);
-                border-color: var(--color-primary-dark);
-            }
-            .btn--danger {
-                background: var(--color-accent);
-                border-color: var(--color-accent);
-                color: #fff;
-            }
-            .btn--danger:hover {
-                background: #8a423a;
-                border-color: #8a423a;
-            }
-            .btn--nav {
-                background: var(--color-primary);
-                border-color: var(--color-primary);
-                color: #fff;
-            }
-            .btn--nav:hover {
-                background: var(--color-primary-dark);
-                border-color: var(--color-primary-dark);
-            }
-            .btn--small {
-                padding: 4px 12px;
-                font-size: 12px;
-                min-height: 30px;
-            }
-            .btn--ghost {
-                background: transparent;
-                border-color: transparent;
-                padding: 4px 8px;
-                min-height: 30px;
-                font-size: 12px;
-                color: #8a8a8a;
-            }
-            .btn--ghost:hover {
-                background: rgba(0, 0, 0, 0.04);
-                transform: none;
-                box-shadow: none;
-            }
-            .btn--mini {
-                padding: 2px 8px;
-                font-size: 11px;
-                min-height: 22px;
-                border-radius: 20px;
-                background: #f0ede8;
-                border: 1px solid #ddd9d2;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            .btn--mini:hover {
-                background: #e5e0d8;
-            }
-            .btn--mini-primary {
-                background: var(--color-primary);
-                border-color: var(--color-primary);
-                color: #fff;
-            }
-            .btn--mini-primary:hover {
-                background: var(--color-primary-dark);
-            }
-            .btn--mini-danger {
-                background: var(--color-accent);
-                border-color: var(--color-accent);
-                color: #fff;
-            }
-            .btn--mini-danger:hover {
-                background: #8a423a;
-            }
-
-            /* ---- 路线总览 ---- */
-            .overview-group {
-                margin-top: 16px;
-                border-radius: var(--radius);
-                background: #fff;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-                overflow: hidden;
-                border: 1px solid var(--color-border);
-            }
-            .overview-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 16px 20px;
-                background: var(--color-surface);
-                cursor: pointer;
-                user-select: none;
-                border-left: 5px solid var(--color-primary);
-                transition: background 0.2s ease;
-            }
-            .overview-header:hover {
-                background: #f0f4f6;
-            }
-            .overview-header .title {
-                font-size: 19px;
-                font-weight: 600;
-                color: #4a4a4a;
-            }
-            .overview-header .title small {
-                font-weight: 400;
-                font-size: 14px;
-                color: #8a8a8a;
-                margin-left: 10px;
-            }
-            .overview-header .arrow {
-                font-size: 32px;
-                color: var(--color-primary);
-                transition: transform 0.35s ease;
-                display: inline-block;
-                line-height: 1;
-            }
-            .overview-group.open .overview-header {
-                border-left-color: var(--color-accent);
-                background: #f5f2ef;
-            }
-            .overview-group.open .overview-header .arrow {
-                transform: rotate(180deg);
-            }
-            .overview-body {
-                display: none;
-                padding: 10px 20px 24px;
-                background: #fff;
-            }
-            .overview-group.open .overview-body {
-                display: block;
-            }
-
-            .tab-bar {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin-bottom: 12px;
-            }
-            .tab-btn {
-                padding: 6px 16px;
-                border-radius: 30px;
-                border: 1px solid #ddd9d2;
-                background: #f5f3f0;
-                color: #6a6a6a;
-                font-size: 13px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            .tab-btn:hover {
-                background: #ede8e0;
-            }
-            .tab-btn.active {
-                background: var(--color-primary);
-                border-color: var(--color-primary);
-                color: #fff;
-            }
-
-            .map-wrapper {
-                position: relative;
-                width: 100%;
-                border-radius: 14px;
-                overflow: hidden;
-                border: 1px solid var(--color-border);
-                background: #f6f4f1;
-                min-height: 200px;
-            }
-            .map-wrapper img {
-                width: 100%;
-                height: auto;
-                display: block;
-            }
-            .map-point {
-                position: absolute;
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                background: var(--color-accent);
-                color: #fff;
-                font-size: 14px;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                border: 2px solid #fff;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-                transform: translate(-50%, -50%);
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-                z-index: 10;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-                user-select: none;
-            }
-            .map-point .drag-handle {
-                display: none;
-                position: absolute;
-                bottom: -6px;
-                right: -6px;
-                background: var(--color-primary);
-                border-radius: 50%;
-                width: 16px;
-                height: 16px;
-                font-size: 10px;
-                line-height: 16px;
-                text-align: center;
-                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-                border: 1px solid #fff;
-            }
-            .map-point.draggable .drag-handle {
-                display: block;
-            }
-            .map-point.dragging {
-                z-index: 100;
-                box-shadow: 0 8px 30px rgba(160, 82, 74, 0.5);
-                transform: translate(-50%, -50%) scale(1.15);
-                transition: none;
-            }
-            .map-point:hover {
-                transform: translate(-50%, -50%) scale(1.15);
-                box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
-                z-index: 20;
-            }
-            .map-point.active {
-                transform: translate(-50%, -50%) scale(1.15);
-                box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5);
-            }
-
-            .route-legend {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px 16px;
-                justify-content: center;
-                margin: 10px 0 4px;
-                font-size: 13px;
-                color: #5a5a5a;
-                border-top: 1px dashed #e0dbd3;
-                padding-top: 12px;
-            }
-            .route-legend span {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-            }
-            .route-legend .dot {
-                display: inline-block;
-                width: 14px;
-                height: 14px;
-                border-radius: 50%;
-                margin-right: 2px;
-            }
-            .route-hint {
-                text-align: center;
-                font-size: 13px;
-                color: #8a8a8a;
-                margin-top: 6px;
-            }
-            .route-hint span {
-                background: var(--color-border);
-                padding: 2px 12px;
-                border-radius: 30px;
-                display: inline-block;
-            }
-
-            /* ---- 悬浮卡片 ---- */
-            #floating-card {
-                position: fixed;
-                z-index: 999;
-                background: #fff;
-                border-radius: var(--radius);
-                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-                padding: 20px 24px 24px;
-                width: 280px;
-                max-width: 85vw;
-                border: 1px solid var(--color-border);
-                transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-                opacity: 0;
-                pointer-events: none;
-                transform: translateY(8px) scale(0.96);
-            }
-            #floating-card.show {
-                opacity: 1;
-                pointer-events: auto;
-                transform: translateY(0) scale(1);
-            }
-            #floating-card[data-pinned="true"] {
-                box-shadow: 0 12px 40px rgba(160, 82, 74, 0.2), 0 0 0 2px var(--color-accent);
-            }
-            #floating-card-close {
-                position: absolute;
-                top: 10px;
-                right: 14px;
-                font-size: 22px;
-                background: none;
-                border: none;
-                cursor: pointer;
-                color: #8a8a8a;
-                line-height: 1;
-                padding: 0 4px;
-            }
-            #floating-card-close:hover {
-                color: #4a4a4a;
-            }
-            #floating-card-img {
-                width: 100%;
-                height: 140px;
-                object-fit: cover;
-                border-radius: var(--radius-sm);
-                margin-bottom: 12px;
-                background: #f0ede8;
-            }
-            #floating-card-name {
-                font-size: 18px;
-                font-weight: 600;
-                color: #3a3a3a;
-                margin-bottom: 6px;
-            }
-            #floating-card-desc {
-                font-size: 14px;
-                color: #5a5a5a;
-                margin-bottom: 14px;
-                line-height: 1.5;
-            }
-            #floating-card-jump {
-                padding: 8px 24px;
-                border-radius: 30px;
-                border: none;
-                background: var(--color-primary);
-                color: #fff;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: background 0.2s ease;
-            }
-            #floating-card-jump:hover {
-                background: var(--color-primary-dark);
-            }
-
-            /* ---- Day Group ---- */
-            .day-group {
-                position: relative;
-                scroll-margin-top: 60px;
-                margin-top: 22px;
-                border-radius: var(--radius);
-                background: #fff;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-                border: 1px solid var(--color-border);
-                overflow: visible;
-            }
-            .day-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 18px 20px;
-                background: var(--color-surface);
-                cursor: pointer;
-                user-select: none;
-                border-left: 5px solid #c0b0a8;
-                transition: background 0.2s ease, box-shadow 0.3s ease;
-                position: sticky;
-                top: 0;
-                z-index: 50;
-                will-change: transform;
-            }
-            .day-header:hover {
-                background: #f3f0ec;
-            }
-            .day-header.sticky {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                background: #fff;
-            }
-            .day-group.open .day-header {
-                border-left-color: var(--color-accent);
-                background: #f8f5f2;
-            }
-            .day-group.open .day-header.sticky {
-                background: #f8f5f2;
+                right: 40px;
+                bottom: 40px;
+                width: 56px;
+                height: 56px;
+                font-size: 26px;
             }
             .day-header .title {
-                font-size: 20px;
-                font-weight: 600;
-                color: #4a4a4a;
+                font-size: 22px;
             }
             .day-header .title small {
-                font-weight: 400;
-                font-size: 15px;
-                color: #8a8a8a;
-                margin-left: 10px;
+                font-size: 16px;
             }
-            .day-header .arrow {
-                font-size: 32px;
-                color: var(--color-accent);
-                transition: transform 0.35s ease;
-                display: inline-block;
-                line-height: 1;
-            }
-            .day-group.open .day-header .arrow {
-                transform: rotate(180deg);
-            }
-            .day-header::after {
-                content: '';
-                position: absolute;
-                bottom: -8px;
-                left: 0;
-                right: 0;
-                height: 8px;
-                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.04), transparent);
-                opacity: 0;
-                transition: opacity 0.3s ease;
-                pointer-events: none;
-            }
-            .day-header.sticky::after {
-                opacity: 1;
-            }
-
-            .day-body {
-                max-height: 0;
-                overflow: hidden;
-                opacity: 0;
-                padding: 0 20px;
-                transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, padding 0.3s ease;
-            }
-            .day-group.open .day-body {
-                max-height: 5000px;
-                opacity: 1;
-                padding: 6px 20px 24px;
-            }
-
-            /* ---- 时间轴 ---- */
-            .timeline {
-                position: relative;
-                padding-left: 32px;
-                margin: 10px 0 14px;
-            }
-            .timeline::before {
-                content: '';
-                position: absolute;
-                left: 10px;
-                top: 6px;
-                bottom: 10px;
-                width: 2px;
-                background: #d0ccc4;
-            }
-            .timeline-item {
-                position: relative;
-                padding: 4px 0 4px 16px;
-                margin-bottom: 1px;
-                display: flex;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 4px 12px;
-                min-height: 32px;
-            }
-            .timeline-item::before {
-                content: '';
-                position: absolute;
-                left: -26.65px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: var(--color-accent);
-                border: 2px solid #fff;
-                box-shadow: 0 0 0 2px var(--color-accent);
-            }
-            .timeline-item--transport::before {
-                background: var(--color-primary);
-                box-shadow: 0 0 0 2px var(--color-primary);
-                width: 14px;
-                height: 14px;
-            }
-            .timeline-item .time {
-                font-weight: 600;
-                color: var(--color-primary);
-                font-size: 14px;
-                min-width: 80px;
-                flex-shrink: 0;
-            }
-            .timeline-item .activity {
-                font-size: 15px;
-                color: #3a3a3a;
-                flex: 1;
-                min-width: 120px;
-            }
-            .timeline-item .activity .tag {
-                font-size: 12px;
-                background: var(--color-border);
-                color: #6a6a6a;
-                padding: 0 10px;
+        }
+        @media (max-width: 420px) {
+            .app-container {
+                padding: 16px 12px 30px;
                 border-radius: 20px;
+            }
+            .day-header {
+                padding: 14px 14px;
+            }
+            .day-header .title {
+                font-size: 17px;
+            }
+            .day-header .title small {
+                font-size: 13px;
                 margin-left: 6px;
             }
-            .timeline-item .admin-actions {
-                display: none;
-                gap: 4px;
-                flex-shrink: 0;
+            .day-body {
+                padding: 4px 14px 18px;
             }
-            .day-group.is-admin .timeline-item .admin-actions {
-                display: flex;
-            }
-            .day-group.is-admin .timeline-item .admin-actions .btn--mini {
-                background: #f0ede8;
-                border: 1px solid #ddd9d2;
-                font-size: 11px;
-                padding: 1px 8px;
-                min-height: 22px;
-                border-radius: 20px;
-                cursor: pointer;
-            }
-            .day-group.is-admin .timeline-item .admin-actions .btn--mini:hover {
-                background: #e5e0d8;
-            }
-
-            /* ---- 景点卡片 ---- */
             .place-card {
-                background: #f9f8f6;
-                border-radius: 16px;
-                padding: 16px 18px 18px;
-                margin-top: 16px;
-                border: 1px solid var(--color-border);
-                transition: box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease, transform 0.6s ease;
-                opacity: 0;
-                transform: translateY(30px);
-                scroll-margin-top: 20px;
-                position: relative;
-                overflow: visible;
-            }
-            .place-card.visible {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            .place-card:hover {
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-                background: #fcfbf9;
+                padding: 14px 14px 16px;
             }
             .place-card .place-name {
-                font-size: 18px;
-                font-weight: 600;
-                color: #3a3a3a;
-                display: flex;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 8px 12px;
-                margin-bottom: 4px;
-                position: relative;
-                z-index: 1;
+                font-size: 16px;
             }
-            .place-card .place-name .tag {
-                font-size: 12px;
-                background: var(--color-border);
-                color: #6a6a6a;
-                padding: 0 12px;
-                border-radius: 20px;
-                font-weight: 400;
-            }
-            .place-card .place-name .time-badge {
+            .btn {
                 font-size: 13px;
-                color: var(--color-primary);
-                font-weight: 500;
-                margin-left: auto;
-            }
-            .place-card .place-desc {
-                font-size: 15px;
-                color: #4a4a4a;
-                margin: 8px 0 10px;
-                position: relative;
-                z-index: 1;
-            }
-            .place-card .meta {
-                font-size: 14px;
-                color: #6a6a6a;
-                background: #f0eee9;
                 padding: 6px 14px;
-                border-radius: 30px;
-                margin-bottom: 12px;
-                display: inline-block;
-                border: 1px solid #e6e2db;
-                position: relative;
-                z-index: 1;
-            }
-            .place-card .remark {
-                font-size: 13px;
-                color: var(--color-accent);
-                background: #f9f0ec;
-                padding: 4px 14px;
-                border-radius: 20px;
-                display: inline-block;
-                margin-bottom: 8px;
-            }
-            /* ---- 交通卡片（紧凑版） ---- */
-            .place-card--transport {
-                padding: 10px 16px;
-                background: #f5f7fa;
-                border-color: #dce1e8;
-                margin-top: 12px;
-            }
-            .place-card--transport .place-name {
-                font-size: 15px;
-                gap: 4px 8px;
-            }
-            .place-card--transport .place-name .tag {
-                font-size: 11px;
-                background: #dce1e8;
-                color: #4a5a6a;
-            }
-            .place-card--transport .place-desc {
-                font-size: 13px;
-                margin: 4px 0 6px;
-                color: #4a5a6a;
-            }
-            .place-card--transport .place-image {
-                display: none;
-            }
-            .place-card--transport .btn-group {
-                margin-top: 4px;
-                gap: 6px;
-            }
-            .place-card--transport .btn {
-                padding: 4px 14px;
-                font-size: 13px;
-                min-height: 32px;
-            }
-            .place-card--transport .meta {
-                font-size: 12px;
-                padding: 2px 12px;
-                margin-bottom: 6px;
-            }
-
-            .place-image {
-                width: 100%;
-                aspect-ratio: 16 / 10;
-                max-height: 400px;
-                background: #e8e4de;
-                border-radius: 14px;
-                margin: 6px 0 12px;
-                overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border: 1px solid #e0dbd3;
-                position: relative;
-                z-index: 1;
-            }
-            .place-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                display: block;
-                background: #f6f4f1;
-            }
-            .place-image .placeholder-text {
-                color: #9a9a9a;
-                font-size: 14px;
-                text-align: center;
-                background: #e8e4de;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-            }
-            .place-image .placeholder-text span {
-                font-size: 32px;
-                margin-bottom: 4px;
-            }
-            .btn-group {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px 12px;
-                margin-top: 8px;
-                align-items: center;
-                position: relative;
-                z-index: 1;
-            }
-            .btn-group .btn {
-                font-size: 14px;
-                padding: 6px 16px;
                 min-height: 38px;
             }
-
-            /* ---- 其他 ---- */
-            .walk-badge {
-                display: inline-block;
-                background: #e8f0f5;
-                color: var(--color-primary);
-                font-size: 14px;
-                padding: 4px 18px;
-                border-radius: 30px;
-                margin: 10px 0 6px;
-                border: 1px solid #d4e0e8;
-                font-weight: 500;
+            .place-image {
+                aspect-ratio: 4/3;
+                max-height: 200px;
             }
-            .meal-bar {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px 16px;
-                background: #f9f6f2;
-                padding: 10px 16px;
-                border-radius: var(--radius-sm);
-                margin-bottom: 12px;
-                font-size: 14px;
+            .header h1 {
+                font-size: 22px;
             }
-            .meal-bar span {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
+            #back-to-top {
+                right: 16px;
+                bottom: 20px;
+                width: 46px;
+                height: 46px;
+                font-size: 20px;
             }
-            .alternatives-block {
-                background: #f5f2ef;
-                border-radius: var(--radius-sm);
-                padding: 10px 14px;
-                margin: 6px 0 12px;
+            .map-point {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+            .timeline-item .time {
+                min-width: 55px;
                 font-size: 13px;
-                border-left: 3px solid var(--color-accent);
             }
-            .alternatives-block .alt-item {
-                padding: 2px 0;
-                color: #5a5a5a;
-            }
-            .alternatives-block .alt-item strong {
-                color: var(--color-primary);
-            }
-            .rest-note {
-                margin-top: 14px;
+            .timeline-item .activity {
                 font-size: 14px;
-                color: #7a7a7a;
-                background: #f0ede8;
-                padding: 12px 16px;
-                border-radius: 14px;
-                border-left: 3px solid #c0b0a8;
-            }
-
-            /* ---- Admin Panel ---- */
-            #admin-panel {
-                margin-top: 20px;
-                padding: 16px;
-                background: #f5f2ef;
-                border-radius: 16px;
-                border: 1px solid #e0dbd3;
-            }
-            .admin-row {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                flex-wrap: wrap;
-            }
-            .admin-row .btn {
-                font-size: 14px;
-                padding: 8px 20px;
-                min-height: 40px;
-                background: #f0ede8;
-                border-color: #c0b0a8;
-            }
-            .admin-row .btn:hover {
-                background: #e5e0d8;
             }
             .admin-row input[type="password"] {
-                padding: 8px 14px;
-                border-radius: 30px;
-                border: 1px solid #ddd9d2;
-                font-size: 14px;
-                width: 160px;
-                background: #fff;
+                width: 120px;
             }
-            .admin-row .status {
-                font-size: 13px;
-                color: var(--color-accent);
-            }
-            .admin-row .edit-area {
-                display: none;
-                flex-wrap: wrap;
-                gap: 8px;
-                align-items: center;
-            }
-            .admin-row .edit-area .badge {
-                font-size: 13px;
-                color: var(--color-primary);
-            }
-            .save-hint {
+            .transport-connector {
                 font-size: 12px;
-                color: #8a8a8a;
-                margin-top: 4px;
-                display: none;
+                padding-left: 12px;
             }
-            .save-hint.show {
-                display: block;
-            }
-
-            /* ---- 内联编辑 ---- */
-            .editable {
-                cursor: pointer;
-                transition: background 0.2s ease;
-                padding: 2px 4px;
-                border-radius: 4px;
-            }
-            .editable:hover {
-                background: rgba(74, 106, 127, 0.08);
-            }
-            .editable-input {
-                border: 1px solid var(--color-primary);
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-size: inherit;
-                font-family: inherit;
-                background: #fff;
-                width: auto;
-                min-width: 60px;
-            }
-            .editable-input:focus {
-                outline: 2px solid var(--color-primary);
-                outline-offset: 1px;
-            }
-
-            /* ---- 特殊：交通在两个圆点之间 ---- */
-            .timeline-item--transport-inline {
-                position: relative;
-                padding: 2px 0 2px 16px;
-                margin-left: 0;
-                display: flex;
-                align-items: center;
-                gap: 6px 12px;
-                font-size: 13px;
-                color: #4a6a7f;
-                background: transparent;
-            }
-            .timeline-item--transport-inline::before {
-                content: '';
-                position: absolute;
+            .transport-connector::before {
                 left: -22px;
-                top: 50%;
-                transform: translateY(-50%);
                 width: 8px;
                 height: 8px;
-                border-radius: 50%;
-                background: var(--color-primary);
-                border: 1px solid #fff;
-                box-shadow: 0 0 0 1px var(--color-primary);
-            }
-            .timeline-item--transport-inline .transport-text {
-                font-size: 13px;
-                color: #4a6a7f;
-                font-weight: 500;
-            }
-        }
-
-        /* ============================================================
-           Layer: utilities
-           ============================================================ */
-        @layer utilities {
-            .flex { display: flex; }
-            .flex-wrap { flex-wrap: wrap; }
-            .gap-1 { gap: 4px; }
-            .gap-2 { gap: 8px; }
-            .gap-3 { gap: 12px; }
-            .items-center { align-items: center; }
-            .mt-1 { margin-top: 4px; }
-            .mt-2 { margin-top: 8px; }
-            .mt-3 { margin-top: 12px; }
-            .mb-1 { margin-bottom: 4px; }
-            .mb-2 { margin-bottom: 8px; }
-            .text-sm { font-size: 13px; }
-            .text-xs { font-size: 11px; }
-            .text-muted { color: #8a8a8a; }
-            .text-primary { color: var(--color-primary); }
-            .text-accent { color: var(--color-accent); }
-            .bg-surface { background: var(--color-surface); }
-            .rounded { border-radius: var(--radius-sm); }
-        }
-
-        /* ============================================================
-           Layer: overrides (响应式)
-           ============================================================ */
-        @layer overrides {
-            @media (min-width: 768px) {
-                body {
-                    padding: 30px 40px;
-                    background: #eae8e4;
-                }
-                .app-container {
-                    padding: 36px 40px 48px;
-                    border-radius: 36px;
-                }
-                .place-image {
-                    aspect-ratio: 16/9;
-                    max-height: 500px;
-                }
-                #back-to-top {
-                    right: 40px;
-                    bottom: 40px;
-                    width: 56px;
-                    height: 56px;
-                    font-size: 26px;
-                }
-                .day-header .title {
-                    font-size: 22px;
-                }
-                .day-header .title small {
-                    font-size: 16px;
-                }
-            }
-            @media (max-width: 420px) {
-                .app-container {
-                    padding: 16px 12px 30px;
-                    border-radius: 20px;
-                }
-                .day-header {
-                    padding: 14px 14px;
-                }
-                .day-header .title {
-                    font-size: 17px;
-                }
-                .day-header .title small {
-                    font-size: 13px;
-                    margin-left: 6px;
-                }
-                .day-body {
-                    padding: 4px 14px 18px;
-                }
-                .place-card {
-                    padding: 14px 14px 16px;
-                }
-                .place-card .place-name {
-                    font-size: 16px;
-                }
-                .btn {
-                    font-size: 13px;
-                    padding: 6px 14px;
-                    min-height: 38px;
-                }
-                .place-image {
-                    aspect-ratio: 4/3;
-                    max-height: 200px;
-                }
-                .header h1 {
-                    font-size: 22px;
-                }
-                #back-to-top {
-                    right: 16px;
-                    bottom: 20px;
-                    width: 46px;
-                    height: 46px;
-                    font-size: 20px;
-                }
-                .map-point {
-                    width: 28px;
-                    height: 28px;
-                    font-size: 12px;
-                }
-                .timeline-item .time {
-                    min-width: 55px;
-                    font-size: 13px;
-                }
-                .timeline-item .activity {
-                    font-size: 14px;
-                }
-                .admin-row input[type="password"] {
-                    width: 120px;
-                }
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ============================================================
-    进度条 & 返回顶部
-    ============================================================ -->
     <div id="reading-progress-bar"></div>
-    <button id="back-to-top" aria-label="返回顶部">↑</button>
+    <button id="back-to-top">↑</button>
 
-    <!-- ============================================================
-    悬浮卡片
-    ============================================================ -->
     <div id="floating-card" style="display:none;">
         <div id="floating-card-content">
             <button id="floating-card-close">×</button>
@@ -1161,9 +1082,6 @@
         </div>
     </div>
 
-    <!-- ============================================================
-    应用容器
-    ============================================================ -->
     <div class="app-container" id="app">
         <header class="header">
             <h1>🏠 重庆-丰都家庭游</h1>
@@ -1171,9 +1089,8 @@
             <div class="family-tag">👨‍👩‍👧‍👦 含老人 · 儿童 · 中年人 · 青年</div>
         </header>
 
-        <!-- 路线总览 -->
         <div class="overview-group open" id="overview-group">
-            <div class="overview-header" id="overview-toggle">
+            <div class="overview-header" onclick="window.toggleOverview(this)">
                 <span class="title">🗺️ 路线总览 <small>点击标签切换天数</small></span>
                 <span class="arrow">▾</span>
             </div>
@@ -1185,28 +1102,27 @@
             </div>
         </div>
 
-        <!-- 控制栏 -->
-        <div class="control-bar">
-            <button class="btn" id="expand-all-btn">📂 全部展开</button>
-            <button class="btn" id="collapse-all-btn">📁 全部收起</button>
+        <div id="control-bar">
+            <button class="btn-ctrl" id="expand-all-btn">📂 全部展开</button>
+            <button class="btn-ctrl" id="collapse-all-btn">📁 全部收起</button>
         </div>
 
-        <!-- 行程列表 -->
-        <div id="day-groups-container"></div>
+        <div id="day-groups-container">
+            <p style="padding:40px;text-align:center;color:#8a8a8a;">⏳ 加载行程数据...</p>
+        </div>
 
-        <!-- 管理面板 -->
         <div id="admin-panel">
             <div class="admin-row">
-                <button class="btn" id="admin-toggle-btn">🔧 修改模式</button>
+                <button class="btn-ctrl" id="admin-toggle-btn">🔧 修改模式</button>
                 <div id="admin-login-area" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                     <input type="password" id="admin-password-input" placeholder="请输入密码">
-                    <button class="btn" id="admin-login-btn">验证</button>
+                    <button class="btn-login" id="admin-login-btn">验证</button>
                     <span class="status" id="admin-login-status"></span>
                 </div>
                 <div class="edit-area" id="admin-edit-area">
                     <span class="badge">✅ 已进入修改模式</span>
-                    <button class="btn" id="admin-add-day-btn">➕ 新增一天</button>
-                    <button class="btn" id="admin-save-btn" style="background:var(--color-accent);border-color:var(--color-accent);color:#fff;">💾 保存修改</button>
+                    <button class="btn-ctrl btn-primary" id="admin-add-day-btn">➕ 新增一天</button>
+                    <button class="btn-ctrl btn-primary" id="admin-save-btn" style="background:#a0524a;border-color:#a0524a;color:#fff;">💾 保存修改</button>
                 </div>
             </div>
             <div class="save-hint" id="admin-save-hint">修改完后记得按「保存修改」</div>
@@ -1215,50 +1131,12 @@
         <div class="footer">📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快</div>
     </div>
 
-    <!-- ============================================================
-    Template 定义
-    ============================================================ -->
-    <template id="tmpl-timeline-item">
-        <div class="timeline-item">
-            <span class="time"></span>
-            <span class="activity"></span>
-            <span class="admin-actions"></span>
-        </div>
-    </template>
-
-    <template id="tmpl-place-card">
-        <div class="place-card">
-            <div class="place-name"></div>
-            <div class="place-image"></div>
-            <div class="place-desc"></div>
-            <div class="meta"></div>
-            <div class="remark"></div>
-            <div class="alternatives-block"></div>
-            <div class="btn-group"></div>
-        </div>
-    </template>
-
-    <template id="tmpl-place-card-transport">
-        <div class="place-card place-card--transport">
-            <div class="place-name"></div>
-            <div class="place-desc"></div>
-            <div class="meta"></div>
-            <div class="btn-group"></div>
-        </div>
-    </template>
-
-    <template id="tmpl-map-point">
-        <div class="map-point"></div>
-    </template>
-
     <script>
         // ============================================================
-        // 简化版 JavaScript - 直接执行，非模块
+        // 完整 JavaScript
         // ============================================================
         (function() {
             'use strict';
-
-            console.log('🚀 应用启动...');
 
             const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
             const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
@@ -1286,18 +1164,13 @@
             // ============================================================
             async function loadItineraryData() {
                 try {
-                    console.log('📡 正在请求 /api/itinerary...');
                     const response = await fetch('/api/itinerary');
-                    if (!response.ok) {
-                        throw new Error('API 返回状态: ' + response.status);
-                    }
+                    if (!response.ok) throw new Error('API 返回状态: ' + response.status);
                     const data = await response.json();
-                    console.log('✅ 数据加载成功，共', data.length, '天');
                     allDaysData = data;
                     return data;
                 } catch (error) {
-                    console.error('❌ 加载行程数据失败:', error);
-                    // 显示错误信息
+                    console.error('加载行程数据失败:', error);
                     document.getElementById('day-groups-container').innerHTML =
                         '<p style="padding:40px;text-align:center;color:#a0524a;">❌ 加载失败：' + error.message +
                         '<br><span style="font-size:13px;color:#8a8a8a;">请检查 API 是否正常</span></p>';
@@ -1391,6 +1264,25 @@
                 return place.time_start || '';
             }
 
+            function getTransportIcon(type) {
+                const icons = {
+                    '地铁': '🚇',
+                    '轨道交通': '🚇',
+                    '公交': '🚌',
+                    '打车': '🚕',
+                    '出租车': '🚕',
+                    '步行': '🚶',
+                    '动车': '🚄',
+                    '高铁': '🚄',
+                    '慢车': '🚂',
+                    '普速': '🚂'
+                };
+                for (const [key, val] of Object.entries(icons)) {
+                    if (type.includes(key)) return val;
+                }
+                return '🚌';
+            }
+
             // ============================================================
             // 3. 渲染函数
             // ============================================================
@@ -1430,53 +1322,59 @@
                         html += `</div>`;
                     }
 
-                    // 时间轴
+                    // ---- 时间轴（只显示非交通节点） ----
                     html += `<div class="timeline">`;
-                    places.forEach((place) => {
+                    const nonTransportPlaces = places.filter(p => p.type !== 'transport');
+                    nonTransportPlaces.forEach((place) => {
                         const emoji = getEmoji(place.name);
                         const typeLabel = getTypeLabel(place.type);
                         const timeStr = formatTime(place);
-                        const isTransport = place.type === 'transport';
-                        const transportClass = isTransport ? 'timeline-item--transport' : '';
-                        const transportIcon = isTransport ? '🚌 ' : '';
 
-                        html += `<div class="timeline-item ${transportClass}" data-place-id="${place.id}">`;
+                        html += `<div class="timeline-item" data-place-id="${place.id}">`;
                         if (timeStr) {
                             html += `<span class="time">${timeStr}</span>`;
                         }
                         html +=
-                            `<span class="activity">${transportIcon}${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
-                        if (isAdminMode) {
-                            html += `<span class="admin-actions">
-                                        <button class="btn--mini" onclick="editPlaceField(${place.id}, 'name')">✏️</button>
-                                        ${isTransport ? `<button class="btn--mini btn--mini-primary" onclick="editTransport(${place.id})">🚌</button>` : `<button class="btn--mini btn--mini-primary" onclick="addTransportBefore(${day.day}, ${places.indexOf(place)})">➕</button>`}
-                                        <button class="btn--mini btn--mini-danger" onclick="deletePlace(${day.day}, ${place.id})">🗑️</button>
-                                    </span>`;
-                        }
+                            `<span class="activity">${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
                         html += `</div>`;
                     });
                     html += `</div>`;
 
-                    // 景点卡片
-                    places.forEach((place) => {
-                        const imgName = getImageName(place.name);
-                        const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
-                        const emoji = getEmoji(place.name);
-                        const typeLabel = getTypeLabel(place.type);
-                        const timeStr = formatTime(place);
-                        const isTransport = place.type === 'transport';
+                    // ---- 景点卡片 + 交通连接线 ----
+                    // 先分离：景点（非交通）和交通
+                    const attractions = places.filter(p => p.type !== 'transport');
+                    const transports = places.filter(p => p.type === 'transport');
 
-                        const cardClass = isTransport ? 'place-card place-card--transport' : 'place-card';
+                    // 按原始顺序重新组合：景点 → 交通 → 景点 → 交通 ...
+                    const orderedItems = [];
+                    let transportIdx = 0;
+                    for (let i = 0; i < places.length; i++) {
+                        if (places[i].type !== 'transport') {
+                            orderedItems.push({ type: 'place', data: places[i] });
+                        } else {
+                            orderedItems.push({ type: 'transport', data: places[i] });
+                        }
+                    }
 
-                        html += `<div class="${cardClass}" data-day="${day.day}" data-place-id="${place.id}">`;
-                        html += `<div class="place-name">
-                                    ${emoji} ${place.name}
-                                    <span class="tag">${typeLabel}</span>
-                                    ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
-                                </div>`;
+                    // 渲染：景点卡片 + 后面的交通连接
+                    for (let i = 0; i < orderedItems.length; i++) {
+                        const item = orderedItems[i];
 
-                        // 非交通卡片显示图片
-                        if (!isTransport) {
+                        if (item.type === 'place') {
+                            const place = item.data;
+                            const imgName = getImageName(place.name);
+                            const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
+                            const emoji = getEmoji(place.name);
+                            const typeLabel = getTypeLabel(place.type);
+                            const timeStr = formatTime(place);
+
+                            html += `<div class="place-card" data-day="${day.day}" data-place-id="${place.id}">`;
+                            html += `<div class="place-name">
+                                        ${emoji} ${place.name}
+                                        <span class="tag">${typeLabel}</span>
+                                        ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                                    </div>`;
+
                             html += `<div class="place-image">`;
                             if (imgUrl) {
                                 html +=
@@ -1487,47 +1385,76 @@
                                 html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
                             }
                             html += `</div>`;
-                        }
 
-                        if (place.intro) {
-                            html += `<div class="place-desc">${place.intro}</div>`;
-                        }
+                            if (place.intro) {
+                                html += `<div class="place-desc">${place.intro}</div>`;
+                            }
 
-                        // 元信息
-                        if (place.address || place.duration) {
-                            let parts = [];
-                            if (place.duration) parts.push('⏱️ ' + place.duration);
-                            if (place.address) parts.push('📍 ' + place.address);
-                            html += `<div class="meta">${parts.join(' · ')}</div>`;
-                        }
+                            if (place.address || place.duration) {
+                                let parts = [];
+                                if (place.duration) parts.push('⏱️ ' + place.duration);
+                                if (place.address) parts.push('📍 ' + place.address);
+                                html += `<div class="meta">${parts.join(' · ')}</div>`;
+                            }
 
-                        if (place.remark) {
-                            html += `<div class="remark">💡 ${place.remark}</div>`;
-                        }
+                            if (place.remark) {
+                                html += `<div class="remark">💡 ${place.remark}</div>`;
+                            }
 
-                        // 按钮
-                        html += `<div class="btn-group">`;
-                        if (place.nav_link) {
-                            html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
+                            html += `<div class="btn-group">`;
+                            if (place.nav_link) {
+                                html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
+                            }
+                            const links = place.platform_links ? JSON.parse(place.platform_links) : {};
+                            if (links.dianping) {
+                                html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                            }
+                            if (links.meituan) {
+                                html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+                            }
+                            if (links.douyin) {
+                                html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                            }
+                            html += `</div>`;
+                            html += `</div>`;
+
+                            // 检查下一个是否是交通
+                            const nextItem = orderedItems[i + 1];
+                            if (nextItem && nextItem.type === 'transport') {
+                                const t = nextItem.data;
+                                const icon = getTransportIcon(t.name);
+                                const displayText = t.intro || t.name;
+                                html += `<div class="transport-connector">
+                                            <span class="transport-icon">${icon}</span>
+                                            <span class="transport-text">${displayText}</span>
+                                        </div>`;
+                                i++; // 跳过已经渲染的交通
+                            }
                         }
-                        const links = place.platform_links ? JSON.parse(place.platform_links) : {};
-                        if (links.dianping) {
-                            html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                    }
+
+                    // 备选方案
+                    const dayAlts = day.day_alternatives || {};
+                    const altKeys = ['congestion', 'peak', 'rainy'];
+                    const altLabels = { congestion: '🚧 拥堵备选', peak: '⏰ 高峰备选', rainy: '🌧️ 雨天备选' };
+                    let hasAlt = false;
+                    let altHtml = '';
+                    altKeys.forEach(key => {
+                        if (dayAlts[key]) {
+                            hasAlt = true;
+                            altHtml +=
+                                `<div class="alt-item"><strong>${altLabels[key]}</strong>：${dayAlts[key]}</div>`;
                         }
-                        if (links.meituan) {
-                            html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
-                        }
-                        if (links.douyin) {
-                            html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
-                        }
-                        html += `</div>`;
-                        html += `</div>`;
                     });
+                    if (hasAlt) {
+                        html += `<div class="alternatives-block">${altHtml}</div>`;
+                    }
 
                     if (day.rest_note) {
                         html += `<div class="rest-note">☕ ${day.rest_note}</div>`;
                     }
 
+                    // 修改模式按钮
                     if (isAdminMode) {
                         html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
                                     <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑标题</button>
@@ -1549,7 +1476,6 @@
                     body.style.padding = '0 20px';
                 });
 
-                // 滚动动画
                 setTimeout(setupScrollAnimation, 100);
             }
 
@@ -1606,8 +1532,9 @@
                         </div>`;
 
                 if (dayData && dayData.places) {
-                    dayData.places.forEach((place, idx) => {
-                        const x = place.map_x || (10 + (idx / Math.max(dayData.places.length - 1, 1)) * 80);
+                    const nonTransport = dayData.places.filter(p => p.type !== 'transport');
+                    nonTransport.forEach((place, idx) => {
+                        const x = place.map_x || (10 + (idx / Math.max(nonTransport.length - 1, 1)) * 80);
                         const y = place.map_y || (20 + (idx % 2) * 40 + 10);
                         const draggable = isAdminMode ? 'draggable' : '';
                         html += `<div class="map-point ${draggable}" 
@@ -2403,9 +2330,6 @@
             // ============================================================
 
             document.addEventListener('DOMContentLoaded', async function() {
-                console.log('📄 DOM 已加载，开始初始化...');
-
-                // 加载数据
                 const data = await loadItineraryData();
                 if (data && data.length > 0) {
                     allDaysData = data;
@@ -2432,8 +2356,6 @@
                     setupBackToTop();
                 }
             });
-
-            console.log('🚀 应用脚本已加载，等待 DOM 就绪...');
 
         })(); // IIFE 结束
     </script>
