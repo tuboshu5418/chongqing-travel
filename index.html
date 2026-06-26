@@ -508,7 +508,7 @@
             margin-left: 6px;
         }
 
-        /* 交通连接线 - 用箭头代替圆点 */
+        /* 交通连接线 - 在每两个景点之间 */
         .transport-connector {
             display: flex;
             align-items: center;
@@ -657,7 +657,7 @@
             margin-bottom: 4px;
         }
 
-        /* 紧凑卡片：用餐 + 交通 - 高度是原来的3倍（约60-70px） */
+        /* 紧凑卡片：用餐 + 交通 - 高度约60-70px */
         .place-card-compact {
             background: #f0f4f8;
             border-radius: 12px;
@@ -1194,11 +1194,6 @@
                 return place.time_start || '';
             }
 
-            // 生成高德步行导航链接
-            function getWalkNavLink(fromLng, fromLat, fromName, toLng, toLat, toName) {
-                return `https://uri.amap.com/navigation?from=${fromLng},${fromLat},${encodeURIComponent(fromName)}&to=${toLng},${toLat},${encodeURIComponent(toName)}&mode=walk`;
-            }
-
             // ============================================================
             // 3. 渲染函数
             // ============================================================
@@ -1236,49 +1231,16 @@
                         html += `</div>`;
                     }
 
-                    // ---- 时间轴：景点 + 交通连接线（用箭头） ----
+                    // ---- 时间轴：景点 + 交通连接线 ----
                     html += `<div class="timeline">`;
-                    places.forEach((place) => {
-                        const isTransport = place.type === 'transport';
+                    // 先收集所有非交通节点，然后在之间插入交通
+                    const nonTransport = places.filter(p => p.type !== 'transport');
+                    const transportItems = places.filter(p => p.type === 'transport');
+
+                    nonTransport.forEach((place, idx) => {
                         const emoji = getEmoji(place.name);
                         const typeLabel = getTypeLabel(place.type);
                         const timeStr = formatTime(place);
-
-                        if (isTransport) {
-                            // 交通连接线：用箭头，不用圆点
-                            const transportText = place.transport || place.intro || place.name || '';
-                            // 检测是否包含步行，如果是则生成导航链接
-                            let navLink = '';
-                            if (transportText.includes('🚶') || transportText.includes('步行')) {
-                                // 尝试从 name 中提取起点终点
-                                const nameParts = place.name.split('→');
-                                if (nameParts.length === 2) {
-                                    const fromName = nameParts[0].trim();
-                                    const toName = nameParts[1].trim();
-                                    // 尝试匹配已有景点的经纬度
-                                    const fromPlace = places.find(p => p.name.includes(fromName) && p.type !== 'transport');
-                                    const toPlace = places.find(p => p.name.includes(toName) && p.type !== 'transport');
-                                    if (fromPlace && toPlace) {
-                                        const fromCoords = fromPlace.nav_link ? fromPlace.nav_link.match(/position=([^&]+)/) : null;
-                                        const toCoords = toPlace.nav_link ? toPlace.nav_link.match(/position=([^&]+)/) : null;
-                                        if (fromCoords && toCoords) {
-                                            const fromLngLat = fromCoords[1].split(',');
-                                            const toLngLat = toCoords[1].split(',');
-                                            navLink = getWalkNavLink(
-                                                fromLngLat[0], fromLngLat[1], fromName,
-                                                toLngLat[0], toLngLat[1], toName
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                            html += `<div class="transport-connector" data-place-id="${place.id}" data-day="${day.day}" onclick="jumpToPlace(${day.day}, ${place.id})">
-                                        <span class="arrow-icon">→</span>
-                                        <span class="transport-text">${transportText}</span>
-                                        ${navLink ? `<a href="${navLink}" class="transport-link" target="_blank">🗺️ 导航</a>` : ''}
-                                    </div>`;
-                            return;
-                        }
 
                         html += `<div class="timeline-item" data-place-id="${place.id}" data-day="${day.day}" onclick="jumpToPlace(${day.day}, ${place.id})">`;
                         if (timeStr) {
@@ -1287,10 +1249,49 @@
                         html +=
                             `<span class="activity">${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
                         html += `</div>`;
+
+                        // 如果后面还有景点，在中间插入交通连接线
+                        if (idx < nonTransport.length - 1) {
+                            // 尝试匹配两个景点之间的交通
+                            const currentPlace = nonTransport[idx];
+                            const nextPlace = nonTransport[idx + 1];
+                            let matchedTransport = null;
+
+                            // 遍历交通项，匹配名称
+                            for (const t of transportItems) {
+                                const tName = t.name || '';
+                                if (tName.includes(currentPlace.name) && tName.includes(nextPlace.name)) {
+                                    matchedTransport = t;
+                                    break;
+                                }
+                                // 也检查 transport 字段
+                                const transportText = t.transport || '';
+                                if (transportText.includes(currentPlace.name) && transportText.includes(nextPlace.name)) {
+                                    matchedTransport = t;
+                                    break;
+                                }
+                            }
+
+                            // 如果没找到精确匹配，取当前索引对应的交通（按顺序）
+                            if (!matchedTransport && idx < transportItems.length) {
+                                matchedTransport = transportItems[idx];
+                            }
+
+                            if (matchedTransport) {
+                                const t = matchedTransport;
+                                const transportText = t.transport || t.intro || t.name || '';
+                                const navLink = t.nav_link || '';
+                                html += `<div class="transport-connector" data-place-id="${t.id}" data-day="${day.day}" onclick="jumpToPlace(${day.day}, ${t.id})">
+                                            <span class="arrow-icon">→</span>
+                                            <span class="transport-text">${transportText}</span>
+                                            ${navLink ? `<a href="${navLink}" class="transport-link" target="_blank">🗺️ 导航</a>` : ''}
+                                        </div>`;
+                            }
+                        }
                     });
                     html += `</div>`;
 
-                    // ---- 卡片列表：景点(完整) + 用餐/交通(紧凑，高度约60-70px) ----
+                    // ---- 卡片列表 ----
                     places.forEach((place) => {
                         const isTransport = place.type === 'transport';
                         const isFood = place.type === 'food';
@@ -1301,31 +1302,7 @@
                             const displayName = place.name || '';
                             const detailText = place.transport || place.intro || '';
                             const tagText = isFood ? '用餐' : (isTransport ? '交通' : '');
-
-                            // 为步行路段生成导航链接
-                            let navLink = '';
-                            if (isTransport && (detailText.includes('🚶') || detailText.includes('步行'))) {
-                                const nameParts = displayName.split('→');
-                                if (nameParts.length === 2) {
-                                    const fromName = nameParts[0].trim();
-                                    const toName = nameParts[1].trim();
-                                    const fromPlace = places.find(p => p.name.includes(fromName) && p.type !== 'transport');
-                                    const toPlace = places.find(p => p.name.includes(toName) && p.type !== 'transport');
-                                    if (fromPlace && toPlace) {
-                                        const fromCoords = fromPlace.nav_link ? fromPlace.nav_link.match(/position=([^&]+)/) :
-                                        null;
-                                        const toCoords = toPlace.nav_link ? toPlace.nav_link.match(/position=([^&]+)/) : null;
-                                        if (fromCoords && toCoords) {
-                                            const fromLngLat = fromCoords[1].split(',');
-                                            const toLngLat = toCoords[1].split(',');
-                                            navLink = getWalkNavLink(
-                                                fromLngLat[0], fromLngLat[1], fromName,
-                                                toLngLat[0], toLngLat[1], toName
-                                            );
-                                        }
-                                    }
-                                }
-                            }
+                            const navLink = place.nav_link || '';
 
                             html += `<div class="place-card-compact" data-day="${day.day}" data-place-id="${place.id}" onclick="jumpToPlace(${day.day}, ${place.id})">
                                         <span class="compact-icon">${icon}</span>
@@ -1378,7 +1355,7 @@
                         }
 
                         html += `<div class="btn-group">`;
-                        if (place.nav_link) {
+                        if (place.nav_link && place.type !== 'transport') {
                             html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
                         }
                         if (place.platform_links) {
@@ -1464,7 +1441,6 @@
                 let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
                 html += `<div id="leaflet-map-${day}" style="width:100%;height:100%;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;z-index:1;"></div>`;
 
-                // 圆点覆盖层
                 html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;">`;
 
                 if (dayData && dayData.places) {
