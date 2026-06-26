@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
-    <title>重庆-丰都家庭游 · 动态行程</title>
+    <title>重庆4天3晚 · 家庭游</title>
     <style>
         /* ============================================================
-           完整样式
+           完整样式 - 无硬编码数据
            ============================================================ */
         * {
             margin: 0;
@@ -97,22 +97,6 @@
         }
         #control-bar .btn-ctrl:hover {
             background: #ede8e0;
-        }
-        #control-bar .btn-primary {
-            background: #4a6a7f;
-            border-color: #4a6a7f;
-            color: #fff;
-        }
-        #control-bar .btn-primary:hover {
-            background: #3a5a6f;
-        }
-        #control-bar .btn-danger {
-            background: #a0524a;
-            border-color: #a0524a;
-            color: #fff;
-        }
-        #control-bar .btn-danger:hover {
-            background: #8a423a;
         }
 
         .overview-group {
@@ -206,11 +190,6 @@
             background: #f6f4f1;
             min-height: 200px;
         }
-        .map-wrapper img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
 
         .map-point {
             position: absolute;
@@ -303,6 +282,7 @@
             display: inline-block;
         }
 
+        /* ---- 悬浮卡片 ---- */
         #floating-card {
             position: fixed;
             z-index: 999;
@@ -376,6 +356,7 @@
             background: #3a5a6f;
         }
 
+        /* ---- Day 栏目 ---- */
         .day-group {
             position: relative;
             scroll-margin-top: 60px;
@@ -555,7 +536,7 @@
             margin-left: 6px;
         }
 
-        /* ---- 交通连接线（在景点之间） ---- */
+        /* ---- 交通连接线 ---- */
         .transport-connector {
             display: flex;
             align-items: center;
@@ -588,28 +569,8 @@
             font-size: 13px;
             color: #4a5a6a;
         }
-        .transport-connector .arrow {
-            color: #8a9aaa;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
 
-        .alternatives-block {
-            background: #f5f2ef;
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin: 6px 0 12px;
-            font-size: 13px;
-            border-left: 3px solid #a0524a;
-        }
-        .alternatives-block .alt-item {
-            padding: 2px 0;
-            color: #5a5a5a;
-        }
-        .alternatives-block .alt-item strong {
-            color: #4a6a7f;
-        }
-
+        /* ---- 景点卡片 ---- */
         .place-card {
             background: #f9f8f6;
             border-radius: 16px;
@@ -810,6 +771,7 @@
             padding-top: 22px;
         }
 
+        /* ---- 管理面板 ---- */
         #admin-panel {
             margin-top: 20px;
             padding: 16px;
@@ -835,7 +797,7 @@
         #admin-panel .admin-row .btn-ctrl:hover {
             background: #e5e0d8;
         }
-        #admin-panel .admin-row input {
+        #admin-panel .admin-row input[type="password"] {
             padding: 8px 14px;
             border-radius: 30px;
             border: 1px solid #ddd9d2;
@@ -924,50 +886,6 @@
         }
         .editable:hover {
             background: rgba(74, 106, 127, 0.08);
-        }
-        .editable-input {
-            border: 1px solid #4a6a7f;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: inherit;
-            font-family: inherit;
-            background: #fff;
-            width: auto;
-            min-width: 60px;
-        }
-        .editable-input:focus {
-            outline: 2px solid #4a6a7f;
-            outline-offset: 1px;
-        }
-
-        .btn--mini {
-            padding: 2px 8px;
-            font-size: 11px;
-            min-height: 22px;
-            border-radius: 20px;
-            background: #f0ede8;
-            border: 1px solid #ddd9d2;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn--mini:hover {
-            background: #e5e0d8;
-        }
-        .btn--mini-primary {
-            background: #4a6a7f;
-            border-color: #4a6a7f;
-            color: #fff;
-        }
-        .btn--mini-primary:hover {
-            background: #3a5a6f;
-        }
-        .btn--mini-danger {
-            background: #a0524a;
-            border-color: #a0524a;
-            color: #fff;
-        }
-        .btn--mini-danger:hover {
-            background: #8a423a;
         }
 
         @media (min-width: 768px) {
@@ -1065,97 +983,6 @@
                 height: 8px;
             }
         }
-        /* ---- 管理面板 ---- */
-        #admin-panel {
-                margin-top: 20px;
-                padding: 16px;
-                background: #f5f2ef;
-                border-radius: 16px;
-                border: 1px solid #e0dbd3;
-        }
-
-        .admin-row {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                flex-wrap: wrap;
-        }
-
-        .admin-row .btn-ctrl {
-                padding: 8px 20px;
-                border-radius: 30px;
-                border: 1px solid #c0b0a8;
-                background: #f0ede8;
-                cursor: pointer;
-                font-size: 14px;
-                transition: all 0.2s ease;
-        }
-
-        .admin-row .btn-ctrl:hover {
-                background: #e5e0d8;
-        }
-
-        .admin-row .btn-ctrl.btn-primary {
-                background: #4a6a7f;
-                border-color: #4a6a7f;
-                color: #fff;
-        }
-
-        .admin-row .btn-ctrl.btn-primary:hover {
-                background: #3a5a6f;
-        }
-
-        .admin-row input[type="password"] {
-                padding: 8px 14px;
-                border-radius: 30px;
-                border: 1px solid #ddd9d2;
-                font-size: 14px;
-                width: 160px;
-                background: #fff;
-        }
-
-        .admin-row .btn-login {
-                padding: 8px 20px;
-                border-radius: 30px;
-                border: none;
-                background: #4a6a7f;
-                color: #fff;
-                cursor: pointer;
-                font-size: 14px;
-                transition: background 0.2s;
-        }
-
-        .admin-row .btn-login:hover {
-                background: #3a5a6f;
-        }
-
-        .admin-row .status {
-                font-size: 13px;
-                color: #a0524a;
-        }
-
-        .admin-row .edit-area {
-                display: none;
-                flex-wrap: wrap;
-                gap: 8px;
-                align-items: center;
-        }
-
-        .admin-row .edit-area .badge {
-                font-size: 13px;
-                color: #4a6a7f;
-        }
-
-        .save-hint {
-                font-size: 12px;
-                color: #8a8a8a;
-                margin-top: 4px;
-                display: none;
-        }
-
-        .save-hint.show {
-                display: block;
-        }
     </style>
 </head>
 <body>
@@ -1175,8 +1002,8 @@
 
     <div class="app-container" id="app">
         <header class="header">
-            <h1>🏠 重庆-丰都家庭游</h1>
-            <div class="sub">6天5晚 · 从山城到鬼城 · 老少皆宜</div>
+            <h1>🏠 重庆4天3晚 · 家庭游</h1>
+            <div class="sub">6月28日-7月1日 · 从山城到鬼城 · 老少皆宜</div>
             <div class="family-tag">👨‍👩‍👧‍👦 含老人 · 儿童 · 中年人 · 青年</div>
         </header>
 
@@ -1218,22 +1045,23 @@
             </div>
             <div class="save-hint" id="admin-save-hint">修改完后记得按「保存修改」</div>
         </div>
-        
+
         <div class="footer">📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快</div>
     </div>
 
     <script>
         // ============================================================
-        // 完整 JavaScript
+        // 完整 JavaScript - 所有数据从 API 动态加载
         // ============================================================
         (function() {
             'use strict';
 
+            // ---- 配置 ----
             const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
-            const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
 
+            // ---- 状态 ----
             let allDaysData = [];
-            let currentTab = 1;
+            let currentTab = 0;
             let isAdminMode = false;
             let floatingCardPinned = false;
             let floatingCardData = null;
@@ -1299,7 +1127,7 @@
                     '慢车': '🚂',
                     '桂园': '🏛️',
                     '南山': '🌄',
-                    '交通': '🚌'
+                    '大礼堂': '🏛️'
                 };
                 for (const [key, value] of Object.entries(map)) {
                     if (name.includes(key)) return value;
@@ -1309,30 +1137,19 @@
 
             function getImageName(name) {
                 const map = {
+                    '李子坝': 'liziba.jpg',
+                    '十八梯': 'shibati.jpg',
                     '解放碑': 'jiefangbei.jpg',
                     '八一好吃街': 'bayihaochijie.jpg',
-                    '白象居': 'baixiangju.jpg',
                     '长江索道': 'changjiangsuodao.jpg',
                     '洪崖洞': 'hongyadong.jpg',
-                    '李子坝': 'liziba.jpg',
-                    '鹅岭二厂': 'erling.jpg',
-                    '山城步道': 'shancheng.jpg',
-                    '十八梯': 'shibati.jpg',
                     '重庆动物园': 'panda.jpg',
-                    '红岩革命纪念馆': 'hongyan.jpg',
-                    '观音桥': 'guanyinqiao.jpg',
-                    '弹子石老街': 'danzishi.jpg',
-                    '盘龙立交': 'panlong.jpg',
-                    '龙门浩老街': 'longmenhao.jpg',
-                    'WFC会仙楼': 'wfc.jpg',
-                    '周公馆': 'zhougongguan.jpg',
-                    '双桂山': 'shuanggui.jpg',
-                    '丰都码头': 'fengdumatou.jpg',
-                    '桂园': 'guiyuan.jpg',
-                    '南山一棵树': 'nanshan.jpg'
+                    '三峡博物馆': 'sanxia.jpg',
+                    '人民大礼堂': 'renmindalitang.jpg',
+                    '重庆美亚国际酒店': 'meiya.jpg'
                 };
                 for (const [key, value] of Object.entries(map)) {
-                    if (name.includes(key) || key.includes(name)) return value;
+                    if (name.includes(key)) return value;
                 }
                 return null;
             }
@@ -1344,7 +1161,6 @@
                     'transport': '交通',
                     'culture': '红色文化',
                     'rest': '休息',
-                    'shopping': '购物',
                     'other': '其他'
                 };
                 return map[type] || type;
@@ -1353,25 +1169,6 @@
             function formatTime(place) {
                 if (place.time_start && place.time_end) return place.time_start + ' - ' + place.time_end;
                 return place.time_start || '';
-            }
-
-            function getTransportIcon(type) {
-                const icons = {
-                    '地铁': '🚇',
-                    '轨道交通': '🚇',
-                    '公交': '🚌',
-                    '打车': '🚕',
-                    '出租车': '🚕',
-                    '步行': '🚶',
-                    '动车': '🚄',
-                    '高铁': '🚄',
-                    '慢车': '🚂',
-                    '普速': '🚂'
-                };
-                for (const [key, val] of Object.entries(icons)) {
-                    if (type.includes(key)) return val;
-                }
-                return '🚌';
             }
 
             // ============================================================
@@ -1415,8 +1212,8 @@
 
                     // ---- 时间轴（只显示非交通节点） ----
                     html += `<div class="timeline">`;
-                    const nonTransportPlaces = places.filter(p => p.type !== 'transport');
-                    nonTransportPlaces.forEach((place) => {
+                    const nonTransport = places.filter(p => p.type !== 'transport');
+                    nonTransport.forEach((place) => {
                         const emoji = getEmoji(place.name);
                         const typeLabel = getTypeLabel(place.type);
                         const timeStr = formatTime(place);
@@ -1432,13 +1229,7 @@
                     html += `</div>`;
 
                     // ---- 景点卡片 + 交通连接线 ----
-                    // 先分离：景点（非交通）和交通
-                    const attractions = places.filter(p => p.type !== 'transport');
-                    const transports = places.filter(p => p.type === 'transport');
-
-                    // 按原始顺序重新组合：景点 → 交通 → 景点 → 交通 ...
                     const orderedItems = [];
-                    let transportIdx = 0;
                     for (let i = 0; i < places.length; i++) {
                         if (places[i].type !== 'transport') {
                             orderedItems.push({ type: 'place', data: places[i] });
@@ -1447,7 +1238,6 @@
                         }
                     }
 
-                    // 渲染：景点卡片 + 后面的交通连接
                     for (let i = 0; i < orderedItems.length; i++) {
                         const item = orderedItems[i];
 
@@ -1466,16 +1256,16 @@
                                         ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
                                     </div>`;
 
-                            html += `<div class="place-image">`;
                             if (imgUrl) {
-                                html +=
-                                    `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
-                                html +=
-                                    `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
+                                html += `<div class="place-image">
+                                            <img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                            <div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>
+                                        </div>`;
                             } else {
-                                html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
+                                html += `<div class="place-image">
+                                            <div class="placeholder-text"><span>${emoji}</span>${place.name}</div>
+                                        </div>`;
                             }
-                            html += `</div>`;
 
                             if (place.intro) {
                                 html += `<div class="place-desc">${place.intro}</div>`;
@@ -1496,15 +1286,19 @@
                             if (place.nav_link) {
                                 html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
                             }
-                            const links = place.platform_links ? JSON.parse(place.platform_links) : {};
-                            if (links.dianping) {
-                                html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
-                            }
-                            if (links.meituan) {
-                                html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
-                            }
-                            if (links.douyin) {
-                                html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                            if (place.platform_links) {
+                                try {
+                                    const links = JSON.parse(place.platform_links);
+                                    if (links.dianping) {
+                                        html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                                    }
+                                    if (links.meituan) {
+                                        html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+                                    }
+                                    if (links.douyin) {
+                                        html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                                    }
+                                } catch (e) {}
                             }
                             html += `</div>`;
                             html += `</div>`;
@@ -1513,45 +1307,19 @@
                             const nextItem = orderedItems[i + 1];
                             if (nextItem && nextItem.type === 'transport') {
                                 const t = nextItem.data;
-                                const icon = getTransportIcon(t.name);
+                                const icon = '🚇';
                                 const displayText = t.intro || t.name;
                                 html += `<div class="transport-connector">
                                             <span class="transport-icon">${icon}</span>
                                             <span class="transport-text">${displayText}</span>
                                         </div>`;
-                                i++; // 跳过已经渲染的交通
+                                i++;
                             }
                         }
                     }
 
-                    // 备选方案
-                    const dayAlts = day.day_alternatives || {};
-                    const altKeys = ['congestion', 'peak', 'rainy'];
-                    const altLabels = { congestion: '🚧 拥堵备选', peak: '⏰ 高峰备选', rainy: '🌧️ 雨天备选' };
-                    let hasAlt = false;
-                    let altHtml = '';
-                    altKeys.forEach(key => {
-                        if (dayAlts[key]) {
-                            hasAlt = true;
-                            altHtml +=
-                                `<div class="alt-item"><strong>${altLabels[key]}</strong>：${dayAlts[key]}</div>`;
-                        }
-                    });
-                    if (hasAlt) {
-                        html += `<div class="alternatives-block">${altHtml}</div>`;
-                    }
-
                     if (day.rest_note) {
                         html += `<div class="rest-note">☕ ${day.rest_note}</div>`;
-                    }
-
-                    // 修改模式按钮
-                    if (isAdminMode) {
-                        html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                    <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑标题</button>
-                                    <button class="btn-ctrl btn-danger" onclick="deleteDay(${day.day})">🗑️ 删除这一天</button>
-                                    <button class="btn-ctrl" onclick="addPlaceToDay(${day.day})">➕ 添加景点</button>
-                                </div>`;
                     }
 
                     html += `</div>`;
@@ -1587,7 +1355,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'tab-btn' + (day.day === currentTab ? ' active' : '');
                     btn.dataset.day = day.day;
-                    btn.textContent = 'Day ' + day.day;
+                    btn.textContent = day.title || 'Day ' + day.day;
                     btn.onclick = () => switchTab(day.day);
                     tabBar.appendChild(btn);
                 });
@@ -1604,20 +1372,17 @@
                 allDaysData.forEach((day, idx) => {
                     const span = document.createElement('span');
                     span.innerHTML =
-                        `<span class="dot" style="background:${colors[idx % colors.length]};"></span> Day ${day.day}`;
+                        `<span class="dot" style="background:${colors[idx % colors.length]};"></span> ${day.title}`;
                     legend.appendChild(span);
                 });
             }
+
             function renderMap(day) {
                 const container = document.getElementById('overview-maps');
                 const dayData = allDaysData.find(d => d.day === day);
 
                 let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
-
-                // Leaflet 地图容器
                 html += `<div id="leaflet-map-${day}" style="width:100%;height:360px;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;"></div>`;
-
-                // 圆点叠加层（保持原有交互）
                 html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">`;
 
                 if (dayData && dayData.places) {
@@ -1648,7 +1413,6 @@
                     const mapContainer = document.getElementById('leaflet-map-' + day);
                     if (!mapContainer) return;
 
-                    // 检查 Leaflet 是否已加载
                     if (typeof L === 'undefined') {
                         if (!document.querySelector('link[href*="leaflet"]')) {
                             const link = document.createElement('link');
@@ -1682,7 +1446,7 @@
                 const map = L.map(mapContainer).setView([29.57, 106.55], 12);
                 mapContainer._leaflet_map = map;
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
                     attribution: '',
                     maxZoom: 19,
                     minZoom: 8
@@ -2199,7 +1963,6 @@
                     lunch: '',
                     dinner: '',
                     place_order: [],
-                    day_alternatives: {},
                     notes: ''
                 });
 
@@ -2244,96 +2007,6 @@
                 renderOverview();
             };
 
-            window.editTransport = function(placeId) {
-                if (!isAdminMode) return;
-                const place = allDaysData.flatMap(d => d.places || []).find(p => p.id === placeId);
-                if (!place) return;
-
-                const newName = prompt('交通方式名称:', place.name);
-                if (newName === null) return;
-                const newIntro = prompt('交通详情:', place.intro || '');
-                if (newIntro === null) return;
-
-                place.name = newName.trim();
-                place.intro = newIntro.trim();
-                editedData['place_' + placeId] = {
-                    ...editedData['place_' + placeId],
-                    name: newName.trim(),
-                    intro: newIntro.trim()
-                };
-
-                renderDays();
-                renderOverview();
-            };
-
-            window.addTransportBefore = function(day, index) {
-                if (!isAdminMode) return;
-                const dayData = allDaysData.find(d => d.day === day);
-                if (!dayData) return;
-
-                const name = prompt('交通方式名称 (如 公交307路):');
-                if (!name) return;
-                const intro = prompt('交通详情:');
-                if (intro === null) return;
-
-                const newPlace = {
-                    id: -Date.now(),
-                    name: name.trim(),
-                    type: 'transport',
-                    day: day,
-                    time_start: '',
-                    time_end: '',
-                    duration: '',
-                    intro: intro.trim(),
-                    address: '',
-                    nav_link: '',
-                    image_url: '',
-                    platform_links: '',
-                    remark: '',
-                    map_x: 50,
-                    map_y: 50,
-                    sort_order: index + 0.5,
-                    peak_alternative: '',
-                    congestion_alternative: '',
-                    rainy_alternative: ''
-                };
-
-                dayData.places.splice(index + 1, 0, newPlace);
-                const order = dayData.place_order || [];
-                order.splice(index + 1, 0, newPlace.id);
-
-                editedData['day_' + day] = {
-                    ...editedData['day_' + day],
-                    place_order: order
-                };
-
-                renderDays();
-                renderOverview();
-                alert('✅ 交通已添加，记得按「保存修改」提交。');
-            };
-
-            window.deletePlace = function(day, placeId) {
-                if (!confirm('确定删除此景点/交通吗？')) return;
-                const dayData = allDaysData.find(d => d.day === day);
-                if (!dayData) return;
-
-                const idx = dayData.places.findIndex(p => p.id === placeId);
-                if (idx === -1) return;
-                dayData.places.splice(idx, 1);
-                const order = dayData.place_order || [];
-                const oIdx = order.indexOf(placeId);
-                if (oIdx !== -1) order.splice(oIdx, 1);
-
-                editedData['day_' + day] = {
-                    ...editedData['day_' + day],
-                    place_order: order
-                };
-
-                renderDays();
-                renderOverview();
-                alert('✅ 已删除，记得按「保存修改」提交。');
-            };
-
             window.editDayMeta = function(day) {
                 if (!isAdminMode) return;
                 const dayData = allDaysData.find(d => d.day === day);
@@ -2363,7 +2036,7 @@
 
                 const name = prompt('景点名称:');
                 if (!name) return;
-                const type = prompt('类型 (attraction/food/transport/culture/rest/shopping/other):', 'attraction');
+                const type = prompt('类型 (attraction/food/transport/culture/rest/other):', 'attraction');
                 if (!type) return;
                 const timeStart = prompt('开始时间 (如 09:00):', '');
                 const timeEnd = prompt('结束时间 (如 10:30):', '');
@@ -2385,9 +2058,7 @@
                     map_x: 50,
                     map_y: 50,
                     sort_order: 0,
-                    peak_alternative: '',
-                    congestion_alternative: '',
-                    rainy_alternative: ''
+                    transport: ''
                 });
 
                 if (result.success) {
@@ -2411,7 +2082,7 @@
                     allDaysData = data;
                     renderDays();
                     renderOverview();
-                    if (currentTab) {
+                    if (currentTab !== undefined) {
                         const exists = data.some(d => d.day === currentTab);
                         if (!exists && data.length > 0) {
                             currentTab = data[0].day;
@@ -2468,7 +2139,7 @@
                 const data = await loadItineraryData();
                 if (data && data.length > 0) {
                     allDaysData = data;
-                    if (data.length > 0) currentTab = data[0].day;
+                    currentTab = data[0].day;
                     renderDays();
                     renderOverview();
                     setupStickyDays();
@@ -2494,5 +2165,6 @@
 
         })(); // IIFE 结束
     </script>
+
 </body>
 </html>
