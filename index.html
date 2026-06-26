@@ -5,1010 +5,1152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
     <title>重庆-丰都家庭游 · 动态行程</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0eeeb;
-            color: #333;
-            padding: 20px 16px;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #reading-progress-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 4px;
-            background: linear-gradient(90deg, #a0524a, #4a6a7f);
-            z-index: 9999;
-            transition: width .15s ease-out;
-            border-radius: 0 2px 2px 0;
-        }
-        .app-container {
-            max-width: 900px;
-            width: 100%;
-            margin: 0 auto;
-            background-color: #fafaf8;
-            border-radius: 28px;
-            padding: 24px 20px 40px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
-            position: relative;
-            margin-top: 8px;
-        }
-        .header {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e8e4de;
-            margin-bottom: 8px;
-        }
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #4a4a4a;
-            letter-spacing: 1.5px;
-        }
-        .header .sub {
-            font-size: 15px;
-            color: #8a8a8a;
-            margin-top: 4px;
-        }
-        .header .family-tag {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 5px 20px;
-            background: #e8e4de;
-            border-radius: 30px;
-            font-size: 14px;
-            color: #5a5a5a;
-        }
-        #control-bar {
-            display: flex;
-            gap: 10px;
-            margin: 12px 0 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        #control-bar .btn-ctrl {
-            padding: 6px 18px;
-            border-radius: 30px;
-            border: 1px solid #ddd9d2;
-            background: #f5f3f0;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: #4a4a4a;
-            transition: all .2s ease;
-        }
-        #control-bar .btn-ctrl:hover {
-            background: #ede8e0;
-        }
-        #control-bar .btn-primary {
-            background: #4a6a7f;
-            border-color: #4a6a7f;
-            color: #fff;
-        }
-        #control-bar .btn-primary:hover {
-            background: #3a5a6f;
-        }
-        #control-bar .btn-danger {
-            background: #a0524a;
-            border-color: #a0524a;
-            color: #fff;
-        }
-        #control-bar .btn-danger:hover {
-            background: #8a423a;
-        }
-        .overview-group {
-            margin-top: 16px;
-            border-radius: 18px;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
-            overflow: hidden;
-            border: 1px solid #efedea;
-        }
-        .overview-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            background: #fafaf8;
-            cursor: pointer;
-            user-select: none;
-            border-left: 5px solid #4a6a7f;
-            transition: background .2s ease;
-        }
-        .overview-header:hover {
-            background: #f0f4f6;
-        }
-        .overview-header .title {
-            font-size: 19px;
-            font-weight: 600;
-            color: #4a4a4a;
-        }
-        .overview-header .title small {
-            font-weight: 400;
-            font-size: 14px;
-            color: #8a8a8a;
-            margin-left: 10px;
-        }
-        .overview-header .arrow {
-            font-size: 32px;
-            color: #4a6a7f;
-            transition: transform .35s ease;
-            display: inline-block;
-            line-height: 1;
-        }
-        .overview-group.open .overview-header {
-            border-left-color: #a0524a;
-            background: #f5f2ef;
-        }
-        .overview-group.open .overview-header .arrow {
-            transform: rotate(180deg);
-        }
-        .overview-body {
-            display: none;
-            padding: 10px 20px 24px;
-            background: #fff;
-        }
-        .overview-group.open .overview-body {
-            display: block;
-        }
-        .tab-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .tab-btn {
-            padding: 6px 16px;
-            border-radius: 30px;
-            border: 1px solid #ddd9d2;
-            background: #f5f3f0;
-            color: #6a6a6a;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s ease;
-        }
-        .tab-btn:hover {
-            background: #ede8e0;
-        }
-        .tab-btn.active {
-            background: #4a6a7f;
-            border-color: #4a6a7f;
-            color: #fff;
-        }
-        .map-wrapper {
-            position: relative;
-            width: 100%;
-            border-radius: 14px;
-            overflow: hidden;
-            border: 1px solid #e8e4de;
-            background: #f6f4f1;
-            min-height: 200px;
-        }
-        .map-wrapper img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .map-point {
-            position: absolute;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #a0524a;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
-            transform: translate(-50%, -50%);
-            transition: transform .2s ease, box-shadow .2s ease;
-            z-index: 10;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, .2);
-            user-select: none;
-        }
-        .map-point .drag-handle {
-            display: none;
-            position: absolute;
-            bottom: -6px;
-            right: -6px;
-            background: #4a6a7f;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            font-size: 10px;
-            line-height: 16px;
-            text-align: center;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
-            border: 1px solid #fff;
-        }
-        .map-point.draggable .drag-handle {
-            display: block;
-        }
-        .map-point.dragging {
-            z-index: 100;
-            box-shadow: 0 8px 30px rgba(160, 82, 74, .5);
-            transform: translate(-50%, -50%) scale(1.15);
-            transition: none;
-        }
-        .map-point:hover {
-            transform: translate(-50%, -50%) scale(1.15);
-            box-shadow: 0 4px 16px rgba(160, 82, 74, .4);
-            z-index: 20;
-        }
-        .map-point.active {
-            transform: translate(-50%, -50%) scale(1.15);
-            box-shadow: 0 4px 24px rgba(160, 82, 74, .5);
-        }
-        .route-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 16px;
-            justify-content: center;
-            margin: 10px 0 4px;
-            font-size: 13px;
-            color: #5a5a5a;
-            border-top: 1px dashed #e0dbd3;
-            padding-top: 12px;
-        }
-        .route-legend span {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .route-legend .dot {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            margin-right: 2px;
-        }
-        .route-hint {
-            text-align: center;
-            font-size: 13px;
-            color: #8a8a8a;
-            margin-top: 6px;
-        }
-        .route-hint span {
-            background: #e8e4de;
-            padding: 2px 12px;
-            border-radius: 30px;
-            display: inline-block;
-        }
-        #floating-card {
-            position: fixed;
-            z-index: 999;
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, .15);
-            padding: 20px 24px 24px;
-            width: 280px;
-            max-width: 85vw;
-            border: 1px solid #e8e4de;
-            transition: opacity .25s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(8px) scale(.96);
-        }
-        #floating-card.show {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0) scale(1);
-        }
-        #floating-card[data-pinned="true"] {
-            box-shadow: 0 12px 40px rgba(160, 82, 74, .2), 0 0 0 2px #a0524a;
-        }
-        #floating-card-close {
-            position: absolute;
-            top: 10px;
-            right: 14px;
-            font-size: 22px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #8a8a8a;
-            line-height: 1;
-            padding: 0 4px;
-        }
-        #floating-card-close:hover {
-            color: #4a4a4a;
-        }
-        #floating-card-img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            background: #f0ede8;
-        }
-        #floating-card-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #3a3a3a;
-            margin-bottom: 6px;
-        }
-        #floating-card-desc {
-            font-size: 14px;
-            color: #5a5a5a;
-            margin-bottom: 14px;
-            line-height: 1.5;
-        }
-        #floating-card-jump {
-            padding: 8px 24px;
-            border-radius: 30px;
-            border: none;
-            background: #4a6a7f;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background .2s ease;
-        }
-        #floating-card-jump:hover {
-            background: #3a5a6f;
-        }
-        .day-group {
-            position: relative;
-            scroll-margin-top: 60px;
-            margin-top: 22px;
-            border-radius: 18px;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
-            border: 1px solid #efedea;
-            overflow: visible;
-        }
-        .day-group .day-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 20px;
-            background: #fafaf8;
-            cursor: pointer;
-            user-select: none;
-            border-left: 5px solid #c0b0a8;
-            transition: background .2s ease, box-shadow .3s ease;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            will-change: transform;
-        }
-        .day-group .day-header:hover {
-            background: #f3f0ec;
-        }
-        .day-group .day-header.sticky {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
-            background: #fff;
-        }
-        .day-group.open .day-header {
-            border-left-color: #a0524a;
-            background: #f8f5f2;
-        }
-        .day-group.open .day-header.sticky {
-            background: #f8f5f2;
-        }
-        .day-group .day-header .title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #4a4a4a;
-        }
-        .day-group .day-header .title small {
-            font-weight: 400;
-            font-size: 15px;
-            color: #8a8a8a;
-            margin-left: 10px;
-        }
-        .day-group .day-header .arrow {
-            font-size: 32px;
-            color: #a0524a;
-            transition: transform .35s ease;
-            display: inline-block;
-            line-height: 1;
-        }
-        .day-group.open .day-header .arrow {
-            transform: rotate(180deg);
-        }
-        .day-group .day-header::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            right: 0;
-            height: 8px;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, .04), transparent);
-            opacity: 0;
-            transition: opacity .3s ease;
-            pointer-events: none;
-        }
-        .day-group .day-header.sticky::after {
-            opacity: 1;
-        }
-        .day-body {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            padding: 0 20px;
-            transition: max-height .5s cubic-bezier(.4, 0, .2, 1), opacity .4s ease, padding .3s ease;
-        }
-        .day-group.open .day-body {
-            max-height: 5000px;
-            opacity: 1;
-            padding: 6px 20px 24px;
-        }
-        .walk-badge {
-            display: inline-block;
-            background: #e8f0f5;
-            color: #4a6a7f;
-            font-size: 14px;
-            padding: 4px 18px;
-            border-radius: 30px;
-            margin: 10px 0 6px;
-            border: 1px solid #d4e0e8;
-            font-weight: 500;
-        }
-        .meal-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 16px;
-            background: #f9f6f2;
-            padding: 10px 16px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-        .meal-bar span {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .timeline {
-            position: relative;
-            padding-left: 32px;
-            margin: 10px 0 14px;
-        }
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 10px;
-            top: 6px;
-            bottom: 6px;
-            width: 2px;
-            background: #d0ccc4;
-        }
-        .timeline-item {
-            position: relative;
-            padding: 6px 0 6px 16px;
-            margin-bottom: 2px;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px 12px;
-        }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -22px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #a0524a;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 2px #a0524a;
-        }
-        .timeline-item.transport::before {
-            background: #4a6a7f;
-            box-shadow: 0 0 0 2px #4a6a7f;
-            width: 14px;
-            height: 14px;
-        }
-        .timeline-item .time {
-            font-weight: 600;
-            color: #4a6a7f;
-            font-size: 14px;
-            min-width: 80px;
-            flex-shrink: 0;
-        }
-        .timeline-item .activity {
-            font-size: 15px;
-            color: #3a3a3a;
-            flex: 1;
-            min-width: 120px;
-        }
-        .timeline-item .activity .tag {
-            font-size: 12px;
-            background: #e8e4de;
-            color: #6a6a6a;
-            padding: 0 10px;
-            border-radius: 20px;
-            margin-left: 6px;
-        }
-        .timeline-item .transport-icon {
-            font-size: 16px;
-            margin-right: 4px;
-        }
-        .timeline-item .admin-actions {
-            display: none;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-        .day-group.is-admin .timeline-item .admin-actions {
-            display: flex;
-        }
-        .admin-actions .btn-sm {
-            padding: 2px 8px;
-            border-radius: 20px;
-            border: 1px solid #ddd9d2;
-            background: #f5f3f0;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all .2s ease;
-        }
-        .admin-actions .btn-sm:hover {
-            background: #ede8e0;
-        }
-        .admin-actions .btn-sm.primary {
-            background: #4a6a7f;
-            border-color: #4a6a7f;
-            color: #fff;
-        }
-        .admin-actions .btn-sm.primary:hover {
-            background: #3a5a6f;
-        }
-        .admin-actions .btn-sm.danger {
-            background: #a0524a;
-            border-color: #a0524a;
-            color: #fff;
-        }
-        .admin-actions .btn-sm.danger:hover {
-            background: #8a423a;
-        }
-        .alternatives-block {
-            background: #f5f2ef;
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin: 6px 0 12px;
-            font-size: 13px;
-            border-left: 3px solid #a0524a;
-        }
-        .alternatives-block .alt-item {
-            padding: 2px 0;
-            color: #5a5a5a;
-        }
-        .alternatives-block .alt-item strong {
-            color: #4a6a7f;
-        }
-        .place-card {
-            background: #f9f8f6;
-            border-radius: 16px;
-            padding: 16px 18px 18px;
-            margin-top: 16px;
-            border: 1px solid #efedea;
-            transition: box-shadow .2s ease, background .2s ease, opacity .6s ease, transform .6s ease;
-            opacity: 0;
-            transform: translateY(30px);
-            scroll-margin-top: 20px;
-            position: relative;
-            overflow: visible;
-        }
-        .place-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .place-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .04);
-            background: #fcfbf9;
-        }
-        .place-card .place-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #3a3a3a;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px 12px;
-            margin-bottom: 4px;
-            position: relative;
-            z-index: 1;
-        }
-        .place-card .place-name .tag {
-            font-size: 12px;
-            background: #e8e4de;
-            color: #6a6a6a;
-            padding: 0 12px;
-            border-radius: 20px;
-            font-weight: 400;
-        }
-        .place-card .place-name .time-badge {
-            font-size: 13px;
-            color: #4a6a7f;
-            font-weight: 500;
-            margin-left: auto;
-        }
-        .place-card .place-desc {
-            font-size: 15px;
-            color: #4a4a4a;
-            margin: 8px 0 10px;
-            position: relative;
-            z-index: 1;
-        }
-        .place-card .meta {
-            font-size: 14px;
-            color: #6a6a6a;
-            background: #f0eee9;
-            padding: 6px 14px;
-            border-radius: 30px;
-            margin-bottom: 12px;
-            display: inline-block;
-            border: 1px solid #e6e2db;
-            position: relative;
-            z-index: 1;
-        }
-        .place-card .remark {
-            font-size: 13px;
-            color: #a0524a;
-            background: #f9f0ec;
-            padding: 4px 14px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-        .place-image {
-            width: 100%;
-            aspect-ratio: 16 / 10;
-            max-height: 400px;
-            background: #e8e4de;
-            border-radius: 14px;
-            margin: 6px 0 12px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #e0dbd3;
-            position: relative;
-            z-index: 1;
-        }
-        .place-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            background: #f6f4f1;
-        }
-        .place-image .placeholder-text {
-            color: #9a9a9a;
-            font-size: 14px;
-            text-align: center;
-            background: #e8e4de;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        .place-image .placeholder-text span {
-            font-size: 32px;
-            margin-bottom: 4px;
-        }
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px 12px;
-            margin-top: 8px;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 22px;
-            border-radius: 40px;
-            font-size: 15px;
-            font-weight: 500;
-            text-decoration: none;
-            background: #edebe7;
-            color: #4a4a4a;
-            border: 1px solid #ddd9d2;
-            transition: all .2s ease;
-            cursor: pointer;
-            min-height: 44px;
-            line-height: 1.2;
-            letter-spacing: .4px;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0, 0, 0, .06);
-        }
-        .btn-nav {
-            background: #4a6a7f;
-            border-color: #4a6a7f;
-            color: #fff;
-        }
-        .btn-nav:hover {
-            background: #3a5a6f;
-            border-color: #3a5a6f;
-        }
-        .btn-dp {
-            background: #f0ede8;
-            border-color: #ccc6bd;
-            color: #4a4a4a;
-        }
-        .btn-dp:hover {
-            background: #e5e0d8;
-        }
-        .btn-mt {
-            background: #f0f0e8;
-            border-color: #c8c8b8;
-            color: #4a4a4a;
-        }
-        .btn-mt:hover {
-            background: #e5e5d8;
-        }
-        .btn-dy {
-            background: #f0e8f0;
-            border-color: #c8b8d0;
-            color: #4a3a5a;
-        }
-        .btn-dy:hover {
-            background: #e5dce8;
-        }
-        .rest-note {
-            margin-top: 14px;
-            font-size: 14px;
-            color: #7a7a7a;
-            background: #f0ede8;
-            padding: 12px 16px;
-            border-radius: 14px;
-            border-left: 3px solid #c0b0a8;
-        }
-        .footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 13px;
-            color: #b0aaa2;
-            border-top: 1px solid #e8e4de;
-            padding-top: 22px;
-        }
-        #admin-panel {
-            margin-top: 20px;
-            padding: 16px;
-            background: #f5f2ef;
-            border-radius: 16px;
-            border: 1px solid #e0dbd3;
-        }
-        #admin-panel .admin-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        #admin-panel .admin-row .btn-ctrl {
-            padding: 8px 20px;
-            border-radius: 30px;
-            border: 1px solid #c0b0a8;
-            background: #f0ede8;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all .2s ease;
-        }
-        #admin-panel .admin-row .btn-ctrl:hover {
-            background: #e5e0d8;
-        }
-        #admin-panel .admin-row input {
-            padding: 8px 14px;
-            border-radius: 30px;
-            border: 1px solid #ddd9d2;
-            font-size: 14px;
-            width: 160px;
-            background: #fff;
-        }
-        #admin-panel .admin-row .btn-login {
-            padding: 8px 20px;
-            border-radius: 30px;
-            border: none;
-            background: #4a6a7f;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background .2s;
-        }
-        #admin-panel .admin-row .btn-login:hover {
-            background: #3a5a6f;
-        }
-        #admin-panel .admin-row .status {
-            font-size: 13px;
-            color: #a0524a;
-        }
-        #admin-panel .admin-row .edit-area {
-            display: none;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-        #admin-panel .admin-row .edit-area .badge {
-            font-size: 13px;
-            color: #4a6a7f;
-        }
-        #admin-panel .save-hint {
-            font-size: 12px;
-            color: #8a8a8a;
-            margin-top: 4px;
-            display: none;
-        }
-        #admin-panel .save-hint.show {
-            display: block;
-        }
-        #back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 24px;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: #fafaf8;
-            border: 1px solid #ddd9d2;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
-            color: #4a6a7f;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity .3s ease, transform .3s ease, visibility .3s ease;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(16px);
-            z-index: 999;
-            user-select: none;
-            padding: 0;
-            line-height: 1;
-        }
-        #back-to-top.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        #back-to-top:hover {
-            background: #f5f3f0;
-            transform: translateY(-4px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .10);
-        }
-        .editable {
-            cursor: pointer;
-            transition: background .2s ease;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .editable:hover {
-            background: rgba(74, 106, 127, .08);
-        }
-        .editable-input {
-            border: 1px solid #4a6a7f;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: inherit;
-            font-family: inherit;
-            background: #fff;
-            width: auto;
-            min-width: 60px;
-        }
-        .editable-input:focus {
-            outline: 2px solid #4a6a7f;
-            outline-offset: 1px;
-        }
-        .inline-edit {
-            display: inline-block;
-            min-width: 40px;
-        }
-        @media (min-width:768px) {
+        /* ============================================================
+           CSS Layers - 分层管理
+           ============================================================ */
+        @layer base, components, utilities, overrides;
+
+        /* ============================================================
+           Layer: base
+           ============================================================ */
+        @layer base {
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            :root {
+                --color-bg: #f0eeeb;
+                --color-surface: #fafaf8;
+                --color-text: #333;
+                --color-text-light: #6a6a6a;
+                --color-primary: #4a6a7f;
+                --color-primary-dark: #3a5a6f;
+                --color-accent: #a0524a;
+                --color-accent-light: #c06a5a;
+                --color-border: #e8e4de;
+                --color-shadow: rgba(0, 0, 0, 0.06);
+                --radius: 18px;
+                --radius-sm: 12px;
+                --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
             body {
-                padding: 30px 40px;
-                background: #eae8e4;
+                font-family: var(--font);
+                background-color: var(--color-bg);
+                color: var(--color-text);
+                padding: 20px 16px;
+                line-height: 1.6;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
             .app-container {
-                padding: 36px 40px 48px;
-                border-radius: 36px;
+                max-width: 900px;
+                width: 100%;
+                margin: 0 auto;
+                background-color: var(--color-surface);
+                border-radius: 28px;
+                padding: 24px 20px 40px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+                position: relative;
+                margin-top: 8px;
             }
-            .place-image {
-                aspect-ratio: 16/9;
-                max-height: 500px;
+            #reading-progress-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 4px;
+                background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+                z-index: 9999;
+                transition: width 0.15s ease-out;
+                border-radius: 0 2px 2px 0;
             }
-            #back-to-top {
-                right: 40px;
-                bottom: 40px;
-                width: 56px;
-                height: 56px;
-                font-size: 26px;
-            }
-            .day-group .day-header .title {
-                font-size: 22px;
-            }
-            .day-group .day-header .title small {
-                font-size: 16px;
-            }
-        }
-        @media (max-width:420px) {
-            .app-container {
-                padding: 16px 12px 30px;
-                border-radius: 20px;
-            }
-            .day-header {
-                padding: 14px 14px;
-            }
-            .day-header .title {
-                font-size: 17px;
-            }
-            .day-header .title small {
-                font-size: 13px;
-                margin-left: 6px;
-            }
-            .day-body {
-                padding: 4px 14px 18px;
-            }
-            .place-card {
-                padding: 14px 14px 16px;
-            }
-            .place-card .place-name {
-                font-size: 16px;
-            }
-            .btn {
-                font-size: 13px;
-                padding: 6px 14px;
-                min-height: 38px;
-            }
-            .place-image {
-                aspect-ratio: 4/3;
-                max-height: 200px;
+            .header {
+                text-align: center;
+                padding-bottom: 20px;
+                border-bottom: 2px solid var(--color-border);
+                margin-bottom: 8px;
             }
             .header h1 {
-                font-size: 22px;
+                font-size: 28px;
+                font-weight: 600;
+                color: #4a4a4a;
+                letter-spacing: 1.5px;
+            }
+            .header .sub {
+                font-size: 15px;
+                color: #8a8a8a;
+                margin-top: 4px;
+            }
+            .header .family-tag {
+                display: inline-block;
+                margin-top: 10px;
+                padding: 5px 20px;
+                background-color: var(--color-border);
+                border-radius: 30px;
+                font-size: 14px;
+                color: #5a5a5a;
+            }
+            .footer {
+                margin-top: 40px;
+                text-align: center;
+                font-size: 13px;
+                color: #b0aaa2;
+                border-top: 1px solid var(--color-border);
+                padding-top: 22px;
             }
             #back-to-top {
-                right: 16px;
-                bottom: 20px;
-                width: 46px;
-                height: 46px;
-                font-size: 20px;
+                position: fixed;
+                bottom: 30px;
+                right: 24px;
+                width: 52px;
+                height: 52px;
+                border-radius: 50%;
+                background: var(--color-surface);
+                border: 1px solid #ddd9d2;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+                color: var(--color-primary);
+                font-size: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(16px);
+                z-index: 999;
+                user-select: none;
+                padding: 0;
+                line-height: 1;
+            }
+            #back-to-top.show {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+            #back-to-top:hover {
+                background: #f5f3f0;
+                transform: translateY(-4px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+            }
+        }
+
+        /* ============================================================
+           Layer: components
+           ============================================================ */
+        @layer components {
+            /* ---- 控制栏 ---- */
+            .control-bar {
+                display: flex;
+                gap: 10px;
+                margin: 12px 0 8px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px 22px;
+                border-radius: 40px;
+                font-size: 15px;
+                font-weight: 500;
+                text-decoration: none;
+                background: #edebe7;
+                color: #4a4a4a;
+                border: 1px solid #ddd9d2;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                min-height: 44px;
+                line-height: 1.2;
+                letter-spacing: 0.4px;
+                position: relative;
+                overflow: hidden;
+            }
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+            }
+            .btn--primary {
+                background: var(--color-primary);
+                border-color: var(--color-primary);
+                color: #fff;
+            }
+            .btn--primary:hover {
+                background: var(--color-primary-dark);
+                border-color: var(--color-primary-dark);
+            }
+            .btn--danger {
+                background: var(--color-accent);
+                border-color: var(--color-accent);
+                color: #fff;
+            }
+            .btn--danger:hover {
+                background: #8a423a;
+                border-color: #8a423a;
+            }
+            .btn--nav {
+                background: var(--color-primary);
+                border-color: var(--color-primary);
+                color: #fff;
+            }
+            .btn--nav:hover {
+                background: var(--color-primary-dark);
+                border-color: var(--color-primary-dark);
+            }
+            .btn--small {
+                padding: 4px 12px;
+                font-size: 12px;
+                min-height: 30px;
+            }
+            .btn--ghost {
+                background: transparent;
+                border-color: transparent;
+                padding: 4px 8px;
+                min-height: 30px;
+                font-size: 12px;
+                color: #8a8a8a;
+            }
+            .btn--ghost:hover {
+                background: rgba(0, 0, 0, 0.04);
+                transform: none;
+                box-shadow: none;
+            }
+            .btn--mini {
+                padding: 2px 8px;
+                font-size: 11px;
+                min-height: 22px;
+                border-radius: 20px;
+                background: #f0ede8;
+                border: 1px solid #ddd9d2;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .btn--mini:hover {
+                background: #e5e0d8;
+            }
+            .btn--mini-primary {
+                background: var(--color-primary);
+                border-color: var(--color-primary);
+                color: #fff;
+            }
+            .btn--mini-primary:hover {
+                background: var(--color-primary-dark);
+            }
+            .btn--mini-danger {
+                background: var(--color-accent);
+                border-color: var(--color-accent);
+                color: #fff;
+            }
+            .btn--mini-danger:hover {
+                background: #8a423a;
+            }
+
+            /* ---- 路线总览 ---- */
+            .overview-group {
+                margin-top: 16px;
+                border-radius: var(--radius);
+                background: #fff;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+                overflow: hidden;
+                border: 1px solid var(--color-border);
+            }
+            .overview-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 20px;
+                background: var(--color-surface);
+                cursor: pointer;
+                user-select: none;
+                border-left: 5px solid var(--color-primary);
+                transition: background 0.2s ease;
+            }
+            .overview-header:hover {
+                background: #f0f4f6;
+            }
+            .overview-header .title {
+                font-size: 19px;
+                font-weight: 600;
+                color: #4a4a4a;
+            }
+            .overview-header .title small {
+                font-weight: 400;
+                font-size: 14px;
+                color: #8a8a8a;
+                margin-left: 10px;
+            }
+            .overview-header .arrow {
+                font-size: 32px;
+                color: var(--color-primary);
+                transition: transform 0.35s ease;
+                display: inline-block;
+                line-height: 1;
+            }
+            .overview-group.open .overview-header {
+                border-left-color: var(--color-accent);
+                background: #f5f2ef;
+            }
+            .overview-group.open .overview-header .arrow {
+                transform: rotate(180deg);
+            }
+            .overview-body {
+                display: none;
+                padding: 10px 20px 24px;
+                background: #fff;
+            }
+            .overview-group.open .overview-body {
+                display: block;
+            }
+
+            .tab-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            .tab-btn {
+                padding: 6px 16px;
+                border-radius: 30px;
+                border: 1px solid #ddd9d2;
+                background: #f5f3f0;
+                color: #6a6a6a;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .tab-btn:hover {
+                background: #ede8e0;
+            }
+            .tab-btn.active {
+                background: var(--color-primary);
+                border-color: var(--color-primary);
+                color: #fff;
+            }
+
+            .map-wrapper {
+                position: relative;
+                width: 100%;
+                border-radius: 14px;
+                overflow: hidden;
+                border: 1px solid var(--color-border);
+                background: #f6f4f1;
+                min-height: 200px;
+            }
+            .map-wrapper img {
+                width: 100%;
+                height: auto;
+                display: block;
             }
             .map-point {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
+                position: absolute;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: var(--color-accent);
+                color: #fff;
+                font-size: 14px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+                transform: translate(-50%, -50%);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                z-index: 10;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                user-select: none;
+            }
+            .map-point .drag-handle {
+                display: none;
+                position: absolute;
+                bottom: -6px;
+                right: -6px;
+                background: var(--color-primary);
+                border-radius: 50%;
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+                line-height: 16px;
+                text-align: center;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                border: 1px solid #fff;
+            }
+            .map-point.draggable .drag-handle {
+                display: block;
+            }
+            .map-point.dragging {
+                z-index: 100;
+                box-shadow: 0 8px 30px rgba(160, 82, 74, 0.5);
+                transform: translate(-50%, -50%) scale(1.15);
+                transition: none;
+            }
+            .map-point:hover {
+                transform: translate(-50%, -50%) scale(1.15);
+                box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
+                z-index: 20;
+            }
+            .map-point.active {
+                transform: translate(-50%, -50%) scale(1.15);
+                box-shadow: 0 4px 24px rgba(160, 82, 74, 0.5);
+            }
+
+            .route-legend {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 16px;
+                justify-content: center;
+                margin: 10px 0 4px;
+                font-size: 13px;
+                color: #5a5a5a;
+                border-top: 1px dashed #e0dbd3;
+                padding-top: 12px;
+            }
+            .route-legend span {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .route-legend .dot {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                margin-right: 2px;
+            }
+            .route-hint {
+                text-align: center;
+                font-size: 13px;
+                color: #8a8a8a;
+                margin-top: 6px;
+            }
+            .route-hint span {
+                background: var(--color-border);
+                padding: 2px 12px;
+                border-radius: 30px;
+                display: inline-block;
+            }
+
+            /* ---- 悬浮卡片 ---- */
+            #floating-card {
+                position: fixed;
+                z-index: 999;
+                background: #fff;
+                border-radius: var(--radius);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+                padding: 20px 24px 24px;
+                width: 280px;
+                max-width: 85vw;
+                border: 1px solid var(--color-border);
+                transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(8px) scale(0.96);
+            }
+            #floating-card.show {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateY(0) scale(1);
+            }
+            #floating-card[data-pinned="true"] {
+                box-shadow: 0 12px 40px rgba(160, 82, 74, 0.2), 0 0 0 2px var(--color-accent);
+            }
+            #floating-card-close {
+                position: absolute;
+                top: 10px;
+                right: 14px;
+                font-size: 22px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #8a8a8a;
+                line-height: 1;
+                padding: 0 4px;
+            }
+            #floating-card-close:hover {
+                color: #4a4a4a;
+            }
+            #floating-card-img {
+                width: 100%;
+                height: 140px;
+                object-fit: cover;
+                border-radius: var(--radius-sm);
+                margin-bottom: 12px;
+                background: #f0ede8;
+            }
+            #floating-card-name {
+                font-size: 18px;
+                font-weight: 600;
+                color: #3a3a3a;
+                margin-bottom: 6px;
+            }
+            #floating-card-desc {
+                font-size: 14px;
+                color: #5a5a5a;
+                margin-bottom: 14px;
+                line-height: 1.5;
+            }
+            #floating-card-jump {
+                padding: 8px 24px;
+                border-radius: 30px;
+                border: none;
+                background: var(--color-primary);
+                color: #fff;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+            #floating-card-jump:hover {
+                background: var(--color-primary-dark);
+            }
+
+            /* ---- Day Group ---- */
+            .day-group {
+                position: relative;
+                scroll-margin-top: 60px;
+                margin-top: 22px;
+                border-radius: var(--radius);
+                background: #fff;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+                border: 1px solid var(--color-border);
+                overflow: visible;
+            }
+            .day-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 18px 20px;
+                background: var(--color-surface);
+                cursor: pointer;
+                user-select: none;
+                border-left: 5px solid #c0b0a8;
+                transition: background 0.2s ease, box-shadow 0.3s ease;
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                will-change: transform;
+            }
+            .day-header:hover {
+                background: #f3f0ec;
+            }
+            .day-header.sticky {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                background: #fff;
+            }
+            .day-group.open .day-header {
+                border-left-color: var(--color-accent);
+                background: #f8f5f2;
+            }
+            .day-group.open .day-header.sticky {
+                background: #f8f5f2;
+            }
+            .day-header .title {
+                font-size: 20px;
+                font-weight: 600;
+                color: #4a4a4a;
+            }
+            .day-header .title small {
+                font-weight: 400;
+                font-size: 15px;
+                color: #8a8a8a;
+                margin-left: 10px;
+            }
+            .day-header .arrow {
+                font-size: 32px;
+                color: var(--color-accent);
+                transition: transform 0.35s ease;
+                display: inline-block;
+                line-height: 1;
+            }
+            .day-group.open .day-header .arrow {
+                transform: rotate(180deg);
+            }
+            .day-header::after {
+                content: '';
+                position: absolute;
+                bottom: -8px;
+                left: 0;
+                right: 0;
+                height: 8px;
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.04), transparent);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+            .day-header.sticky::after {
+                opacity: 1;
+            }
+
+            .day-body {
+                max-height: 0;
+                overflow: hidden;
+                opacity: 0;
+                padding: 0 20px;
+                transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, padding 0.3s ease;
+            }
+            .day-group.open .day-body {
+                max-height: 5000px;
+                opacity: 1;
+                padding: 6px 20px 24px;
+            }
+
+            /* ---- 时间轴 ---- */
+            .timeline {
+                position: relative;
+                padding-left: 32px;
+                margin: 10px 0 14px;
+            }
+            .timeline::before {
+                content: '';
+                position: absolute;
+                left: 10px;
+                top: 6px;
+                bottom: 6px;
+                width: 2px;
+                background: #d0ccc4;
+            }
+            .timeline-item {
+                position: relative;
+                padding: 4px 0 4px 16px;
+                margin-bottom: 1px;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 4px 12px;
+                min-height: 32px;
+            }
+            .timeline-item::before {
+                content: '';
+                position: absolute;
+                left: -22px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: var(--color-accent);
+                border: 2px solid #fff;
+                box-shadow: 0 0 0 2px var(--color-accent);
+            }
+            .timeline-item--transport::before {
+                background: var(--color-primary);
+                box-shadow: 0 0 0 2px var(--color-primary);
+                width: 14px;
+                height: 14px;
             }
             .timeline-item .time {
-                min-width: 55px;
-                font-size: 13px;
+                font-weight: 600;
+                color: var(--color-primary);
+                font-size: 14px;
+                min-width: 80px;
+                flex-shrink: 0;
             }
             .timeline-item .activity {
+                font-size: 15px;
+                color: #3a3a3a;
+                flex: 1;
+                min-width: 120px;
+            }
+            .timeline-item .activity .tag {
+                font-size: 12px;
+                background: var(--color-border);
+                color: #6a6a6a;
+                padding: 0 10px;
+                border-radius: 20px;
+                margin-left: 6px;
+            }
+            .timeline-item .admin-actions {
+                display: none;
+                gap: 4px;
+                flex-shrink: 0;
+            }
+            .day-group.is-admin .timeline-item .admin-actions {
+                display: flex;
+            }
+            .day-group.is-admin .timeline-item .admin-actions .btn--mini {
+                background: #f0ede8;
+                border: 1px solid #ddd9d2;
+                font-size: 11px;
+                padding: 1px 8px;
+                min-height: 22px;
+                border-radius: 20px;
+                cursor: pointer;
+            }
+            .day-group.is-admin .timeline-item .admin-actions .btn--mini:hover {
+                background: #e5e0d8;
+            }
+
+            /* ---- 景点卡片 ---- */
+            .place-card {
+                background: #f9f8f6;
+                border-radius: 16px;
+                padding: 16px 18px 18px;
+                margin-top: 16px;
+                border: 1px solid var(--color-border);
+                transition: box-shadow 0.2s ease, background 0.2s ease, opacity 0.6s ease, transform 0.6s ease;
+                opacity: 0;
+                transform: translateY(30px);
+                scroll-margin-top: 20px;
+                position: relative;
+                overflow: visible;
+            }
+            .place-card.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .place-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+                background: #fcfbf9;
+            }
+            .place-card .place-name {
+                font-size: 18px;
+                font-weight: 600;
+                color: #3a3a3a;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 8px 12px;
+                margin-bottom: 4px;
+                position: relative;
+                z-index: 1;
+            }
+            .place-card .place-name .tag {
+                font-size: 12px;
+                background: var(--color-border);
+                color: #6a6a6a;
+                padding: 0 12px;
+                border-radius: 20px;
+                font-weight: 400;
+            }
+            .place-card .place-name .time-badge {
+                font-size: 13px;
+                color: var(--color-primary);
+                font-weight: 500;
+                margin-left: auto;
+            }
+            .place-card .place-desc {
+                font-size: 15px;
+                color: #4a4a4a;
+                margin: 8px 0 10px;
+                position: relative;
+                z-index: 1;
+            }
+            .place-card .meta {
                 font-size: 14px;
+                color: #6a6a6a;
+                background: #f0eee9;
+                padding: 6px 14px;
+                border-radius: 30px;
+                margin-bottom: 12px;
+                display: inline-block;
+                border: 1px solid #e6e2db;
+                position: relative;
+                z-index: 1;
+            }
+            .place-card .remark {
+                font-size: 13px;
+                color: var(--color-accent);
+                background: #f9f0ec;
+                padding: 4px 14px;
+                border-radius: 20px;
+                display: inline-block;
+                margin-bottom: 8px;
+            }
+            /* ---- 交通卡片（紧凑版） ---- */
+            .place-card--transport {
+                padding: 10px 16px;
+                background: #f5f7fa;
+                border-color: #dce1e8;
+                margin-top: 12px;
+            }
+            .place-card--transport .place-name {
+                font-size: 15px;
+                gap: 4px 8px;
+            }
+            .place-card--transport .place-name .tag {
+                font-size: 11px;
+                background: #dce1e8;
+                color: #4a5a6a;
+            }
+            .place-card--transport .place-desc {
+                font-size: 13px;
+                margin: 4px 0 6px;
+                color: #4a5a6a;
+            }
+            .place-card--transport .place-image {
+                display: none;
+            }
+            .place-card--transport .btn-group {
+                margin-top: 4px;
+                gap: 6px;
+            }
+            .place-card--transport .btn {
+                padding: 4px 14px;
+                font-size: 13px;
+                min-height: 32px;
+            }
+            .place-card--transport .meta {
+                font-size: 12px;
+                padding: 2px 12px;
+                margin-bottom: 6px;
+            }
+
+            .place-image {
+                width: 100%;
+                aspect-ratio: 16 / 10;
+                max-height: 400px;
+                background: #e8e4de;
+                border-radius: 14px;
+                margin: 6px 0 12px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #e0dbd3;
+                position: relative;
+                z-index: 1;
+            }
+            .place-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+                background: #f6f4f1;
+            }
+            .place-image .placeholder-text {
+                color: #9a9a9a;
+                font-size: 14px;
+                text-align: center;
+                background: #e8e4de;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            }
+            .place-image .placeholder-text span {
+                font-size: 32px;
+                margin-bottom: 4px;
+            }
+            .btn-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px 12px;
+                margin-top: 8px;
+                align-items: center;
+                position: relative;
+                z-index: 1;
+            }
+            .btn-group .btn {
+                font-size: 14px;
+                padding: 6px 16px;
+                min-height: 38px;
+            }
+
+            /* ---- 其他 ---- */
+            .walk-badge {
+                display: inline-block;
+                background: #e8f0f5;
+                color: var(--color-primary);
+                font-size: 14px;
+                padding: 4px 18px;
+                border-radius: 30px;
+                margin: 10px 0 6px;
+                border: 1px solid #d4e0e8;
+                font-weight: 500;
+            }
+            .meal-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 16px;
+                background: #f9f6f2;
+                padding: 10px 16px;
+                border-radius: var(--radius-sm);
+                margin-bottom: 12px;
+                font-size: 14px;
+            }
+            .meal-bar span {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .alternatives-block {
+                background: #f5f2ef;
+                border-radius: var(--radius-sm);
+                padding: 10px 14px;
+                margin: 6px 0 12px;
+                font-size: 13px;
+                border-left: 3px solid var(--color-accent);
+            }
+            .alternatives-block .alt-item {
+                padding: 2px 0;
+                color: #5a5a5a;
+            }
+            .alternatives-block .alt-item strong {
+                color: var(--color-primary);
+            }
+            .rest-note {
+                margin-top: 14px;
+                font-size: 14px;
+                color: #7a7a7a;
+                background: #f0ede8;
+                padding: 12px 16px;
+                border-radius: 14px;
+                border-left: 3px solid #c0b0a8;
+            }
+
+            /* ---- Admin Panel ---- */
+            #admin-panel {
+                margin-top: 20px;
+                padding: 16px;
+                background: #f5f2ef;
+                border-radius: 16px;
+                border: 1px solid #e0dbd3;
+            }
+            .admin-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .admin-row .btn {
+                font-size: 14px;
+                padding: 8px 20px;
+                min-height: 40px;
+                background: #f0ede8;
+                border-color: #c0b0a8;
+            }
+            .admin-row .btn:hover {
+                background: #e5e0d8;
+            }
+            .admin-row input[type="password"] {
+                padding: 8px 14px;
+                border-radius: 30px;
+                border: 1px solid #ddd9d2;
+                font-size: 14px;
+                width: 160px;
+                background: #fff;
+            }
+            .admin-row .status {
+                font-size: 13px;
+                color: var(--color-accent);
+            }
+            .admin-row .edit-area {
+                display: none;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+            }
+            .admin-row .edit-area .badge {
+                font-size: 13px;
+                color: var(--color-primary);
+            }
+            .save-hint {
+                font-size: 12px;
+                color: #8a8a8a;
+                margin-top: 4px;
+                display: none;
+            }
+            .save-hint.show {
+                display: block;
+            }
+
+            /* ---- 内联编辑 ---- */
+            .editable {
+                cursor: pointer;
+                transition: background 0.2s ease;
+                padding: 2px 4px;
+                border-radius: 4px;
+            }
+            .editable:hover {
+                background: rgba(74, 106, 127, 0.08);
+            }
+            .editable-input {
+                border: 1px solid var(--color-primary);
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: inherit;
+                font-family: inherit;
+                background: #fff;
+                width: auto;
+                min-width: 60px;
+            }
+            .editable-input:focus {
+                outline: 2px solid var(--color-primary);
+                outline-offset: 1px;
+            }
+
+            /* ---- 特殊：交通在两个圆点之间 ---- */
+            .timeline-item--transport-inline {
+                position: relative;
+                padding: 2px 0 2px 16px;
+                margin-left: 0;
+                display: flex;
+                align-items: center;
+                gap: 6px 12px;
+                font-size: 13px;
+                color: #4a6a7f;
+                background: transparent;
+            }
+            .timeline-item--transport-inline::before {
+                content: '';
+                position: absolute;
+                left: -22px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--color-primary);
+                border: 1px solid #fff;
+                box-shadow: 0 0 0 1px var(--color-primary);
+            }
+            .timeline-item--transport-inline .transport-text {
+                font-size: 13px;
+                color: #4a6a7f;
+                font-weight: 500;
+            }
+        }
+
+        /* ============================================================
+           Layer: utilities
+           ============================================================ */
+        @layer utilities {
+            .flex { display: flex; }
+            .flex-wrap { flex-wrap: wrap; }
+            .gap-1 { gap: 4px; }
+            .gap-2 { gap: 8px; }
+            .gap-3 { gap: 12px; }
+            .items-center { align-items: center; }
+            .mt-1 { margin-top: 4px; }
+            .mt-2 { margin-top: 8px; }
+            .mt-3 { margin-top: 12px; }
+            .mb-1 { margin-bottom: 4px; }
+            .mb-2 { margin-bottom: 8px; }
+            .text-sm { font-size: 13px; }
+            .text-xs { font-size: 11px; }
+            .text-muted { color: #8a8a8a; }
+            .text-primary { color: var(--color-primary); }
+            .text-accent { color: var(--color-accent); }
+            .bg-surface { background: var(--color-surface); }
+            .rounded { border-radius: var(--radius-sm); }
+        }
+
+        /* ============================================================
+           Layer: overrides (响应式)
+           ============================================================ */
+        @layer overrides {
+            @media (min-width: 768px) {
+                body {
+                    padding: 30px 40px;
+                    background: #eae8e4;
+                }
+                .app-container {
+                    padding: 36px 40px 48px;
+                    border-radius: 36px;
+                }
+                .place-image {
+                    aspect-ratio: 16/9;
+                    max-height: 500px;
+                }
+                #back-to-top {
+                    right: 40px;
+                    bottom: 40px;
+                    width: 56px;
+                    height: 56px;
+                    font-size: 26px;
+                }
+                .day-header .title {
+                    font-size: 22px;
+                }
+                .day-header .title small {
+                    font-size: 16px;
+                }
+            }
+            @media (max-width: 420px) {
+                .app-container {
+                    padding: 16px 12px 30px;
+                    border-radius: 20px;
+                }
+                .day-header {
+                    padding: 14px 14px;
+                }
+                .day-header .title {
+                    font-size: 17px;
+                }
+                .day-header .title small {
+                    font-size: 13px;
+                    margin-left: 6px;
+                }
+                .day-body {
+                    padding: 4px 14px 18px;
+                }
+                .place-card {
+                    padding: 14px 14px 16px;
+                }
+                .place-card .place-name {
+                    font-size: 16px;
+                }
+                .btn {
+                    font-size: 13px;
+                    padding: 6px 14px;
+                    min-height: 38px;
+                }
+                .place-image {
+                    aspect-ratio: 4/3;
+                    max-height: 200px;
+                }
+                .header h1 {
+                    font-size: 22px;
+                }
+                #back-to-top {
+                    right: 16px;
+                    bottom: 20px;
+                    width: 46px;
+                    height: 46px;
+                    font-size: 20px;
+                }
+                .map-point {
+                    width: 28px;
+                    height: 28px;
+                    font-size: 12px;
+                }
+                .timeline-item .time {
+                    min-width: 55px;
+                    font-size: 13px;
+                }
+                .timeline-item .activity {
+                    font-size: 14px;
+                }
+                .admin-row input[type="password"] {
+                    width: 120px;
+                }
             }
         }
     </style>
 </head>
 <body>
 
+    <!-- ============================================================
+    进度条 & 返回顶部
+    ============================================================ -->
     <div id="reading-progress-bar"></div>
-    <button id="back-to-top">↑</button>
+    <button id="back-to-top" aria-label="返回顶部">↑</button>
 
+    <!-- ============================================================
+    悬浮卡片
+    ============================================================ -->
     <div id="floating-card" style="display:none;">
         <div id="floating-card-content">
             <button id="floating-card-close">×</button>
@@ -1019,6 +1161,9 @@
         </div>
     </div>
 
+    <!-- ============================================================
+    应用容器
+    ============================================================ -->
     <div class="app-container" id="app">
         <header class="header">
             <h1>🏠 重庆-丰都家庭游</h1>
@@ -1026,8 +1171,9 @@
             <div class="family-tag">👨‍👩‍👧‍👦 含老人 · 儿童 · 中年人 · 青年</div>
         </header>
 
+        <!-- 路线总览 -->
         <div class="overview-group open" id="overview-group">
-            <div class="overview-header" onclick="window.toggleOverview(this)">
+            <div class="overview-header" id="overview-toggle">
                 <span class="title">🗺️ 路线总览 <small>点击标签切换天数</small></span>
                 <span class="arrow">▾</span>
             </div>
@@ -1039,25 +1185,28 @@
             </div>
         </div>
 
-        <div id="control-bar">
-            <button class="btn-ctrl" id="expand-all-btn">📂 全部展开</button>
-            <button class="btn-ctrl" id="collapse-all-btn">📁 全部收起</button>
+        <!-- 控制栏 -->
+        <div class="control-bar">
+            <button class="btn" id="expand-all-btn">📂 全部展开</button>
+            <button class="btn" id="collapse-all-btn">📁 全部收起</button>
         </div>
 
+        <!-- 行程列表 -->
         <div id="day-groups-container"></div>
 
+        <!-- 管理面板 -->
         <div id="admin-panel">
             <div class="admin-row">
-                <button class="btn-ctrl" id="admin-toggle-btn">🔧 修改模式</button>
+                <button class="btn" id="admin-toggle-btn">🔧 修改模式</button>
                 <div id="admin-login-area" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                     <input type="password" id="admin-password-input" placeholder="请输入密码">
-                    <button class="btn-login" id="admin-login-btn">验证</button>
+                    <button class="btn" id="admin-login-btn">验证</button>
                     <span class="status" id="admin-login-status"></span>
                 </div>
                 <div class="edit-area" id="admin-edit-area">
                     <span class="badge">✅ 已进入修改模式</span>
-                    <button class="btn-ctrl btn-primary" id="admin-add-day-btn">➕ 新增一天</button>
-                    <button class="btn-ctrl btn-primary" id="admin-save-btn" style="background:#a0524a;border-color:#a0524a;color:#fff;">💾 保存修改</button>
+                    <button class="btn" id="admin-add-day-btn">➕ 新增一天</button>
+                    <button class="btn" id="admin-save-btn" style="background:var(--color-accent);border-color:var(--color-accent);color:#fff;">💾 保存修改</button>
                 </div>
             </div>
             <div class="save-hint" id="admin-save-hint">修改完后记得按「保存修改」</div>
@@ -1066,382 +1215,63 @@
         <div class="footer">📅 行程仅供参考 · 以实际开放时间为准 · 祝旅途愉快</div>
     </div>
 
-    <script>
+    <!-- ============================================================
+    Template 定义
+    ============================================================ -->
+    <template id="tmpl-timeline-item">
+        <div class="timeline-item">
+            <span class="time"></span>
+            <span class="activity"></span>
+            <span class="admin-actions"></span>
+        </div>
+    </template>
+
+    <template id="tmpl-place-card">
+        <div class="place-card">
+            <div class="place-name"></div>
+            <div class="place-image"></div>
+            <div class="place-desc"></div>
+            <div class="meta"></div>
+            <div class="remark"></div>
+            <div class="alternatives-block"></div>
+            <div class="btn-group"></div>
+        </div>
+    </template>
+
+    <template id="tmpl-place-card-transport">
+        <div class="place-card place-card--transport">
+            <div class="place-name"></div>
+            <div class="place-desc"></div>
+            <div class="meta"></div>
+            <div class="btn-group"></div>
+        </div>
+    </template>
+
+    <template id="tmpl-map-point">
+        <div class="map-point"></div>
+    </template>
+
+    <!-- ============================================================
+    JavaScript - 模块化单文件架构
+    ============================================================ -->
+    <script type="module">
         // ============================================================
-        // 完整 JavaScript
+        // 模块 1: 常量与配置
         // ============================================================
-
-        const GITHUB_IMAGE_BASE = 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main';
-        const MAP_IMAGE_BASE = GITHUB_IMAGE_BASE + '/maps';
-
-        let allDaysData = [];
-        let currentTab = 1;
-        let isAdminMode = false;
-        let floatingCardPinned = false;
-        let floatingCardData = null;
-        let hideTimeout = null;
-        let isHovering = false;
-        let editedData = {};
-        let dragState = null;
-
-        const floatingCard = document.getElementById('floating-card');
-        const floatingCardClose = document.getElementById('floating-card-close');
-        const floatingCardImg = document.getElementById('floating-card-img');
-        const floatingCardName = document.getElementById('floating-card-name');
-        const floatingCardDesc = document.getElementById('floating-card-desc');
-        const floatingCardJump = document.getElementById('floating-card-jump');
-
-        // ---- 数据加载 ----
-        async function loadItineraryData() {
-            try {
-                const response = await fetch('/api/itinerary');
-                if (!response.ok) throw new Error('API error: ' + response.status);
-                const data = await response.json();
-                allDaysData = data;
-                return data;
-            } catch (error) {
-                console.error('加载行程数据失败:', error);
-                return null;
-            }
-        }
-
-        // ---- 渲染总览 ----
-        function renderOverview() {
-            const tabBar = document.getElementById('tab-bar');
-            tabBar.innerHTML = '';
-            const days = allDaysData.length > 0 ? allDaysData : [];
-            if (days.length === 0) {
-                tabBar.innerHTML = '<span style="color:#8a8a8a;font-size:14px;">暂无行程数据</span>';
-                document.getElementById('overview-maps').innerHTML = '';
-                document.getElementById('route-legend').innerHTML = '';
-                return;
-            }
-            days.forEach((day) => {
-                const btn = document.createElement('button');
-                btn.className = 'tab-btn' + (day.day === currentTab ? ' active' : '');
-                btn.dataset.day = day.day;
-                btn.textContent = 'Day ' + day.day;
-                btn.onclick = () => switchTab(day.day);
-                tabBar.appendChild(btn);
-            });
-            renderMap(currentTab);
-            renderLegend(days);
-        }
-
-        function renderLegend(days) {
-            const legend = document.getElementById('route-legend');
-            legend.innerHTML = '';
-            const colors = ['#4a6a7f', '#6a7f8a', '#8a7a6a', '#9a8a7a', '#b0a090', '#a0524a'];
-            days.forEach((day, idx) => {
-                const span = document.createElement('span');
-                span.innerHTML =
-                    `<span class="dot" style="background:${colors[idx % colors.length]};"></span> Day ${day.day}`;
-                legend.appendChild(span);
-            });
-        }
-
-        function renderMap(day) {
-            const container = document.getElementById('overview-maps');
-            const dayData = allDaysData.find(d => d.day === day);
-            const imgUrl = MAP_IMAGE_BASE + '/day' + day + '_overview.png';
-
-            let html = `<div class="map-wrapper" id="map-wrapper-${day}">`;
-            html += `<img src="${imgUrl}" alt="Day ${day} 路线图" 
-                        onerror="this.style.display='none'; document.getElementById('map-error-${day}').style.display='flex';" />`;
-            html += `<div id="map-error-${day}" style="display:none; height:300px; align-items:center; justify-content:center; color:#8a8a8a; background:#f6f4f1; border-radius:14px; flex-direction:column; gap:8px;">
-                        <span>🖼️ 图片加载失败</span>
-                        <span style="font-size:13px;">请确认 maps/day${day}_overview.png 已上传</span>
-                     </div>`;
-
-            if (dayData && dayData.places && dayData.places.length > 0) {
-                dayData.places.forEach((place, idx) => {
-                    const x = place.map_x || (10 + (idx / Math.max(dayData.places.length - 1, 1)) * 80);
-                    const y = place.map_y || (20 + (idx % 2) * 40 + 10);
-                    const isDraggable = isAdminMode ? 'draggable' : '';
-                    html += `<div class="map-point ${isDraggable}" 
-                                 style="left:${x}%; top:${y}%;" 
-                                 data-day="${day}" data-place-id="${place.id}" 
-                                 data-original-x="${x}" data-original-y="${y}"
-                                 onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
-                                 onmouseleave="onMapPointLeave()"
-                                 onclick="onMapPointClick(${day}, '${place.id}', this)">
-                                ${idx + 1}
-                                ${isAdminMode ? '<span class="drag-handle">⤡</span>' : ''}
-                            </div>`;
-                });
-            }
-
-            html += '</div>';
-            container.innerHTML = html;
-
-            if (isAdminMode) {
-                setupDragEvents(day);
-            }
-        }
-
-        function setupDragEvents(day) {
-            const points = document.querySelectorAll(`#map-wrapper-${day} .map-point.draggable`);
-            points.forEach(point => {
-                point.addEventListener('mousedown', function(e) {
-                    if (!isAdminMode) return;
-                    e.preventDefault();
-                    startDrag(e, this);
-                });
-                point.addEventListener('touchstart', function(e) {
-                    if (!isAdminMode) return;
-                    e.preventDefault();
-                    startDrag(e, this);
-                }, { passive: false });
-            });
-        }
-
-        function startDrag(e, element) {
-            const wrapper = element.closest('.map-wrapper');
-            const wrapperRect = wrapper.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-            dragState = {
-                element: element,
-                wrapperRect: wrapperRect,
-                placeId: element.dataset.placeId,
-                day: parseInt(element.dataset.day)
-            };
-
-            element.classList.add('dragging');
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup', endDrag);
-            document.addEventListener('touchmove', onDrag, { passive: false });
-            document.addEventListener('touchend', endDrag);
-        }
-
-        function onDrag(e) {
-            if (!dragState) return;
-            e.preventDefault();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const rect = dragState.wrapperRect;
-            const x = ((clientX - rect.left) / rect.width) * 100;
-            const y = ((clientY - rect.top) / rect.height) * 100;
-            dragState.element.style.left = Math.max(0, Math.min(100, x)) + '%';
-            dragState.element.style.top = Math.max(0, Math.min(100, y)) + '%';
-        }
-
-        function endDrag() {
-            if (!dragState) return;
-            const element = dragState.element;
-            const placeId = dragState.placeId;
-            const day = dragState.day;
-            element.classList.remove('dragging');
-
-            const left = parseFloat(element.style.left);
-            const top = parseFloat(element.style.top);
-            const mapX = Math.round(left);
-            const mapY = Math.round(top);
-
-            const dayData = allDaysData.find(d => d.day === day);
-            if (dayData) {
-                const place = dayData.places.find(p => p.id == placeId);
-                if (place) {
-                    place.map_x = mapX;
-                    place.map_y = mapY;
-                }
-            }
-            editedData['place_' + placeId] = {
-                ...editedData['place_' + placeId],
-                map_x: mapX,
-                map_y: mapY
-            };
-
-            document.removeEventListener('mousemove', onDrag);
-            document.removeEventListener('mouseup', endDrag);
-            document.removeEventListener('touchmove', onDrag);
-            document.removeEventListener('touchend', endDrag);
-            dragState = null;
-        }
-
-        function switchTab(day) {
-            currentTab = day;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', parseInt(btn.dataset.day) === day);
-            });
-            renderMap(day);
-        }
-
-        // ---- 悬浮卡片 ----
-        function getPlaceById(day, placeId) {
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData || !dayData.places) return null;
-            return dayData.places.find(p => p.id == placeId);
-        }
-
-        function showFloatingCard(day, placeId, event, isPinned = false) {
-            const place = getPlaceById(day, placeId);
-            if (!place) return;
-            if (hideTimeout) { clearTimeout(hideTimeout);
-                hideTimeout = null; }
-
-            floatingCardData = { day, placeId };
-            floatingCardName.textContent = place.name;
-            floatingCardDesc.textContent = place.intro || '暂无介绍';
-
-            const imgName = getImageName(place.name);
-            if (imgName) {
-                floatingCardImg.src = GITHUB_IMAGE_BASE + '/' + imgName;
-                floatingCardImg.style.display = 'block';
-                floatingCardImg.onerror = () => { floatingCardImg.style.display = 'none'; };
-            } else {
-                floatingCardImg.style.display = 'none';
-            }
-
-            const rect = event.getBoundingClientRect();
-            let left = rect.left + rect.width / 2 - 140;
-            let top = rect.bottom + 12;
-            if (left < 10) left = 10;
-            if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
-            if (top + 300 > window.innerHeight - 10) { top = rect.top - 300 - 12; }
-
-            floatingCard.style.left = left + 'px';
-            floatingCard.style.top = top + 'px';
-            floatingCard.style.display = 'block';
-            floatingCardPinned = isPinned;
-            floatingCard.dataset.pinned = isPinned ? 'true' : 'false';
-
-            requestAnimationFrame(() => { floatingCard.classList.add('show'); });
-        }
-
-        function hideFloatingCard(immediate = false) {
-            if (floatingCardPinned) return;
-            if (hideTimeout) { clearTimeout(hideTimeout);
-                hideTimeout = null; }
-            const delay = immediate ? 0 : 300;
-            hideTimeout = setTimeout(() => {
-                if (!floatingCardPinned && !isHovering) {
-                    floatingCard.classList.remove('show');
-                    setTimeout(() => { if (!floatingCardPinned) floatingCard.style.display = 'none'; }, 300);
-                }
-                hideTimeout = null;
-            }, delay);
-        }
-
-        function onMapPointEnter(day, placeId, element) {
-            isHovering = true;
-            if (hideTimeout) { clearTimeout(hideTimeout);
-                hideTimeout = null; }
-            if (!floatingCardPinned) { showFloatingCard(day, placeId, element, false); }
-        }
-
-        function onMapPointLeave() {
-            isHovering = false;
-            if (!floatingCardPinned) { hideFloatingCard(false); }
-        }
-
-        function onMapPointClick(day, placeId, element) {
-            if (floatingCardPinned && floatingCardData &&
-                floatingCardData.day === day && floatingCardData.placeId == placeId) {
-                floatingCardPinned = false;
-                floatingCard.dataset.pinned = 'false';
-                isHovering = false;
-                hideFloatingCard(true);
-                element.classList.remove('active');
-                return;
-            }
-            if (hideTimeout) { clearTimeout(hideTimeout);
-                hideTimeout = null; }
-            document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-            showFloatingCard(day, placeId, element, true);
-        }
-
-        floatingCardClose.onclick = function(e) {
-            e.stopPropagation();
-            floatingCardPinned = false;
-            floatingCard.dataset.pinned = 'false';
-            document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
-            isHovering = false;
-            hideFloatingCard(true);
-        };
-
-        document.addEventListener('click', function(e) {
-            if (floatingCard.style.display === 'block' &&
-                !floatingCard.contains(e.target) &&
-                !e.target.closest('.map-point')) {
-                if (!floatingCardPinned) { isHovering = false;
-                    hideFloatingCard(true); }
-            }
-        });
-
-        floatingCardJump.onclick = function() {
-            if (!floatingCardData) return;
-            const { day, placeId } = floatingCardData;
-            floatingCardPinned = false;
-            floatingCard.dataset.pinned = 'false';
-            document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
-            hideFloatingCard(true);
-
-            const targetDay = document.getElementById('day-group-' + day);
-            if (targetDay) {
-                targetDay.classList.add('open');
-                const body = targetDay.querySelector('.day-body');
-                if (body) {
-                    body.style.maxHeight = '0';
-                    body.style.opacity = '0';
-                    body.style.padding = '0 20px';
-                    requestAnimationFrame(() => {
-                        body.style.maxHeight = '5000px';
-                        body.style.opacity = '1';
-                        body.style.padding = '6px 20px 24px';
-                    });
-                }
-                setTimeout(() => {
-                    const card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
-                    if (card) {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
-                        card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
-                        card.style.borderColor = '#a0524a';
-                        setTimeout(() => {
-                            card.style.boxShadow = '';
-                            card.style.borderColor = '';
-                        }, 3000);
-                    }
-                }, 400);
-            }
-        };
-
-        // ---- 工具函数 ----
-        function getImageName(name) {
-            const map = {
-                '解放碑': 'jiefangbei.jpg',
-                '八一好吃街': 'bayihaochijie.jpg',
-                '白象居': 'baixiangju.jpg',
-                '长江索道': 'changjiangsuodao.jpg',
-                '洪崖洞': 'hongyadong.jpg',
-                '李子坝': 'liziba.jpg',
-                '鹅岭二厂': 'erling.jpg',
-                '山城步道': 'shancheng.jpg',
-                '十八梯': 'shibati.jpg',
-                '重庆动物园': 'panda.jpg',
-                '红岩革命纪念馆': 'hongyan.jpg',
-                '观音桥': 'guanyinqiao.jpg',
-                '弹子石老街': 'danzishi.jpg',
-                '盘龙立交': 'panlong.jpg',
-                '龙门浩老街': 'longmenhao.jpg',
-                'WFC会仙楼': 'wfc.jpg',
-                '周公馆': 'zhougongguan.jpg',
-                '双桂山': 'shuanggui.jpg',
-                '丰都码头': 'fengdumatou.jpg',
-                '桂园': 'guiyuan.jpg',
-                '南山一棵树': 'nanshan.jpg'
-            };
-            for (const [key, value] of Object.entries(map)) {
-                if (name.includes(key) || key.includes(name)) return value;
-            }
-            return null;
-        }
-
-        function getEmoji(name) {
-            const map = {
+        const CONFIG = {
+            GITHUB_IMAGE_BASE: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main',
+            MAP_IMAGE_BASE: 'https://raw.githubusercontent.com/tuboshu5418/chongqing-travel-images/main/maps',
+            DAY_COLORS: ['#4a6a7f', '#6a7f8a', '#8a7a6a', '#9a8a7a', '#b0a090', '#a0524a'],
+            TYPE_LABELS: {
+                attraction: '景点',
+                food: '用餐',
+                transport: '交通',
+                culture: '红色文化',
+                rest: '休息',
+                shopping: '购物',
+                other: '其他'
+            },
+            EMOJI_MAP: {
                 '机场': '✈️',
                 '解放碑': '🏛️',
                 '好吃街': '🍜',
@@ -1468,890 +1298,1581 @@
                 '桂园': '🏛️',
                 '南山': '🌄',
                 '交通': '🚌'
-            };
-            for (const [key, value] of Object.entries(map)) {
-                if (name.includes(key)) return value;
+            },
+            IMAGE_MAP: {
+                '解放碑': 'jiefangbei.jpg',
+                '八一好吃街': 'bayihaochijie.jpg',
+                '白象居': 'baixiangju.jpg',
+                '长江索道': 'changjiangsuodao.jpg',
+                '洪崖洞': 'hongyadong.jpg',
+                '李子坝': 'liziba.jpg',
+                '鹅岭二厂': 'erling.jpg',
+                '山城步道': 'shancheng.jpg',
+                '十八梯': 'shibati.jpg',
+                '重庆动物园': 'panda.jpg',
+                '红岩革命纪念馆': 'hongyan.jpg',
+                '观音桥': 'guanyinqiao.jpg',
+                '弹子石老街': 'danzishi.jpg',
+                '盘龙立交': 'panlong.jpg',
+                '龙门浩老街': 'longmenhao.jpg',
+                'WFC会仙楼': 'wfc.jpg',
+                '周公馆': 'zhougongguan.jpg',
+                '双桂山': 'shuanggui.jpg',
+                '丰都码头': 'fengdumatou.jpg',
+                '桂园': 'guiyuan.jpg',
+                '南山一棵树': 'nanshan.jpg'
             }
-            return '📍';
+        };
+
+        // ============================================================
+        // 模块 2: 工具函数
+        // ============================================================
+        const Utils = {
+            getEmoji(name) {
+                for (const [key, val] of Object.entries(CONFIG.EMOJI_MAP)) {
+                    if (name.includes(key)) return val;
+                }
+                return '📍';
+            },
+            getImageName(name) {
+                for (const [key, val] of Object.entries(CONFIG.IMAGE_MAP)) {
+                    if (name.includes(key) || key.includes(name)) return val;
+                }
+                return null;
+            },
+            getTypeLabel(type) {
+                return CONFIG.TYPE_LABELS[type] || type;
+            },
+            formatTime(place) {
+                if (place.time_start && place.time_end) return `${place.time_start} - ${place.time_end}`;
+                return place.time_start || '';
+            },
+            clamp(v, min, max) { return Math.max(min, Math.min(max, v)); },
+            sha256: async function(message) {
+                const buf = new TextEncoder().encode(message);
+                const hash = await crypto.subtle.digest('SHA-256', buf);
+                return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+        };
+
+        // ============================================================
+        // 模块 3: API 服务
+        // ============================================================
+        class ApiService {
+            static async request(method, path, data) {
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (data) options.body = JSON.stringify(data);
+                const response = await fetch(path, options);
+                return await response.json();
+            }
+
+            static async fetchItinerary() {
+                return this.request('GET', '/api/itinerary');
+            }
+
+            static async verifyAdmin(password) {
+                return this.request('POST', '/api/admin/verify', { password });
+            }
+
+            static async updateDay(day, data, password) {
+                return this.request('PUT', `/api/itinerary/${day}`, { password, ...data });
+            }
+
+            static async updatePlace(id, data, password) {
+                return this.request('PUT', `/api/places/${id}`, { password, ...data });
+            }
+
+            static async createPlace(data, password) {
+                return this.request('POST', '/api/places', { password, ...data });
+            }
+
+            static async deletePlace(id, password) {
+                return this.request('DELETE', `/api/places/${id}`, { password });
+            }
+
+            static async createDay(data, password) {
+                return this.request('POST', '/api/itinerary', { password, ...data });
+            }
+
+            static async deleteDay(day, password) {
+                return this.request('DELETE', `/api/itinerary/${day}`, { password });
+            }
         }
 
-        function getTypeLabel(type) {
-            const map = {
-                'attraction': '景点',
-                'food': '用餐',
-                'transport': '交通',
-                'culture': '红色文化',
-                'rest': '休息',
-                'shopping': '购物',
-                'other': '其他'
-            };
-            return map[type] || type;
+        // ============================================================
+        // 模块 4: 响应式 Store
+        // ============================================================
+        class Store {
+            #data = [];
+            #listeners = [];
+            #draft = {};
+
+            get days() { return this.#data; }
+            get draft() { return this.#draft; }
+
+            setDays(data) {
+                this.#data = data;
+                this.#notify();
+            }
+
+            setDraft(updates) {
+                this.#draft = { ...this.#draft, ...updates };
+                this.#notify();
+            }
+
+            clearDraft() {
+                this.#draft = {};
+                this.#notify();
+            }
+
+            subscribe(fn) {
+                this.#listeners.push(fn);
+                return () => { this.#listeners = this.#listeners.filter(l => l !== fn); };
+            }
+
+            #notify() {
+                this.#listeners.forEach(fn => fn(this.#data, this.#draft));
+            }
+
+            // 查找辅助
+            findDay(day) { return this.#data.find(d => d.day === day); }
+
+            findPlace(day, id) {
+                const d = this.findDay(day);
+                if (!d) return null;
+                return d.places?.find(p => p.id === id) || null;
+            }
+
+            getPlace(id) {
+                for (const d of this.#data) {
+                    const found = d.places?.find(p => p.id === id);
+                    if (found) return found;
+                }
+                return null;
+            }
         }
 
-        // ---- 内联编辑 ----
-        function makeEditableText(element, field, placeId, day) {
-            if (!isAdminMode) return;
-            const text = element.textContent.trim();
-            element.classList.add('editable');
-            element.onclick = function(e) {
-                e.stopPropagation();
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'editable-input';
-                input.value = text;
-                input.style.width = Math.max(text.length * 10 + 20, 60) + 'px';
+        // ============================================================
+        // 模块 5: 组件 - TimelineItem
+        // ============================================================
+        class TimelineItem {
+            #element;
+            #place;
 
-                const parent = this.parentNode;
-                this.textContent = '';
-                parent.insertBefore(input, this);
-                input.focus();
-                input.select();
+            constructor(place, isAdmin, handlers) {
+                this.#place = place;
+                this.#element = this.#createElement(place, isAdmin, handlers);
+                return this.#element;
+            }
 
-                function saveEdit() {
-                    const newValue = input.value.trim();
-                    if (newValue !== text) {
-                        const dayData = allDaysData.find(d => d.day === day);
-                        if (dayData) {
-                            const place = dayData.places.find(p => p.id === placeId);
-                            if (place) {
-                                place[field] = newValue;
-                            }
+            #createElement(place, isAdmin, handlers) {
+                const tmpl = document.getElementById('tmpl-timeline-item');
+                const el = tmpl.content.cloneNode(true).firstElementChild;
+
+                const isTransport = place.type === 'transport';
+                if (isTransport) el.classList.add('timeline-item--transport');
+
+                const timeEl = el.querySelector('.time');
+                const timeStr = Utils.formatTime(place);
+                if (timeStr) timeEl.textContent = timeStr;
+                else timeEl.style.display = 'none';
+
+                const activityEl = el.querySelector('.activity');
+                const emoji = Utils.getEmoji(place.name);
+                const typeLabel = Utils.getTypeLabel(place.type);
+                const icon = isTransport ? '🚌 ' : '';
+                activityEl.innerHTML =
+                    `${icon}${emoji} ${place.name} <span class="tag">${typeLabel}</span>`;
+
+                if (isAdmin) {
+                    const actions = el.querySelector('.admin-actions');
+                    actions.innerHTML = `
+                        <button class="btn--mini" data-action="edit-place">✏️</button>
+                        ${isTransport ?
+                            `<button class="btn--mini btn--mini-primary" data-action="edit-transport">🚌</button>` :
+                            `<button class="btn--mini btn--mini-primary" data-action="add-transport">➕</button>`
                         }
-                        editedData['place_' + placeId] = {
-                            ...editedData['place_' + placeId],
-                            [field]: newValue
-                        };
-                    }
-                    parent.textContent = newValue || text;
-                    parent.classList.add('editable');
-                    parent.onclick = arguments.callee;
+                        <button class="btn--mini btn--mini-danger" data-action="delete">🗑️</button>
+                    `;
+                    actions.querySelector('[data-action="edit-place"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers?.onEditPlace?.(place);
+                    });
+                    actions.querySelector('[data-action="edit-transport"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers?.onEditTransport?.(place);
+                    });
+                    actions.querySelector('[data-action="add-transport"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers?.onAddTransport?.(place);
+                    });
+                    actions.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers?.onDelete?.(place);
+                    });
                 }
 
-                input.addEventListener('blur', saveEdit);
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') { e.preventDefault();
-                        input.blur(); }
-                    if (e.key === 'Escape') { input.value = text;
-                        input.blur(); }
-                });
-            };
-        }
-
-        // ---- 渲染每日行程 ----
-        function renderDays() {
-            const container = document.getElementById('day-groups-container');
-            if (!container) return;
-
-            if (!allDaysData || allDaysData.length === 0) {
-                container.innerHTML =
-                    '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据，请点击「修改模式」添加</p>';
-                return;
+                return el;
             }
 
-            let html = '';
-            allDaysData.forEach((day) => {
-                const places = day.places || [];
-                const dayAlts = day.day_alternatives || {};
-                const isAdmin = isAdminMode ? 'is-admin' : '';
+            update(place, isAdmin) {
+                // 简单更新：重新创建
+                const parent = this.#element.parentNode;
+                if (parent) {
+                    const newEl = this.#createElement(place, isAdmin, {});
+                    parent.replaceChild(newEl, this.#element);
+                    this.#element = newEl;
+                }
+                return this.#element;
+            }
+        }
 
-                html += `<div class="day-group ${isAdmin}" id="day-group-${day.day}">`;
-                html += `<div class="day-header" onclick="toggleDay(this)">
-                            <span class="title">${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small></span>
-                            <span class="arrow">▾</span>
-                        </div>`;
-                html += `<div class="day-body">`;
+        // ============================================================
+        // 模块 6: 组件 - PlaceCard
+        // ============================================================
+        class PlaceCard {
+            #element;
+            #place;
+
+            constructor(place, isAdmin, handlers) {
+                this.#place = place;
+                this.#element = this.#createElement(place, isAdmin, handlers);
+                return this.#element;
+            }
+
+            #createElement(place, isAdmin, handlers) {
+                const isTransport = place.type === 'transport';
+                const tmplId = isTransport ? 'tmpl-place-card-transport' : 'tmpl-place-card';
+                const tmpl = document.getElementById(tmplId);
+                const el = tmpl.content.cloneNode(true).firstElementChild;
+
+                // 名称
+                const nameEl = el.querySelector('.place-name');
+                const emoji = Utils.getEmoji(place.name);
+                const typeLabel = Utils.getTypeLabel(place.type);
+                const timeStr = Utils.formatTime(place);
+                nameEl.innerHTML = `
+                    <span>${emoji} ${place.name}</span>
+                    <span class="tag">${typeLabel}</span>
+                    ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                    ${isAdmin ? `<button class="btn--ghost" data-action="edit-name">✏️</button>` : ''}
+                `;
+
+                // 图片（交通卡片无图片）
+                const imgEl = el.querySelector('.place-image');
+                if (imgEl && !isTransport) {
+                    const imgName = Utils.getImageName(place.name);
+                    const imgUrl = imgName ? CONFIG.GITHUB_IMAGE_BASE + '/' + imgName : '';
+                    if (imgUrl) {
+                        imgEl.innerHTML =
+                            `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
+                        imgEl.innerHTML +=
+                            `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
+                    } else {
+                        imgEl.innerHTML = `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
+                    }
+                } else if (imgEl) {
+                    imgEl.style.display = 'none';
+                }
+
+                // 简介
+                const descEl = el.querySelector('.place-desc');
+                if (descEl) {
+                    if (place.intro) {
+                        descEl.textContent = place.intro;
+                        if (isAdmin) {
+                            descEl.after(
+                                `<button class="btn--ghost" data-action="edit-intro">✏️</button>`
+                            );
+                        }
+                    } else {
+                        descEl.style.display = 'none';
+                    }
+                }
+
+                // 元信息
+                const metaEl = el.querySelector('.meta');
+                if (metaEl) {
+                    const parts = [];
+                    if (place.duration) parts.push(`⏱️ ${place.duration}`);
+                    if (place.address) parts.push(`📍 ${place.address}`);
+                    if (parts.length > 0) {
+                        metaEl.textContent = parts.join(' · ');
+                        if (isAdmin) {
+                            metaEl.after(
+                                `<button class="btn--ghost" data-action="edit-meta">✏️</button>`
+                            );
+                        }
+                    } else {
+                        metaEl.style.display = 'none';
+                    }
+                }
+
+                // 贴心提示
+                const remarkEl = el.querySelector('.remark');
+                if (remarkEl) {
+                    if (place.remark) {
+                        remarkEl.textContent = `💡 ${place.remark}`;
+                        if (isAdmin) {
+                            remarkEl.after(
+                                `<button class="btn--ghost" data-action="edit-remark">✏️</button>`
+                            );
+                        }
+                    } else {
+                        remarkEl.style.display = 'none';
+                    }
+                }
+
+                // 备选方案
+                const altBlock = el.querySelector('.alternatives-block');
+                if (altBlock) {
+                    let altHtml = '';
+                    if (place.peak_alternative) altHtml +=
+                        `<div class="alt-item"><strong>⏰ 错峰备选</strong>：${place.peak_alternative}</div>`;
+                    if (place.congestion_alternative) altHtml +=
+                        `<div class="alt-item"><strong>🚧 拥堵备选</strong>：${place.congestion_alternative}</div>`;
+                    if (place.rainy_alternative) altHtml +=
+                        `<div class="alt-item"><strong>🌧️ 雨天备选</strong>：${place.rainy_alternative}</div>`;
+                    if (altHtml) {
+                        altBlock.innerHTML = altHtml;
+                    } else {
+                        altBlock.style.display = 'none';
+                    }
+                }
+
+                // 按钮组
+                const btnGroup = el.querySelector('.btn-group');
+                if (btnGroup) {
+                    if (place.nav_link) {
+                        btnGroup.innerHTML +=
+                            `<a class="btn btn--nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
+                    }
+                    const links = place.platform_links ? JSON.parse(place.platform_links) : {};
+                    if (links.dianping) {
+                        btnGroup.innerHTML +=
+                            `<a class="btn" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                    }
+                    if (links.meituan) {
+                        btnGroup.innerHTML += `<a class="btn" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+                    }
+                    if (links.douyin) {
+                        btnGroup.innerHTML += `<a class="btn" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                    }
+                }
+
+                // 绑定事件
+                if (isAdmin && handlers) {
+                    el.querySelector('[data-action="edit-name"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers.onEditField?.(place, 'name');
+                    });
+                    el.querySelector('[data-action="edit-intro"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers.onEditField?.(place, 'intro');
+                    });
+                    el.querySelector('[data-action="edit-meta"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // 编辑 duration 或 address
+                        const current = place.duration || '';
+                        const newVal = prompt('修改时长 (如 1.5小时):', current);
+                        if (newVal !== null) handlers.onEditField?.(place, 'duration', newVal);
+                    });
+                    el.querySelector('[data-action="edit-remark"]')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handlers.onEditField?.(place, 'remark');
+                    });
+                }
+
+                // 点击卡片跳转（非编辑模式）
+                if (!isAdmin) {
+                    el.style.cursor = 'pointer';
+                    el.addEventListener('click', () => {
+                        handlers?.onCardClick?.(place);
+                    });
+                }
+
+                return el;
+            }
+        }
+
+        // ============================================================
+        // 模块 7: 组件 - DayGroup
+        // ============================================================
+        class DayGroup {
+            #element;
+            #dayData;
+            #store;
+            #isAdmin;
+            #handlers;
+
+            constructor(dayData, store, isAdmin, handlers) {
+                this.#dayData = dayData;
+                this.#store = store;
+                this.#isAdmin = isAdmin;
+                this.#handlers = handlers;
+                this.#element = this.#build();
+                return this.#element;
+            }
+
+            #build() {
+                const day = this.#dayData;
+                const isAdmin = this.#isAdmin;
+                const group = document.createElement('div');
+                group.className = `day-group${isAdmin ? ' is-admin' : ''}`;
+                group.id = `day-group-${day.day}`;
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.innerHTML = `
+                    <span class="title">${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small></span>
+                    <span class="arrow">▾</span>
+                `;
+                header.addEventListener('click', () => this.#toggle());
+                group.appendChild(header);
+
+                // Body
+                const body = document.createElement('div');
+                body.className = 'day-body';
+                body.innerHTML = this.#renderBody();
+                group.appendChild(body);
+
+                return group;
+            }
+
+            #renderBody() {
+                const day = this.#dayData;
+                const isAdmin = this.#isAdmin;
+                const places = day.places || [];
+                let html = '';
 
                 // 步行难度
                 if (day.walk_badge) {
                     html += `<div class="walk-badge" id="walk-badge-${day.day}">${day.walk_badge}</div>`;
-                    if (isAdminMode) {
+                    if (isAdmin) {
                         html +=
-                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:8px;" onclick="editDayField(${day.day}, 'walk_badge', 'walk-badge-${day.day}')">✏️</span>`;
+                            `<button class="btn--ghost" data-action="edit-walk-badge">✏️</button>`;
                     }
                 }
 
                 // 三餐
-                if (day.breakfast || day.lunch || day.dinner) {
-                    html += `<div class="meal-bar">`;
-                    if (day.breakfast) {
-                        html += `<span id="breakfast-${day.day}">🌅 早餐：${day.breakfast}</span>`;
-                        if (isAdminMode) html +=
-                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'breakfast', 'breakfast-${day.day}')">✏️</span>`;
+                const meals = ['breakfast', 'lunch', 'dinner'];
+                const mealIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
+                const mealLabels = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' };
+                let mealHtml = '';
+                meals.forEach(key => {
+                    if (day[key]) {
+                        mealHtml +=
+                            `<span id="${key}-${day.day}">${mealIcons[key]} ${mealLabels[key]}：${day[key]}</span>`;
+                        if (isAdmin) {
+                            mealHtml +=
+                                `<button class="btn--ghost" data-action="edit-${key}">✏️</button>`;
+                        }
                     }
-                    if (day.lunch) {
-                        html += `<span id="lunch-${day.day}">☀️ 午餐：${day.lunch}</span>`;
-                        if (isAdminMode) html +=
-                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'lunch', 'lunch-${day.day}')">✏️</span>`;
-                    }
-                    if (day.dinner) {
-                        html += `<span id="dinner-${day.day}">🌙 晚餐：${day.dinner}</span>`;
-                        if (isAdminMode) html +=
-                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'dinner', 'dinner-${day.day}')">✏️</span>`;
-                    }
-                    html += `</div>`;
+                });
+                if (mealHtml) {
+                    html += `<div class="meal-bar">${mealHtml}</div>`;
                 }
 
                 // 当天备选
-                const altKeys = ['congestion', 'peak', 'rainy'];
+                const alts = day.day_alternatives || {};
                 const altLabels = { congestion: '🚧 拥堵备选', peak: '⏰ 高峰备选', rainy: '🌧️ 雨天备选' };
-                let hasAlt = false;
                 let altHtml = '';
-                altKeys.forEach(key => {
-                    if (dayAlts[key]) {
-                        hasAlt = true;
-                        altHtml +=
-                            `<div class="alt-item"><strong>${altLabels[key]}</strong>：${dayAlts[key]}</div>`;
+                for (const [key, label] of Object.entries(altLabels)) {
+                    if (alts[key]) {
+                        altHtml += `<div class="alt-item"><strong>${label}</strong>：${alts[key]}</div>`;
                     }
-                });
-                if (hasAlt) {
+                }
+                if (altHtml) {
                     html += `<div class="alternatives-block">${altHtml}</div>`;
                 }
 
-                // ---- 时间轴 ----
+                // 时间轴
                 html += `<div class="timeline">`;
-                places.forEach((place) => {
-                    const emoji = getEmoji(place.name);
-                    const timeStr = place.time_start && place.time_end ? `${place.time_start} - ${place.time_end}` :
-                        place.time_start || '';
-                    const typeLabel = getTypeLabel(place.type);
-                    const isTransport = place.type === 'transport';
-                    const transportClass = isTransport ? 'transport' : '';
-                    const transportIcon = isTransport ? '🚌 ' : '';
-
-                    html += `<div class="timeline-item ${transportClass}" data-place-id="${place.id}">`;
-                    if (timeStr) {
-                        html += `<span class="time" id="time-${place.id}">${timeStr}</span>`;
-                        if (isAdminMode) {
-                            html +=
-                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'time_start')">✏️</span>`;
-                        }
-                    }
-                    html +=
-                        `<span class="activity">${transportIcon} ${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
-                    if (isAdminMode) {
-                        html += `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:4px;" onclick="editPlaceField(${place.id}, 'name')">✏️</span>`;
-                        html += `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:4px;" onclick="editPlaceField(${place.id}, 'intro')">📝</span>`;
-                        if (isTransport) {
-                            html +=
-                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;margin-left:4px;" onclick="editTransport(${place.id}, ${day.day})">✏️交通</span>`;
-                        } else {
-                            html +=
-                                `<span style="font-size:11px;color:#4a6a7f;cursor:pointer;margin-left:4px;" onclick="addTransportBefore(${day.day}, ${places.indexOf(place)})">➕交通</span>`;
-                        }
-                        html +=
-                            `<span style="font-size:11px;color:#a0524a;cursor:pointer;margin-left:4px;" onclick="deletePlaceFromDay(${day.day}, ${place.id})">🗑️</span>`;
-                    }
-                    html += `</div>`;
+                places.forEach((place, idx) => {
+                    const item = new TimelineItem(place, isAdmin, {
+                        onEditPlace: () => this.#handlers?.onEditPlace?.(place),
+                        onEditTransport: () => this.#handlers?.onEditTransport?.(place),
+                        onAddTransport: () => this.#handlers?.onAddTransport?.(place, idx),
+                        onDelete: () => this.#handlers?.onDeletePlace?.(place)
+                    });
+                    html += item.outerHTML;
                 });
                 html += `</div>`;
 
-                // ---- 景点卡片 ----
-                places.forEach((place) => {
-                    const imgName = getImageName(place.name);
-                    const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
-                    const emoji = getEmoji(place.name);
-                    const typeLabel = getTypeLabel(place.type);
-                    const timeStr = place.time_start && place.time_end ? `${place.time_start} - ${place.time_end}` :
-                        place.time_start || '';
-
-                    html += `<div class="place-card" data-day="${day.day}" data-place-id="${place.id}">`;
-                    html += `<div class="place-name">
-                                <span id="place-name-${place.id}">${emoji} ${place.name}</span>
-                                ${isAdminMode ? `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'name')">✏️</span>` : ''}
-                                <span class="tag">${typeLabel}</span>
-                                ${timeStr ? `<span class="time-badge" id="place-time-${place.id}">🕐 ${timeStr}</span>` : ''}
-                                ${isAdminMode && timeStr ? `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'time_start')">✏️</span>` : ''}
-                            </div>`;
-
-                    html += `<div class="place-image">`;
-                    if (imgUrl) {
-                        html +=
-                            `<img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`;
-                        html += `<div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>`;
-                    } else {
-                        html += `<div class="placeholder-text"><span>${emoji}</span>${place.name}</div>`;
-                    }
-                    html += `</div>`;
-
-                    if (place.intro) {
-                        html +=
-                            `<div class="place-desc" id="place-intro-${place.id}">${place.intro}</div>`;
-                        if (isAdminMode) {
-                            html +=
-                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'intro')">✏️</span>`;
-                        }
-                    }
-
-                    if (place.address || place.duration) {
-                        let metaParts = [];
-                        if (place.duration) metaParts.push(`⏱️ ${place.duration}`);
-                        if (place.address) metaParts.push(`📍 ${place.address}`);
-                        if (metaParts.length > 0) {
-                            html += `<div class="meta">${metaParts.join(' · ')}</div>`;
-                        }
-                    }
-
-                    if (place.remark) {
-                        html +=
-                            `<div class="remark" id="place-remark-${place.id}">💡 ${place.remark}</div>`;
-                        if (isAdminMode) {
-                            html +=
-                                `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editPlaceField(${place.id}, 'remark')">✏️</span>`;
-                        }
-                    }
-
-                    // 景点备选
-                    let placeAltHtml = '';
-                    if (place.peak_alternative) {
-                        placeAltHtml +=
-                            `<div class="alt-item"><strong>⏰ 错峰备选</strong>：${place.peak_alternative}</div>`;
-                    }
-                    if (place.congestion_alternative) {
-                        placeAltHtml +=
-                            `<div class="alt-item"><strong>🚧 拥堵备选</strong>：${place.congestion_alternative}</div>`;
-                    }
-                    if (place.rainy_alternative) {
-                        placeAltHtml +=
-                            `<div class="alt-item"><strong>🌧️ 雨天备选</strong>：${place.rainy_alternative}</div>`;
-                    }
-                    if (placeAltHtml) {
-                        html += `<div class="alternatives-block">${placeAltHtml}</div>`;
-                    }
-
-                    html += `<div class="btn-group">`;
-                    if (place.nav_link) {
-                        html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
-                    }
-                    const links = place.platform_links ? JSON.parse(place.platform_links) : {};
-                    if (links.dianping) {
-                        html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
-                    }
-                    if (links.meituan) {
-                        html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
-                    }
-                    if (links.douyin) {
-                        html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
-                    }
-                    html += `</div>`;
-                    html += `</div>`;
+                // 景点卡片
+                places.forEach(place => {
+                    const card = new PlaceCard(place, isAdmin, {
+                        onEditField: (p, field, val) => this.#handlers?.onEditField?.(p, field, val),
+                        onCardClick: () => this.#handlers?.onCardClick?.(place)
+                    });
+                    html += card.outerHTML;
                 });
 
                 if (day.rest_note) {
                     html += `<div class="rest-note" id="rest-note-${day.day}">☕ ${day.rest_note}</div>`;
-                    if (isAdminMode) {
+                    if (isAdmin) {
                         html +=
-                            `<span style="font-size:11px;color:#8a8a8a;cursor:pointer;" onclick="editDayField(${day.day}, 'rest_note', 'rest-note-${day.day}')">✏️</span>`;
+                            `<button class="btn--ghost" data-action="edit-rest-note">✏️</button>`;
                     }
                 }
 
-                if (isAdminMode) {
+                if (isAdmin) {
                     html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                <button class="btn-ctrl btn-primary" onclick="editDayMeta(${day.day})">✏️ 编辑标题</button>
-                                <button class="btn-ctrl btn-danger" onclick="deleteDay(${day.day})">🗑️ 删除这一天</button>
-                                <button class="btn-ctrl" onclick="addPlaceToDay(${day.day})">➕ 添加景点</button>
+                                <button class="btn btn--primary btn--small" data-action="edit-day-meta">✏️ 编辑标题</button>
+                                <button class="btn btn--danger btn--small" data-action="delete-day">🗑️ 删除这一天</button>
+                                <button class="btn btn--small" data-action="add-place">➕ 添加景点</button>
                             </div>`;
                 }
 
-                html += `</div>`;
-                html += `</div>`;
-            });
+                return html;
+            }
 
-            container.innerHTML = html;
-
-            document.querySelectorAll('.day-group .day-body').forEach(body => {
-                body.style.maxHeight = '0';
-                body.style.opacity = '0';
-                body.style.padding = '0 20px';
-            });
-
-            setTimeout(setupScrollAnimation, 100);
-        }
-
-        // ---- 内联编辑函数 ----
-        window.editPlaceField = function(placeId, field) {
-            if (!isAdminMode) return;
-            const dayData = allDaysData.find(d => d.places && d.places.some(p => p.id === placeId));
-            if (!dayData) return;
-            const place = dayData.places.find(p => p.id === placeId);
-            if (!place) return;
-
-            const currentValue = place[field] || '';
-            const newValue = prompt(`修改 ${field}:`, currentValue);
-            if (newValue === null) return;
-
-            place[field] = newValue.trim();
-            editedData['place_' + placeId] = {
-                ...editedData['place_' + placeId],
-                [field]: newValue.trim()
-            };
-
-            renderDays();
-            renderOverview();
-        };
-
-        window.editDayField = function(day, field, elementId) {
-            if (!isAdminMode) return;
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-
-            const currentValue = dayData[field] || '';
-            const newValue = prompt(`修改 ${field}:`, currentValue);
-            if (newValue === null) return;
-
-            dayData[field] = newValue.trim();
-            editedData['day_' + day] = {
-                ...editedData['day_' + day],
-                [field]: newValue.trim()
-            };
-
-            renderDays();
-            renderOverview();
-        };
-
-        window.editTransport = function(placeId, day) {
-            if (!isAdminMode) return;
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-            const place = dayData.places.find(p => p.id === placeId);
-            if (!place) return;
-
-            const newName = prompt('交通方式名称:', place.name);
-            if (newName === null) return;
-            const newIntro = prompt('交通详情:', place.intro || '');
-            if (newIntro === null) return;
-
-            place.name = newName.trim();
-            place.intro = newIntro.trim();
-            editedData['place_' + placeId] = {
-                ...editedData['place_' + placeId],
-                name: newName.trim(),
-                intro: newIntro.trim()
-            };
-
-            renderDays();
-            renderOverview();
-        };
-
-        window.addTransportBefore = function(day, index) {
-            if (!isAdminMode) return;
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-
-            const name = prompt('交通方式名称 (如 公交307路):');
-            if (!name) return;
-            const intro = prompt('交通详情:');
-            if (intro === null) return;
-
-            const newPlace = {
-                id: -Date.now(),
-                name: name.trim(),
-                type: 'transport',
-                day: day,
-                time_start: '',
-                time_end: '',
-                duration: '',
-                intro: intro.trim(),
-                address: '',
-                nav_link: '',
-                image_url: '',
-                platform_links: '',
-                remark: '',
-                map_x: 50,
-                map_y: 50,
-                sort_order: index,
-                peak_alternative: '',
-                congestion_alternative: '',
-                rainy_alternative: ''
-            };
-
-            dayData.places.splice(index, 0, newPlace);
-            const placeOrder = dayData.place_order || [];
-            placeOrder.splice(index, 0, newPlace.id);
-
-            editedData['day_' + day] = {
-                ...editedData['day_' + day],
-                place_order: placeOrder
-            };
-
-            renderDays();
-            renderOverview();
-            alert('✅ 交通已添加，记得按「保存修改」提交。');
-        };
-
-        window.deletePlaceFromDay = function(day, placeId) {
-            if (!confirm('确定删除？')) return;
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-
-            const idx = dayData.places.findIndex(p => p.id === placeId);
-            if (idx === -1) return;
-
-            dayData.places.splice(idx, 1);
-            const placeOrder = dayData.place_order || [];
-            const orderIdx = placeOrder.indexOf(placeId);
-            if (orderIdx !== -1) placeOrder.splice(orderIdx, 1);
-
-            editedData['day_' + day] = {
-                ...editedData['day_' + day],
-                place_order: placeOrder
-            };
-
-            renderDays();
-            renderOverview();
-            alert('✅ 已删除，记得按「保存修改」提交。');
-        };
-
-        window.editDayMeta = function(day) {
-            if (!isAdminMode) return;
-            const dayData = allDaysData.find(d => d.day === day);
-            if (!dayData) return;
-
-            const newTitle = prompt('标题:', dayData.title || '');
-            if (newTitle === null) return;
-            const newSubtitle = prompt('副标题:', dayData.subtitle || '');
-            if (newSubtitle === null) return;
-
-            dayData.title = newTitle.trim();
-            dayData.subtitle = newSubtitle.trim();
-            editedData['day_' + day] = {
-                ...editedData['day_' + day],
-                title: newTitle.trim(),
-                subtitle: newSubtitle.trim()
-            };
-
-            renderDays();
-            renderOverview();
-        };
-
-        // ---- 折叠切换 ----
-        window.toggleDay = function(header) {
-            const group = header.closest('.day-group');
-            if (!group) return;
-            const body = group.querySelector('.day-body');
-            if (!body) return;
-
-            const isOpen = group.classList.contains('open');
-            if (isOpen) {
-                body.style.maxHeight = body.scrollHeight + 'px';
-                requestAnimationFrame(() => {
+            #toggle() {
+                const body = this.#element.querySelector('.day-body');
+                const header = this.#element.querySelector('.day-header');
+                const isOpen = this.#element.classList.contains('open');
+                if (isOpen) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        body.style.maxHeight = '0';
+                        body.style.opacity = '0';
+                        body.style.padding = '0 20px';
+                    });
+                    this.#element.classList.remove('open');
+                    header.classList.remove('sticky');
+                } else {
+                    this.#element.classList.add('open');
                     body.style.maxHeight = '0';
                     body.style.opacity = '0';
                     body.style.padding = '0 20px';
+                    requestAnimationFrame(() => {
+                        body.style.maxHeight = '5000px';
+                        body.style.opacity = '1';
+                        body.style.padding = '6px 20px 24px';
+                    });
+                    setTimeout(() => this.#checkSticky(), 150);
+                }
+            }
+
+            #checkSticky() {
+                const header = this.#element.querySelector('.day-header');
+                if (!header) return;
+                const rect = header.getBoundingClientRect();
+                if (rect.top <= 0) header.classList.add('sticky');
+                else header.classList.remove('sticky');
+            }
+
+            update(dayData, isAdmin) {
+                this.#dayData = dayData;
+                this.#isAdmin = isAdmin;
+                const body = this.#element.querySelector('.day-body');
+                if (body) {
+                    const wasOpen = this.#element.classList.contains('open');
+                    body.innerHTML = this.#renderBody();
+                    // 恢复展开状态
+                    if (wasOpen) {
+                        this.#element.classList.add('open');
+                        body.style.maxHeight = '5000px';
+                        body.style.opacity = '1';
+                        body.style.padding = '6px 20px 24px';
+                    } else {
+                        body.style.maxHeight = '0';
+                        body.style.opacity = '0';
+                        body.style.padding = '0 20px';
+                    }
+                    // 重新绑定动作
+                    this.#bindActions();
+                }
+                const header = this.#element.querySelector('.day-header');
+                if (header) {
+                    const day = this.#dayData;
+                    header.querySelector('.title').innerHTML =
+                        `${day.title || 'Day ' + day.day} <small>${day.subtitle || ''}</small>`;
+                }
+                return this.#element;
+            }
+
+            #bindActions() {
+                const day = this.#dayData;
+                const body = this.#element.querySelector('.day-body');
+                if (!body) return;
+
+                // walk-badge
+                body.querySelector('[data-action="edit-walk-badge"]')?.addEventListener('click', () => {
+                    this.#handlers?.onEditField?.(day, 'walk_badge');
                 });
-                group.classList.remove('open');
-                header.classList.remove('sticky');
-            } else {
-                group.classList.add('open');
-                body.style.maxHeight = '0';
-                body.style.opacity = '0';
-                body.style.padding = '0 20px';
-                requestAnimationFrame(() => {
+
+                // meals
+                ['breakfast', 'lunch', 'dinner'].forEach(key => {
+                    body.querySelector(`[data-action="edit-${key}"]`)?.addEventListener('click', () => {
+                        this.#handlers?.onEditField?.(day, key);
+                    });
+                });
+
+                // rest-note
+                body.querySelector('[data-action="edit-rest-note"]')?.addEventListener('click', () => {
+                    this.#handlers?.onEditField?.(day, 'rest_note');
+                });
+
+                // day meta
+                body.querySelector('[data-action="edit-day-meta"]')?.addEventListener('click', () => {
+                    this.#handlers?.onEditDayMeta?.(day);
+                });
+
+                body.querySelector('[data-action="delete-day"]')?.addEventListener('click', () => {
+                    this.#handlers?.onDeleteDay?.(day);
+                });
+
+                body.querySelector('[data-action="add-place"]')?.addEventListener('click', () => {
+                    this.#handlers?.onAddPlace?.(day);
+                });
+            }
+
+            scrollToPlace(placeId) {
+                const card = this.#element.querySelector(`.place-card[data-place-id="${placeId}"]`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                    card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                    card.style.borderColor = '#a0524a';
+                    setTimeout(() => {
+                        card.style.boxShadow = '';
+                        card.style.borderColor = '';
+                    }, 3000);
+                }
+            }
+
+            open() {
+                this.#element.classList.add('open');
+                const body = this.#element.querySelector('.day-body');
+                if (body) {
                     body.style.maxHeight = '5000px';
                     body.style.opacity = '1';
                     body.style.padding = '6px 20px 24px';
-                });
-                setTimeout(() => checkSticky(), 150);
-            }
-        };
-
-        function checkSticky() {
-            document.querySelectorAll('.day-group .day-header').forEach(header => {
-                const rect = header.getBoundingClientRect();
-                if (rect.top <= 0) {
-                    header.classList.add('sticky');
-                } else {
-                    header.classList.remove('sticky');
                 }
-            });
+            }
         }
 
-        function setupStickyDays() {
-            window.addEventListener('scroll', function() {
-                requestAnimationFrame(checkSticky);
-            }, { passive: true });
-            window.addEventListener('resize', function() {
-                requestAnimationFrame(checkSticky);
-            }, { passive: true });
-            setTimeout(checkSticky, 100);
-            setTimeout(checkSticky, 500);
-        }
+        // ============================================================
+        // 模块 8: 应用主控
+        // ============================================================
+        class App {
+            #store = new Store();
+            #dayGroupComponents = [];
+            #currentTab = 1;
+            #isAdmin = false;
+            #password = '';
+            #floatingCardData = null;
+            #floatingCardPinned = false;
+            #hideTimeout = null;
+            #isHovering = false;
 
-        function setupExpandCollapse() {
-            const expandBtn = document.getElementById('expand-all-btn');
-            const collapseBtn = document.getElementById('collapse-all-btn');
+            constructor() {
+                this.#initDOMRefs();
+                this.#bindEvents();
+                this.#init();
+            }
 
-            if (expandBtn) {
-                expandBtn.onclick = function() {
-                    document.querySelectorAll('.day-group').forEach(group => {
-                        const body = group.querySelector('.day-body');
-                        if (body && !group.classList.contains('open')) {
-                            group.classList.add('open');
+            #initDOMRefs() {
+                this.$container = document.getElementById('day-groups-container');
+                this.$tabBar = document.getElementById('tab-bar');
+                this.$mapContainer = document.getElementById('overview-maps');
+                this.$legend = document.getElementById('route-legend');
+                this.$floatingCard = document.getElementById('floating-card');
+                this.$floatingCardImg = document.getElementById('floating-card-img');
+                this.$floatingCardName = document.getElementById('floating-card-name');
+                this.$floatingCardDesc = document.getElementById('floating-card-desc');
+                this.$floatingCardJump = document.getElementById('floating-card-jump');
+                this.$floatingCardClose = document.getElementById('floating-card-close');
+                this.$adminToggle = document.getElementById('admin-toggle-btn');
+                this.$adminLoginBtn = document.getElementById('admin-login-btn');
+                this.$adminPassword = document.getElementById('admin-password-input');
+                this.$adminStatus = document.getElementById('admin-login-status');
+                this.$adminEditArea = document.getElementById('admin-edit-area');
+                this.$adminLoginArea = document.getElementById('admin-login-area');
+                this.$adminSaveHint = document.getElementById('admin-save-hint');
+                this.$adminAddDayBtn = document.getElementById('admin-add-day-btn');
+                this.$adminSaveBtn = document.getElementById('admin-save-btn');
+                this.$expandAllBtn = document.getElementById('expand-all-btn');
+                this.$collapseAllBtn = document.getElementById('collapse-all-btn');
+                this.$overviewToggle = document.getElementById('overview-toggle');
+                this.$progressBar = document.getElementById('reading-progress-bar');
+                this.$backTop = document.getElementById('back-to-top');
+                this.$overviewGroup = document.getElementById('overview-group');
+            }
+
+            #bindEvents() {
+                // 悬浮卡片关闭
+                this.$floatingCardClose.addEventListener('click', () => {
+                    this.#floatingCardPinned = false;
+                    this.#hideFloatingCard(true);
+                });
+
+                // 悬浮卡片跳转
+                this.$floatingCardJump.addEventListener('click', () => {
+                    if (!this.#floatingCardData) return;
+                    const { day, placeId } = this.#floatingCardData;
+                    this.#floatingCardPinned = false;
+                    this.#hideFloatingCard(true);
+                    const targetGroup = this.#dayGroupComponents.find(g => g.dataset?.day == day);
+                    if (targetGroup) {
+                        // 展开所有
+                        this.#dayGroupComponents.forEach(g => {
+                            const dayData = this.#store.findDay(parseInt(g.dataset.day));
+                            if (dayData) {
+                                g.classList.add('open');
+                                const body = g.querySelector('.day-body');
+                                if (body) {
+                                    body.style.maxHeight = '5000px';
+                                    body.style.opacity = '1';
+                                    body.style.padding = '6px 20px 24px';
+                                }
+                            }
+                        });
+                        setTimeout(() => {
+                            targetGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            // 高亮目标卡片
+                            const card = targetGroup.querySelector(`.place-card[data-place-id="${placeId}"]`);
+                            if (card) {
+                                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                                card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                                card.style.borderColor = '#a0524a';
+                                setTimeout(() => {
+                                    card.style.boxShadow = '';
+                                    card.style.borderColor = '';
+                                }, 3000);
+                            }
+                        }, 400);
+                    }
+                });
+
+                // 点击外部关闭悬浮卡片
+                document.addEventListener('click', (e) => {
+                    if (this.$floatingCard.style.display === 'block' &&
+                        !this.$floatingCard.contains(e.target) &&
+                        !e.target.closest('.map-point')) {
+                        if (!this.#floatingCardPinned) {
+                            this.#hideFloatingCard(true);
+                        }
+                    }
+                });
+
+                // 管理员登录
+                this.$adminLoginBtn.addEventListener('click', () => this.#handleLogin());
+                this.$adminPassword.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') this.#handleLogin();
+                });
+
+                // 管理员切换
+                this.$adminToggle.addEventListener('click', () => this.#toggleAdmin());
+
+                // 新增一天
+                this.$adminAddDayBtn.addEventListener('click', () => this.#handleAddDay());
+
+                // 保存修改
+                this.$adminSaveBtn.addEventListener('click', () => this.#handleSaveAll());
+
+                // 全部展开/收起
+                this.$expandAllBtn.addEventListener('click', () => this.#expandAll());
+                this.$collapseAllBtn.addEventListener('click', () => this.#collapseAll());
+
+                // 路线总览切换
+                this.$overviewToggle.addEventListener('click', () => {
+                    this.$overviewGroup.classList.toggle('open');
+                });
+
+                // 滚动事件
+                window.addEventListener('scroll', () => {
+                    this.#updateProgress();
+                    this.#checkStickyAll();
+                }, { passive: true });
+
+                window.addEventListener('resize', () => {
+                    this.#checkStickyAll();
+                }, { passive: true });
+
+                // 返回顶部
+                this.$backTop.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                // Store 订阅
+                this.#store.subscribe((data, draft) => {
+                    this.#renderDays(data);
+                    this.#renderOverview(data);
+                    this.#renderLegend(data);
+                    this.#updateAdminUI();
+                });
+            }
+
+            // ============================================================
+            // 初始化
+            // ============================================================
+            async #init() {
+                try {
+                    const data = await ApiService.fetchItinerary();
+                    if (data && data.length > 0) {
+                        this.#store.setDays(data);
+                        this.#currentTab = data[0].day;
+                        this.#renderDays(data);
+                        this.#renderOverview(data);
+                        this.#renderLegend(data);
+                        // 初始折叠
+                        document.querySelectorAll('.day-group .day-body').forEach(body => {
                             body.style.maxHeight = '0';
                             body.style.opacity = '0';
                             body.style.padding = '0 20px';
-                            requestAnimationFrame(() => {
-                                body.style.maxHeight = '5000px';
-                                body.style.opacity = '1';
-                                body.style.padding = '6px 20px 24px';
-                            });
-                        }
-                    });
-                    setTimeout(checkSticky, 300);
-                };
-            }
-
-            if (collapseBtn) {
-                collapseBtn.onclick = function() {
-                    document.querySelectorAll('.day-group').forEach(group => {
-                        const body = group.querySelector('.day-body');
-                        const header = group.querySelector('.day-header');
-                        if (body && group.classList.contains('open')) {
-                            body.style.maxHeight = body.scrollHeight + 'px';
-                            requestAnimationFrame(() => {
-                                body.style.maxHeight = '0';
-                                body.style.opacity = '0';
-                                body.style.padding = '0 20px';
-                            });
-                            group.classList.remove('open');
-                            if (header) header.classList.remove('sticky');
-                        }
-                    });
-                };
-            }
-        }
-
-        // ---- 修改模式 ----
-        function setupAdminMode() {
-            const toggleBtn = document.getElementById('admin-toggle-btn');
-            const loginArea = document.getElementById('admin-login-area');
-            const editArea = document.getElementById('admin-edit-area');
-            const saveHint = document.getElementById('admin-save-hint');
-            const passwordInput = document.getElementById('admin-password-input');
-            const loginBtn = document.getElementById('admin-login-btn');
-            const statusSpan = document.getElementById('admin-login-status');
-            const saveBtn = document.getElementById('admin-save-btn');
-
-            if (!toggleBtn) return;
-
-            toggleBtn.onclick = function() {
-                if (isAdminMode) {
-                    isAdminMode = false;
-                    loginArea.style.display = 'flex';
-                    editArea.style.display = 'none';
-                    saveHint.classList.remove('show');
-                    statusSpan.textContent = '';
-                    toggleBtn.textContent = '🔧 修改模式';
-                    toggleBtn.style.borderColor = '#c0b0a8';
-                    editedData = {};
-                    renderDays();
-                    renderOverview();
-                } else {
-                    loginArea.style.display = 'flex';
-                    toggleBtn.textContent = '🔧 退出修改';
-                    toggleBtn.style.borderColor = '#a0524a';
-                    passwordInput.value = '';
-                    passwordInput.focus();
-                    statusSpan.textContent = '';
-                    saveHint.classList.add('show');
-                    editedData = {};
-                    renderDays();
-                    renderOverview();
+                        });
+                    } else {
+                        this.$container.innerHTML =
+                            '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据</p>';
+                    }
+                } catch (e) {
+                    console.error('初始化失败:', e);
+                    this.$container.innerHTML =
+                        '<p style="padding:40px;text-align:center;color:#a0524a;">❌ 加载失败，请刷新重试</p>';
                 }
-            };
+                this.#updateBackTop();
+                this.#updateProgress();
+            }
 
-            loginBtn.onclick = async function() {
-                const password = passwordInput.value.trim();
-                if (!password) {
-                    statusSpan.textContent = '请输入密码';
+            // ============================================================
+            // 渲染 - 行程列表
+            // ============================================================
+            #renderDays(data) {
+                if (!data || data.length === 0) {
+                    this.$container.innerHTML =
+                        '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据</p>';
+                    this.#dayGroupComponents = [];
                     return;
                 }
 
-                try {
-                    const response = await fetch('/api/admin/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password })
+                this.$container.innerHTML = '';
+                this.#dayGroupComponents = [];
+
+                data.forEach(day => {
+                    const group = new DayGroup(day, this.#store, this.#isAdmin, {
+                        onEditField: (target, field, val) => this.#handleEditField(target, field, val),
+                        onEditTransport: (place) => this.#handleEditTransport(place),
+                        onAddTransport: (place, idx) => this.#handleAddTransport(place, idx),
+                        onDeletePlace: (place) => this.#handleDeletePlace(place),
+                        onCardClick: (place) => this.#handleCardClick(place),
+                        onEditDayMeta: (day) => this.#handleEditDayMeta(day),
+                        onDeleteDay: (day) => this.#handleDeleteDay(day),
+                        onAddPlace: (day) => this.#handleAddPlace(day)
                     });
-                    const result = await response.json();
-
-                    if (result.success) {
-                        isAdminMode = true;
-                        statusSpan.textContent = '✅ 验证成功！';
-                        editArea.style.display = 'flex';
-                        loginArea.style.display = 'none';
-                        toggleBtn.textContent = '🔧 退出修改';
-                        saveHint.classList.add('show');
-                        renderDays();
-                        renderOverview();
-                    } else {
-                        statusSpan.textContent = '❌ ' + (result.error || '密码错误');
-                    }
-                } catch (e) {
-                    statusSpan.textContent = '❌ 网络错误';
-                }
-            };
-
-            passwordInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { loginBtn.click(); }
-            });
-
-            document.getElementById('admin-add-day-btn').onclick = function() {
-                if (!isAdminMode) { alert('请先进入修改模式'); return; }
-                addNewDay();
-            };
-
-            saveBtn.onclick = function() {
-                if (!isAdminMode) { alert('请先进入修改模式'); return; }
-                saveAllChanges();
-            };
-        }
-
-        // ---- API 操作 ----
-        async function apiCall(method, url, data) {
-            const options = {
-                method: method,
-                headers: { 'Content-Type': 'application/json' }
-            };
-            if (data) options.body = JSON.stringify(data);
-            const response = await fetch(url, options);
-            return await response.json();
-        }
-
-        function getPassword() {
-            return document.getElementById('admin-password-input').value.trim();
-        }
-
-        async function saveAllChanges() {
-            const password = getPassword();
-            if (!password) { alert('请输入管理员密码'); return; }
-
-            let successCount = 0;
-            let failCount = 0;
-
-            for (const [key, value] of Object.entries(editedData)) {
-                try {
-                    if (key.startsWith('day_')) {
-                        const dayNum = parseInt(key.replace('day_', ''));
-                        const result = await apiCall('PUT', '/api/itinerary/' + dayNum, {
-                            password: password,
-                            ...value
-                        });
-                        if (result.success) successCount++;
-                        else failCount++;
-                    } else if (key.startsWith('place_')) {
-                        const placeId = parseInt(key.replace('place_', ''));
-                        const result = await apiCall('PUT', '/api/places/' + placeId, {
-                            password: password,
-                            ...value
-                        });
-                        if (result.success) successCount++;
-                        else failCount++;
-                    }
-                } catch (e) {
-                    failCount++;
-                }
-            }
-
-            if (failCount === 0 && successCount > 0) {
-                alert(`✅ 所有修改已保存成功！`);
-                editedData = {};
-                await reloadData();
-            } else if (successCount > 0 && failCount > 0) {
-                alert(`⚠️ 部分修改保存失败。成功 ${successCount} 项，失败 ${failCount} 项。`);
-                await reloadData();
-            } else if (successCount === 0 && failCount === 0) {
-                alert('ℹ️ 没有检测到需要保存的修改。');
-            } else {
-                alert('⚠️ 全部保存失败。');
-            }
-        }
-
-        async function addNewDay() {
-            const password = getPassword();
-            if (!password) { alert('请输入管理员密码'); return; }
-
-            const dayNum = allDaysData.length > 0 ? Math.max(...allDaysData.map(d => d.day)) + 1 : 1;
-            const result = await apiCall('POST', '/api/itinerary', {
-                password: password,
-                title: 'Day ' + dayNum,
-                subtitle: '新行程',
-                walk_badge: '',
-                rest_note: '',
-                breakfast: '',
-                lunch: '',
-                dinner: '',
-                place_order: [],
-                day_alternatives: {},
-                notes: ''
-            });
-
-            if (result.success) {
-                alert('✅ 新增成功！');
-                await reloadData();
-            } else {
-                alert('❌ 新增失败: ' + (result.error || '未知错误'));
-            }
-        }
-
-        window.deleteDay = async function(day) {
-            if (!confirm(`确定要删除 Day ${day} 吗？此操作不可恢复！`)) return;
-            const password = getPassword();
-            if (!password) { alert('请输入管理员密码'); return; }
-
-            const result = await apiCall('DELETE', '/api/itinerary/' + day, { password: password });
-            if (result.success) {
-                alert('✅ 删除成功！');
-                await reloadData();
-            } else {
-                alert('❌ 删除失败: ' + (result.error || '未知错误'));
-            }
-        };
-
-        window.addPlaceToDay = async function(day) {
-            const password = getPassword();
-            if (!password) { alert('请输入管理员密码'); return; }
-
-            const name = prompt('景点名称:');
-            if (!name) return;
-            const type = prompt('类型 (attraction/food/transport/culture/rest/shopping/other):', 'attraction');
-            if (!type) return;
-            const timeStart = prompt('开始时间 (如 09:00):', '');
-            const timeEnd = prompt('结束时间 (如 10:30):', '');
-
-            const result = await apiCall('POST', '/api/places', {
-                password: password,
-                name: name.trim(),
-                type: type.trim(),
-                day: day,
-                time_start: timeStart || '',
-                time_end: timeEnd || '',
-                duration: '',
-                intro: '',
-                address: '',
-                nav_link: '',
-                image_url: '',
-                platform_links: '',
-                remark: '',
-                map_x: 50,
-                map_y: 50,
-                sort_order: 0,
-                peak_alternative: '',
-                congestion_alternative: '',
-                rainy_alternative: ''
-            });
-
-            if (result.success) {
-                const dayData = allDaysData.find(d => d.day === day);
-                const placeOrder = dayData.place_order || [];
-                placeOrder.push(result.id);
-                const updateResult = await apiCall('PUT', '/api/itinerary/' + day, {
-                    password: password,
-                    place_order: placeOrder
+                    group.dataset.day = day.day;
+                    this.$container.appendChild(group);
+                    this.#dayGroupComponents.push(group);
                 });
-                if (updateResult.success) {
-                    alert('✅ 景点添加成功！');
-                    await reloadData();
-                } else {
-                    alert('⚠️ 景点已创建，但未加入当天行程。');
-                }
-            } else {
-                alert('❌ 添加失败: ' + (result.error || '未知错误'));
-            }
-        };
 
-        async function reloadData() {
-            const data = await loadItineraryData();
-            if (data) {
-                allDaysData = data;
-                renderDays();
-                renderOverview();
-                if (currentTab) {
-                    const exists = data.some(d => d.day === currentTab);
-                    if (!exists && data.length > 0) {
-                        currentTab = data[0].day;
-                    }
-                    renderMap(currentTab);
-                }
-            }
-        }
-
-        // ---- 滚动动画 ----
-        function setupScrollAnimation() {
-            const cards = document.querySelectorAll('.place-card');
-            if (cards.length === 0) return;
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.15 });
-            cards.forEach(card => observer.observe(card));
-        }
-
-        function updateReadingProgress() {
-            const scrollTop = window.scrollY;
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-            const bar = document.getElementById('reading-progress-bar');
-            if (bar) bar.style.width = Math.min(progress, 100) + '%';
-        }
-
-        function setupBackToTop() {
-            const btn = document.getElementById('back-to-top');
-            if (!btn) return;
-            const toggle = () => btn.classList.toggle('show', window.scrollY > 500);
-            btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-            window.addEventListener('scroll', toggle, { passive: true });
-            toggle();
-        }
-
-        // ---- 启动 ----
-        document.addEventListener('DOMContentLoaded', async function() {
-            const data = await loadItineraryData();
-            if (data && data.length > 0) {
-                allDaysData = data;
-                if (data.length > 0) currentTab = data[0].day;
-                renderDays();
-                renderOverview();
-                setupStickyDays();
-                setupExpandCollapse();
-                setupAdminMode();
-                setupBackToTop();
-                window.addEventListener('scroll', updateReadingProgress, { passive: true });
-                updateReadingProgress();
-
+                // 初始折叠
                 document.querySelectorAll('.day-group .day-body').forEach(body => {
                     body.style.maxHeight = '0';
                     body.style.opacity = '0';
                     body.style.padding = '0 20px';
                 });
-            } else {
-                document.getElementById('day-groups-container').innerHTML =
-                    '<p style="padding:40px;text-align:center;color:#8a8a8a;">⚠️ 暂无行程数据，请点击「修改模式」添加</p>';
-                renderOverview();
-                setupAdminMode();
-                setupBackToTop();
-            }
-        });
 
-        // 暴露全局
-        window.toggleDay = window.toggleDay;
-        window.toggleOverview = function(header) {
-            const group = header.closest('.overview-group');
-            if (group) group.classList.toggle('open');
-        };
-        window.onMapPointEnter = onMapPointEnter;
-        window.onMapPointLeave = onMapPointLeave;
-        window.onMapPointClick = onMapPointClick;
-        window.editPlaceField = editPlaceField;
-        window.editDayField = editDayField;
-        window.editTransport = editTransport;
-        window.addTransportBefore = addTransportBefore;
-        window.deletePlaceFromDay = deletePlaceFromDay;
-        window.editDayMeta = editDayMeta;
-        window.deleteDay = window.deleteDay;
-        window.addPlaceToDay = window.addPlaceToDay;
+                // 滚动动画
+                this.#setupScrollAnimation();
+            }
+
+            // ============================================================
+            // 渲染 - 路线总览
+            // ============================================================
+            #renderOverview(data) {
+                const tabBar = this.$tabBar;
+                tabBar.innerHTML = '';
+                if (!data || data.length === 0) {
+                    tabBar.innerHTML = '<span style="color:#8a8a8a;font-size:14px;">暂无行程数据</span>';
+                    this.$mapContainer.innerHTML = '';
+                    return;
+                }
+
+                data.forEach(day => {
+                    const btn = document.createElement('button');
+                    btn.className = `tab-btn${day.day === this.#currentTab ? ' active' : ''}`;
+                    btn.dataset.day = day.day;
+                    btn.textContent = 'Day ' + day.day;
+                    btn.addEventListener('click', () => this.#switchTab(day.day));
+                    tabBar.appendChild(btn);
+                });
+
+                this.#renderMap(data);
+            }
+
+            #renderMap(data) {
+                const day = data.find(d => d.day === this.#currentTab);
+                const imgUrl = CONFIG.MAP_IMAGE_BASE + '/day' + this.#currentTab + '_overview.png';
+
+                let html = `<div class="map-wrapper" id="map-wrapper-${this.#currentTab}">`;
+                html += `<img src="${imgUrl}" alt="Day ${this.#currentTab} 路线图" 
+                            onerror="this.style.display='none'; document.getElementById('map-error-${this.#currentTab}').style.display='flex';" />`;
+                html += `<div id="map-error-${this.#currentTab}" style="display:none; height:300px; align-items:center; justify-content:center; color:#8a8a8a; background:#f6f4f1; border-radius:14px; flex-direction:column; gap:8px;">
+                            <span>🖼️ 图片加载失败</span>
+                            <span style="font-size:13px;">请确认 maps/day${this.#currentTab}_overview.png 已上传</span>
+                        </div>`;
+
+                if (day && day.places) {
+                    day.places.forEach((place, idx) => {
+                        const x = place.map_x || (10 + (idx / Math.max(day.places.length - 1, 1)) * 80);
+                        const y = place.map_y || (20 + (idx % 2) * 40 + 10);
+                        const draggable = this.#isAdmin ? 'draggable' : '';
+                        html += `<div class="map-point ${draggable}" 
+                                    style="left:${x}%; top:${y}%;" 
+                                    data-day="${day.day}" data-place-id="${place.id}"
+                                    data-original-x="${x}" data-original-y="${y}">
+                                    ${idx + 1}
+                                    ${this.#isAdmin ? '<span class="drag-handle">⤡</span>' : ''}
+                                </div>`;
+                    });
+                }
+
+                html += '</div>';
+                this.$mapContainer.innerHTML = html;
+
+                // 绑定拖动事件
+                if (this.#isAdmin) {
+                    this.#setupDragEvents();
+                }
+
+                // 绑定地图点事件
+                this.$mapContainer.querySelectorAll('.map-point').forEach(point => {
+                    const day = parseInt(point.dataset.day);
+                    const placeId = point.dataset.placeId;
+                    point.addEventListener('mouseenter', () => this.#onMapPointEnter(day, placeId, point));
+                    point.addEventListener('mouseleave', () => this.#onMapPointLeave());
+                    point.addEventListener('click', () => this.#onMapPointClick(day, placeId, point));
+                });
+            }
+
+            #renderLegend(data) {
+                this.$legend.innerHTML = '';
+                if (!data || data.length === 0) return;
+                data.forEach((day, idx) => {
+                    const span = document.createElement('span');
+                    const color = CONFIG.DAY_COLORS[idx % CONFIG.DAY_COLORS.length];
+                    span.innerHTML =
+                        `<span class="dot" style="background:${color};"></span> Day ${day.day}`;
+                    this.$legend.appendChild(span);
+                });
+            }
+
+            #switchTab(day) {
+                this.#currentTab = day;
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.day) === day);
+                });
+                this.#renderMap(this.#store.days);
+            }
+
+            // ============================================================
+            // 地图拖动
+            // ============================================================
+            #dragState = null;
+
+            #setupDragEvents() {
+                const points = this.$mapContainer.querySelectorAll('.map-point.draggable');
+                points.forEach(point => {
+                    point.addEventListener('mousedown', (e) => this.#startDrag(e, point));
+                    point.addEventListener('touchstart', (e) => this.#startDrag(e, point), { passive: false });
+                });
+            }
+
+            #startDrag(e, element) {
+                if (!this.#isAdmin) return;
+                e.preventDefault();
+                const wrapper = element.closest('.map-wrapper');
+                const rect = wrapper.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                this.#dragState = {
+                    element,
+                    wrapperRect: rect,
+                    placeId: element.dataset.placeId,
+                    day: parseInt(element.dataset.day)
+                };
+                element.classList.add('dragging');
+
+                document.addEventListener('mousemove', this.#onDrag);
+                document.addEventListener('mouseup', this.#endDrag);
+                document.addEventListener('touchmove', this.#onDrag, { passive: false });
+                document.addEventListener('touchend', this.#endDrag);
+            }
+
+            #onDrag = (e) => {
+                if (!this.#dragState) return;
+                e.preventDefault();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const rect = this.#dragState.wrapperRect;
+                const x = ((clientX - rect.left) / rect.width) * 100;
+                const y = ((clientY - rect.top) / rect.height) * 100;
+                this.#dragState.element.style.left = Utils.clamp(x, 0, 100) + '%';
+                this.#dragState.element.style.top = Utils.clamp(y, 0, 100) + '%';
+            }
+
+            #endDrag = () => {
+                if (!this.#dragState) return;
+                const { element, placeId, day } = this.#dragState;
+                element.classList.remove('dragging');
+
+                const left = parseFloat(element.style.left);
+                const top = parseFloat(element.style.top);
+                const mapX = Math.round(left);
+                const mapY = Math.round(top);
+
+                // 更新 store
+                const dayData = this.#store.findDay(day);
+                if (dayData) {
+                    const place = dayData.places?.find(p => p.id == placeId);
+                    if (place) {
+                        place.map_x = mapX;
+                        place.map_y = mapY;
+                    }
+                }
+                this.#store.setDraft({ [`place_${placeId}`]: { map_x: mapX, map_y: mapY } });
+
+                document.removeEventListener('mousemove', this.#onDrag);
+                document.removeEventListener('mouseup', this.#endDrag);
+                document.removeEventListener('touchmove', this.#onDrag);
+                document.removeEventListener('touchend', this.#endDrag);
+                this.#dragState = null;
+
+                this.$adminSaveHint.textContent = '📍 圆点位置已修改，记得按「保存修改」提交';
+                this.$adminSaveHint.style.color = '#a0524a';
+                setTimeout(() => {
+                    this.$adminSaveHint.textContent = '修改完后记得按「保存修改」';
+                    this.$adminSaveHint.style.color = '';
+                }, 3000);
+            }
+
+            // ============================================================
+            // 悬浮卡片
+            // ============================================================
+            #onMapPointEnter(day, placeId, element) {
+                this.#isHovering = true;
+                if (this.#hideTimeout) { clearTimeout(this.#hideTimeout);
+                    this.#hideTimeout = null; }
+                if (!this.#floatingCardPinned) {
+                    this.#showFloatingCard(day, placeId, element);
+                }
+            }
+
+            #onMapPointLeave() {
+                this.#isHovering = false;
+                if (!this.#floatingCardPinned) {
+                    this.#hideFloatingCard(false);
+                }
+            }
+
+            #onMapPointClick(day, placeId, element) {
+                if (this.#floatingCardPinned && this.#floatingCardData &&
+                    this.#floatingCardData.day === day && this.#floatingCardData.placeId == placeId) {
+                    this.#floatingCardPinned = false;
+                    this.#hideFloatingCard(true);
+                    element.classList.remove('active');
+                    return;
+                }
+                if (this.#hideTimeout) { clearTimeout(this.#hideTimeout);
+                    this.#hideTimeout = null; }
+                document.querySelectorAll('.map-point.active').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+                this.#showFloatingCard(day, placeId, element, true);
+            }
+
+            #showFloatingCard(day, placeId, element, pinned = false) {
+                const place = this.#store.findPlace(day, placeId);
+                if (!place) return;
+
+                this.#floatingCardData = { day, placeId };
+                this.$floatingCardName.textContent = place.name;
+                this.$floatingCardDesc.textContent = place.intro || '暂无介绍';
+
+                const imgName = Utils.getImageName(place.name);
+                if (imgName) {
+                    this.$floatingCardImg.src = CONFIG.GITHUB_IMAGE_BASE + '/' + imgName;
+                    this.$floatingCardImg.style.display = 'block';
+                    this.$floatingCardImg.onerror = () => { this.$floatingCardImg.style.display = 'none'; };
+                } else {
+                    this.$floatingCardImg.style.display = 'none';
+                }
+
+                const rect = element.getBoundingClientRect();
+                let left = rect.left + rect.width / 2 - 140;
+                let top = rect.bottom + 12;
+                if (left < 10) left = 10;
+                if (left + 280 > window.innerWidth - 10) left = window.innerWidth - 290;
+                if (top + 300 > window.innerHeight - 10) { top = rect.top - 300 - 12; }
+
+                this.$floatingCard.style.left = left + 'px';
+                this.$floatingCard.style.top = top + 'px';
+                this.$floatingCard.style.display = 'block';
+                this.#floatingCardPinned = pinned;
+                this.$floatingCard.dataset.pinned = pinned ? 'true' : 'false';
+
+                requestAnimationFrame(() => {
+                    this.$floatingCard.classList.add('show');
+                });
+            }
+
+            #hideFloatingCard(immediate = false) {
+                if (this.#floatingCardPinned) return;
+                if (this.#hideTimeout) { clearTimeout(this.#hideTimeout);
+                    this.#hideTimeout = null; }
+                const delay = immediate ? 0 : 300;
+                this.#hideTimeout = setTimeout(() => {
+                    if (!this.#floatingCardPinned && !this.#isHovering) {
+                        this.$floatingCard.classList.remove('show');
+                        setTimeout(() => {
+                            if (!this.#floatingCardPinned) {
+                                this.$floatingCard.style.display = 'none';
+                            }
+                        }, 300);
+                    }
+                    this.#hideTimeout = null;
+                }, delay);
+            }
+
+            // ============================================================
+            // 内联编辑处理器
+            // ============================================================
+            #handleEditField(target, field, val) {
+                if (!this.#isAdmin) return;
+                const current = target[field] || '';
+                const newVal = val !== undefined ? val : prompt(`修改 ${field}:`, current);
+                if (newVal === null) return;
+
+                target[field] = newVal.trim();
+
+                // 判断是 day 还是 place
+                if (target.hasOwnProperty('day') && target.hasOwnProperty('places')) {
+                    // 是 day
+                    this.#store.setDraft({ [`day_${target.day}`]: { [field]: newVal.trim() } });
+                } else if (target.id) {
+                    // 是 place
+                    this.#store.setDraft({ [`place_${target.id}`]: { [field]: newVal.trim() } });
+                }
+
+                this.#renderDays(this.#store.days);
+                this.#renderOverview(this.#store.days);
+            }
+
+            #handleEditTransport(place) {
+                if (!this.#isAdmin) return;
+                const newName = prompt('交通方式名称:', place.name);
+                if (newName === null) return;
+                const newIntro = prompt('交通详情:', place.intro || '');
+                if (newIntro === null) return;
+
+                place.name = newName.trim();
+                place.intro = newIntro.trim();
+                this.#store.setDraft({ [`place_${place.id}`]: { name: newName.trim(), intro: newIntro.trim() } });
+                this.#renderDays(this.#store.days);
+                this.#renderOverview(this.#store.days);
+            }
+
+            #handleAddTransport(place, idx) {
+                if (!this.#isAdmin) return;
+                const dayData = this.#store.findDay(place.day);
+                if (!dayData) return;
+
+                const name = prompt('交通方式名称 (如 公交307路):');
+                if (!name) return;
+                const intro = prompt('交通详情:');
+                if (intro === null) return;
+
+                const newPlace = {
+                    id: -Date.now(),
+                    name: name.trim(),
+                    type: 'transport',
+                    day: place.day,
+                    time_start: '',
+                    time_end: '',
+                    duration: '',
+                    intro: intro.trim(),
+                    address: '',
+                    nav_link: '',
+                    image_url: '',
+                    platform_links: '',
+                    remark: '',
+                    map_x: 50,
+                    map_y: 50,
+                    sort_order: idx + 0.5,
+                    peak_alternative: '',
+                    congestion_alternative: '',
+                    rainy_alternative: ''
+                };
+
+                dayData.places.splice(idx + 1, 0, newPlace);
+                const order = dayData.place_order || [];
+                order.splice(idx + 1, 0, newPlace.id);
+
+                this.#store.setDraft({ [`day_${place.day}`]: { place_order: order } });
+                this.#renderDays(this.#store.days);
+                this.#renderOverview(this.#store.days);
+                alert('✅ 交通已添加，记得按「保存修改」提交。');
+            }
+
+            #handleDeletePlace(place) {
+                if (!confirm('确定删除此景点/交通吗？')) return;
+                const dayData = this.#store.findDay(place.day);
+                if (!dayData) return;
+
+                const idx = dayData.places.findIndex(p => p.id === place.id);
+                if (idx === -1) return;
+                dayData.places.splice(idx, 1);
+                const order = dayData.place_order || [];
+                const oIdx = order.indexOf(place.id);
+                if (oIdx !== -1) order.splice(oIdx, 1);
+
+                this.#store.setDraft({ [`day_${place.day}`]: { place_order: order } });
+                this.#renderDays(this.#store.days);
+                this.#renderOverview(this.#store.days);
+                alert('✅ 已删除，记得按「保存修改」提交。');
+            }
+
+            #handleCardClick(place) {
+                // 跳转到对应 day
+                const group = this.#dayGroupComponents.find(g => g.dataset.day == place.day);
+                if (group) {
+                    // 展开所有
+                    this.#dayGroupComponents.forEach(g => {
+                        g.classList.add('open');
+                        const body = g.querySelector('.day-body');
+                        if (body) {
+                            body.style.maxHeight = '5000px';
+                            body.style.opacity = '1';
+                            body.style.padding = '6px 20px 24px';
+                        }
+                    });
+                    setTimeout(() => {
+                        group.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const card = group.querySelector(`.place-card[data-place-id="${place.id}"]`);
+                        if (card) {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                            card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                            card.style.borderColor = '#a0524a';
+                            setTimeout(() => {
+                                card.style.boxShadow = '';
+                                card.style.borderColor = '';
+                            }, 3000);
+                        }
+                    }, 400);
+                }
+            }
+
+            #handleEditDayMeta(day) {
+                if (!this.#isAdmin) return;
+                const newTitle = prompt('标题:', day.title || '');
+                if (newTitle === null) return;
+                const newSubtitle = prompt('副标题:', day.subtitle || '');
+                if (newSubtitle === null) return;
+
+                day.title = newTitle.trim();
+                day.subtitle = newSubtitle.trim();
+                this.#store.setDraft({
+                    [`day_${day.day}`]: { title: newTitle.trim(), subtitle: newSubtitle.trim() }
+                });
+                this.#renderDays(this.#store.days);
+                this.#renderOverview(this.#store.days);
+            }
+
+            #handleDeleteDay(day) {
+                if (!confirm(`确定要删除 Day ${day.day} 吗？不可恢复！`)) return;
+                this.#store.setDraft({ [`_delete_day_${day.day}`]: true });
+                // 直接从本地移除
+                const data = this.#store.days.filter(d => d.day !== day.day);
+                this.#store.setDays(data);
+                this.#renderDays(data);
+                this.#renderOverview(data);
+                this.#renderLegend(data);
+            }
+
+            #handleAddDay(day) {
+                // 由按钮触发
+            }
+
+            #handleAddPlace(day) {
+                if (!this.#isAdmin) return;
+                const name = prompt('景点名称:');
+                if (!name) return;
+                const type = prompt('类型 (attraction/food/transport/culture/rest/shopping/other):', 'attraction');
+                if (!type) return;
+                const timeStart = prompt('开始时间 (如 09:00):', '');
+                const timeEnd = prompt('结束时间 (如 10:30):', '');
+
+                const newPlace = {
+                    id: -Date.now(),
+                    name: name.trim(),
+                    type: type.trim(),
+                    day: day.day,
+                    time_start: timeStart || '',
+                    time_end: timeEnd || '',
+                    duration: '',
+                    intro: '',
+                    address: '',
+                    nav_link: '',
+                    image_url: '',
+                    platform_links: '',
+                    remark: '',
+                    map_x: 50,
+                    map_y: 50,
+                    sort_order: day.places.length + 1,
+                    peak_alternative: '',
+                    congestion_alternative: '',
+                    rainy_alternative: ''
+                };
+
+                day.places.push(newPlace);
+                const order = day.place_order || [];
+                order.push(newPlace.id);
+
+                this.#store.setDraft({ [`day_${day.day}`]: { place_order: order } });
+                this.#renderDays(this.#store.days);
+                this.#renderOverview(this.#store.days);
+                alert('✅ 景点已添加，记得按「保存修改」提交。');
+            }
+
+            // ============================================================
+            // 管理员
+            // ============================================================
+            async #handleLogin() {
+                const password = this.$adminPassword.value.trim();
+                if (!password) { this.$adminStatus.textContent = '请输入密码'; return; }
+
+                try {
+                    const result = await ApiService.verifyAdmin(password);
+                    if (result.success) {
+                        this.#password = password;
+                        this.#isAdmin = true;
+                        this.$adminStatus.textContent = '✅ 验证成功！';
+                        this.$adminEditArea.style.display = 'flex';
+                        this.$adminLoginArea.style.display = 'none';
+                        this.$adminToggle.textContent = '🔧 退出修改';
+                        this.$adminSaveHint.classList.add('show');
+                        this.#renderDays(this.#store.days);
+                        this.#renderOverview(this.#store.days);
+                    } else {
+                        this.$adminStatus.textContent = '❌ ' + (result.error || '密码错误');
+                    }
+                } catch (e) {
+                    this.$adminStatus.textContent = '❌ 网络错误';
+                }
+            }
+
+            #toggleAdmin() {
+                if (this.#isAdmin) {
+                    this.#isAdmin = false;
+                    this.#password = '';
+                    this.$adminLoginArea.style.display = 'flex';
+                    this.$adminEditArea.style.display = 'none';
+                    this.$adminSaveHint.classList.remove('show');
+                    this.$adminStatus.textContent = '';
+                    this.$adminToggle.textContent = '🔧 修改模式';
+                    this.#store.clearDraft();
+                    this.#renderDays(this.#store.days);
+                    this.#renderOverview(this.#store.days);
+                } else {
+                    this.$adminLoginArea.style.display = 'flex';
+                    this.$adminToggle.textContent = '🔧 退出修改';
+                    this.$adminPassword.value = '';
+                    this.$adminPassword.focus();
+                    this.$adminStatus.textContent = '';
+                    this.$adminSaveHint.classList.add('show');
+                }
+            }
+
+            #updateAdminUI() {
+                if (this.#isAdmin) {
+                    this.$adminEditArea.style.display = 'flex';
+                    this.$adminLoginArea.style.display = 'none';
+                }
+            }
+
+            // ============================================================
+            // 保存
+            // ============================================================
+            async #handleSaveAll() {
+                if (!this.#isAdmin) { alert('请先进入修改模式'); return; }
+                const password = this.#password;
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const draft = this.#store.draft;
+                const entries = Object.entries(draft);
+                if (entries.length === 0) {
+                    alert('ℹ️ 没有需要保存的修改。');
+                    return;
+                }
+
+                let success = 0,
+                    fail = 0;
+
+                for (const [key, value] of entries) {
+                    try {
+                        if (key === '_delete_day_') continue;
+                        if (key.startsWith('day_')) {
+                            const dayNum = parseInt(key.replace('day_', ''));
+                            const result = await ApiService.updateDay(dayNum, value, password);
+                            if (result.success) success++;
+                            else fail++;
+                        } else if (key.startsWith('place_')) {
+                            const placeId = parseInt(key.replace('place_', ''));
+                            const result = await ApiService.updatePlace(placeId, value, password);
+                            if (result.success) success++;
+                            else fail++;
+                        }
+                    } catch (e) {
+                        fail++;
+                    }
+                }
+
+                // 处理删除
+                const deleteKeys = Object.keys(draft).filter(k => k.startsWith('_delete_day_'));
+                for (const key of deleteKeys) {
+                    const dayNum = parseInt(key.replace('_delete_day_', ''));
+                    try {
+                        const result = await ApiService.deleteDay(dayNum, password);
+                        if (result.success) success++;
+                        else fail++;
+                    } catch (e) {
+                        fail++;
+                    }
+                }
+
+                if (fail === 0 && success > 0) {
+                    alert(`✅ 所有修改已保存成功！`);
+                    this.#store.clearDraft();
+                    const data = await ApiService.fetchItinerary();
+                    if (data) {
+                        this.#store.setDays(data);
+                        this.#renderDays(data);
+                        this.#renderOverview(data);
+                        this.#renderLegend(data);
+                    }
+                } else if (success > 0 && fail > 0) {
+                    alert(`⚠️ 部分保存失败。成功 ${success} 项，失败 ${fail} 项。`);
+                } else {
+                    alert('⚠️ 全部保存失败。');
+                }
+            }
+
+            async #handleAddDay() {
+                if (!this.#isAdmin) { alert('请先进入修改模式'); return; }
+                const password = this.#password;
+                if (!password) { alert('请输入管理员密码'); return; }
+
+                const days = this.#store.days;
+                const dayNum = days.length > 0 ? Math.max(...days.map(d => d.day)) + 1 : 1;
+                const result = await ApiService.createDay({
+                    title: 'Day ' + dayNum,
+                    subtitle: '新行程',
+                    walk_badge: '',
+                    rest_note: '',
+                    breakfast: '',
+                    lunch: '',
+                    dinner: '',
+                    place_order: [],
+                    day_alternatives: {},
+                    notes: ''
+                }, password);
+
+                if (result.success) {
+                    alert('✅ 新增成功！');
+                    const data = await ApiService.fetchItinerary();
+                    if (data) {
+                        this.#store.setDays(data);
+                        this.#renderDays(data);
+                        this.#renderOverview(data);
+                        this.#renderLegend(data);
+                    }
+                } else {
+                    alert('❌ 新增失败: ' + (result.error || '未知错误'));
+                }
+            }
+
+            // ============================================================
+            // 工具
+            // ============================================================
+            #expandAll() {
+                this.#dayGroupComponents.forEach(g => {
+                    g.classList.add('open');
+                    const body = g.querySelector('.day-body');
+                    if (body) {
+                        body.style.maxHeight = '5000px';
+                        body.style.opacity = '1';
+                        body.style.padding = '6px 20px 24px';
+                    }
+                });
+                setTimeout(() => this.#checkStickyAll(), 300);
+            }
+
+            #collapseAll() {
+                this.#dayGroupComponents.forEach(g => {
+                    const body = g.querySelector('.day-body');
+                    const header = g.querySelector('.day-header');
+                    if (body && g.classList.contains('open')) {
+                        body.style.maxHeight = body.scrollHeight + 'px';
+                        requestAnimationFrame(() => {
+                            body.style.maxHeight = '0';
+                            body.style.opacity = '0';
+                            body.style.padding = '0 20px';
+                        });
+                        g.classList.remove('open');
+                        if (header) header.classList.remove('sticky');
+                    }
+                });
+            }
+
+            #checkStickyAll() {
+                document.querySelectorAll('.day-group .day-header').forEach(header => {
+                    const rect = header.getBoundingClientRect();
+                    if (rect.top <= 0) header.classList.add('sticky');
+                    else header.classList.remove('sticky');
+                });
+            }
+
+            #updateProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+                this.$progressBar.style.width = Math.min(progress, 100) + '%';
+            }
+
+            #updateBackTop() {
+                const toggle = () => {
+                    this.$backTop.classList.toggle('show', window.scrollY > 500);
+                };
+                window.addEventListener('scroll', toggle, { passive: true });
+                toggle();
+            }
+
+            #setupScrollAnimation() {
+                const cards = document.querySelectorAll('.place-card');
+                if (cards.length === 0) return;
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                        }
+                    });
+                }, { threshold: 0.15 });
+                cards.forEach(card => observer.observe(card));
+            }
+        }
+
+        // ============================================================
+        // 启动应用
+        // ============================================================
+        const app = new App();
+        window.__app = app;
     </script>
 
 </body>
