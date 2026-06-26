@@ -182,11 +182,11 @@
             position: relative;
             width: 100%;
             border-radius: 14px;
-            overflow: hidden;
             border: 1px solid #e8e4de;
             background: #f6f4f1;
             min-height: 320px;
             height: 360px;
+            overflow: hidden;
         }
 
         .map-point {
@@ -206,14 +206,14 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
             transform: translate(-50%, -50%);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            z-index: 10;
+            z-index: 20;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             user-select: none;
         }
         .map-point:hover {
             transform: translate(-50%, -50%) scale(1.15);
             box-shadow: 0 4px 16px rgba(160, 82, 74, 0.4);
-            z-index: 20;
+            z-index: 25;
         }
         .map-point.active {
             transform: translate(-50%, -50%) scale(1.15);
@@ -256,7 +256,6 @@
             display: inline-block;
         }
 
-        /* ---- 悬浮卡片 ---- */
         #floating-card {
             position: fixed;
             z-index: 999;
@@ -472,6 +471,7 @@
             flex-wrap: wrap;
             gap: 4px 12px;
             min-height: 32px;
+            cursor: pointer;
         }
         .timeline-item::before {
             content: '';
@@ -508,7 +508,6 @@
             margin-left: 6px;
         }
 
-        /* ---- 交通连接线 ---- */
         .transport-connector {
             display: flex;
             align-items: center;
@@ -519,6 +518,7 @@
             color: #4a6a7f;
             position: relative;
             min-height: 24px;
+            cursor: pointer;
         }
         .transport-connector::before {
             content: '';
@@ -542,7 +542,6 @@
             color: #4a5a6a;
         }
 
-        /* ---- 景点卡片 ---- */
         .place-card {
             background: #f9f8f6;
             border-radius: 16px;
@@ -658,8 +657,8 @@
             margin-bottom: 4px;
         }
 
-        /* ---- 交通卡片（紧凑版，无图片） ---- */
-        .place-card-transport {
+        /* 紧凑卡片：用餐 + 交通 共用这个样式 */
+        .place-card-compact {
             background: #f0f4f8;
             border-radius: 12px;
             padding: 8px 16px;
@@ -675,29 +674,37 @@
             transform: translateY(30px);
             transition: opacity 0.6s ease, transform 0.6s ease;
         }
-        .place-card-transport.visible {
+        .place-card-compact.visible {
             opacity: 1;
             transform: translateY(0);
         }
-        .place-card-transport .transport-icon {
+        .place-card-compact .compact-icon {
             font-size: 20px;
             flex-shrink: 0;
         }
-        .place-card-transport .transport-route {
+        .place-card-compact .compact-name {
             font-size: 14px;
             font-weight: 500;
             color: #3a5a6f;
         }
-        .place-card-transport .transport-detail {
+        .place-card-compact .compact-detail {
             font-size: 13px;
             color: #5a6a7a;
         }
-        .place-card-transport .transport-alt {
+        .place-card-compact .compact-alt {
             font-size: 12px;
             color: #8a9aaa;
             background: #e8eef4;
             padding: 2px 10px;
             border-radius: 20px;
+        }
+        .place-card-compact .compact-tag {
+            font-size: 11px;
+            background: #dce4ec;
+            color: #4a5a6a;
+            padding: 0 10px;
+            border-radius: 20px;
+            font-weight: 400;
         }
 
         .btn-group {
@@ -985,15 +992,15 @@
                 width: 8px;
                 height: 8px;
             }
-            .place-card-transport {
+            .place-card-compact {
                 padding: 6px 12px;
                 min-height: 36px;
                 gap: 4px 8px;
             }
-            .place-card-transport .transport-icon {
+            .place-card-compact .compact-icon {
                 font-size: 16px;
             }
-            .place-card-transport .transport-route {
+            .place-card-compact .compact-name {
                 font-size: 13px;
             }
         }
@@ -1064,9 +1071,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // 完整 JavaScript - 所有数据从 API 动态加载
-        // ============================================================
         (function() {
             'use strict';
 
@@ -1225,133 +1229,119 @@
                         html += `</div>`;
                     }
 
-                    // ---- 时间轴 ----
+                    // ---- 时间轴：景点 + 交通连接线 ----
                     html += `<div class="timeline">`;
-                    const nonTransport = places.filter(p => p.type !== 'transport');
-                    nonTransport.forEach((place) => {
+                    let prevWasTransport = false;
+                    places.forEach((place) => {
+                        const isTransport = place.type === 'transport';
                         const emoji = getEmoji(place.name);
                         const typeLabel = getTypeLabel(place.type);
                         const timeStr = formatTime(place);
 
-                        html += `<div class="timeline-item" data-place-id="${place.id}" data-day="${day.day}">`;
+                        if (isTransport) {
+                            const transportText = place.transport || place.intro || place.name || '';
+                            html += `<div class="transport-connector" data-place-id="${place.id}" data-day="${day.day}" onclick="jumpToPlace(${day.day}, ${place.id})">
+                                        <span class="transport-icon">🚇</span>
+                                        <span class="transport-text">${transportText}</span>
+                                    </div>`;
+                            prevWasTransport = true;
+                            return;
+                        }
+
+                        html += `<div class="timeline-item" data-place-id="${place.id}" data-day="${day.day}" onclick="jumpToPlace(${day.day}, ${place.id})">`;
                         if (timeStr) {
                             html += `<span class="time">${timeStr}</span>`;
                         }
                         html +=
                             `<span class="activity">${emoji} ${place.name} <span class="tag">${typeLabel}</span></span>`;
                         html += `</div>`;
+                        prevWasTransport = false;
                     });
                     html += `</div>`;
 
-                    // ---- 景点卡片 + 交通卡片（按原始顺序交错） ----
-                    const orderedItems = [];
-                    for (let i = 0; i < places.length; i++) {
-                        if (places[i].type !== 'transport') {
-                            orderedItems.push({ type: 'place', data: places[i] });
-                        } else {
-                            orderedItems.push({ type: 'transport', data: places[i] });
-                        }
-                    }
+                    // ---- 卡片列表：景点(完整) + 用餐/交通(紧凑) ----
+                    places.forEach((place) => {
+                        const isTransport = place.type === 'transport';
+                        const isFood = place.type === 'food';
+                        const isCompact = isTransport || isFood;
 
-                    for (let i = 0; i < orderedItems.length; i++) {
-                        const item = orderedItems[i];
+                        if (isCompact) {
+                            // 紧凑卡片（用餐/交通）
+                            const icon = isTransport ? '🚇' : getEmoji(place.name);
+                            const displayName = place.name || '';
+                            const detailText = place.transport || place.intro || '';
+                            const altText = ''; // 备选暂不显示
 
-                        if (item.type === 'place') {
-                            const place = item.data;
-                            const imgName = getImageName(place.name);
-                            const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
-                            const emoji = getEmoji(place.name);
-                            const typeLabel = getTypeLabel(place.type);
-                            const timeStr = formatTime(place);
-
-                            html += `<div class="place-card" data-day="${day.day}" data-place-id="${place.id}">`;
-                            html += `<div class="place-name">
-                                        ${emoji} ${place.name}
-                                        <span class="tag">${typeLabel}</span>
-                                        ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                            html += `<div class="place-card-compact" data-day="${day.day}" data-place-id="${place.id}" onclick="jumpToPlace(${day.day}, ${place.id})">
+                                        <span class="compact-icon">${icon}</span>
+                                        <span class="compact-name">${displayName}</span>
+                                        ${detailText ? `<span class="compact-detail">${detailText}</span>` : ''}
+                                        ${isFood ? `<span class="compact-tag">用餐</span>` : ''}
                                     </div>`;
-
-                            if (imgUrl) {
-                                html += `<div class="place-image">
-                                            <img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                                            <div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>
-                                        </div>`;
-                            } else {
-                                html += `<div class="place-image">
-                                            <div class="placeholder-text"><span>${emoji}</span>${place.name}</div>
-                                        </div>`;
-                            }
-
-                            if (place.intro) {
-                                html += `<div class="place-desc">${place.intro}</div>`;
-                            }
-
-                            if (place.address || place.duration) {
-                                let parts = [];
-                                if (place.duration) parts.push('⏱️ ' + place.duration);
-                                if (place.address) parts.push('📍 ' + place.address);
-                                html += `<div class="meta">${parts.join(' · ')}</div>`;
-                            }
-
-                            if (place.remark) {
-                                html += `<div class="remark">💡 ${place.remark}</div>`;
-                            }
-
-                            html += `<div class="btn-group">`;
-                            if (place.nav_link) {
-                                html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
-                            }
-                            if (place.platform_links) {
-                                try {
-                                    const links = JSON.parse(place.platform_links);
-                                    if (links.dianping) {
-                                        html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
-                                    }
-                                    if (links.meituan) {
-                                        html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
-                                    }
-                                    if (links.douyin) {
-                                        html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
-                                    }
-                                } catch (e) {}
-                            }
-                            html += `</div>`;
-                            html += `</div>`;
-                        } else {
-                            // 交通卡片 - 紧凑版，无图片
-                            const t = item.data;
-                            const icon = getEmoji('交通');
-                            // 从 transport 字段或 intro 中提取信息
-                            let transportText = t.transport || t.intro || t.name || '';
-                            // 提取起止点：如果有 "→" 则显示，否则显示完整
-                            let routeDisplay = transportText;
-                            let altDisplay = '';
-
-                            // 尝试提取备选方案（如果有 "或"）
-                            if (transportText.includes('或')) {
-                                const parts = transportText.split('或');
-                                routeDisplay = parts[0].trim();
-                                altDisplay = '备选：' + parts[1].trim();
-                            }
-
-                            // 如果 transport 字段为空，用 name
-                            if (!t.transport && !t.intro) {
-                                routeDisplay = t.name || '';
-                            }
-
-                            html += `<div class="place-card-transport" data-day="${day.day}" data-place-id="${t.id}" onclick="jumpToPlace(${day.day}, ${t.id})">`;
-                            html += `<span class="transport-icon">${icon}</span>`;
-                            html += `<span class="transport-route">${routeDisplay}</span>`;
-                            if (altDisplay) {
-                                html += `<span class="transport-alt">${altDisplay}</span>`;
-                            }
-                            // 如果有起止点信息，显示
-                            if (t.address && !transportText.includes(t.address)) {
-                                html += `<span class="transport-detail">${t.address}</span>`;
-                            }
-                            html += `</div>`;
+                            return;
                         }
-                    }
+
+                        // 完整景点卡片
+                        const imgName = getImageName(place.name);
+                        const imgUrl = imgName ? GITHUB_IMAGE_BASE + '/' + imgName : '';
+                        const emoji = getEmoji(place.name);
+                        const typeLabel = getTypeLabel(place.type);
+                        const timeStr = formatTime(place);
+
+                        html += `<div class="place-card" data-day="${day.day}" data-place-id="${place.id}">`;
+                        html += `<div class="place-name">
+                                    ${emoji} ${place.name}
+                                    <span class="tag">${typeLabel}</span>
+                                    ${timeStr ? `<span class="time-badge">🕐 ${timeStr}</span>` : ''}
+                                </div>`;
+
+                        if (imgUrl) {
+                            html += `<div class="place-image">
+                                        <img src="${imgUrl}" alt="${place.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                        <div class="placeholder-text" style="display:none;"><span>${emoji}</span>${place.name}</div>
+                                    </div>`;
+                        } else {
+                            html += `<div class="place-image">
+                                        <div class="placeholder-text"><span>${emoji}</span>${place.name}</div>
+                                    </div>`;
+                        }
+
+                        if (place.intro) {
+                            html += `<div class="place-desc">${place.intro}</div>`;
+                        }
+
+                        if (place.address || place.duration) {
+                            let parts = [];
+                            if (place.duration) parts.push('⏱️ ' + place.duration);
+                            if (place.address) parts.push('📍 ' + place.address);
+                            html += `<div class="meta">${parts.join(' · ')}</div>`;
+                        }
+
+                        if (place.remark) {
+                            html += `<div class="remark">💡 ${place.remark}</div>`;
+                        }
+
+                        html += `<div class="btn-group">`;
+                        if (place.nav_link) {
+                            html += `<a class="btn btn-nav" href="${place.nav_link}" target="_blank">🧭 导航</a>`;
+                        }
+                        if (place.platform_links) {
+                            try {
+                                const links = JSON.parse(place.platform_links);
+                                if (links.dianping) {
+                                    html += `<a class="btn btn-dp" href="${links.dianping}" target="_blank">📝 大众点评</a>`;
+                                }
+                                if (links.meituan) {
+                                    html += `<a class="btn btn-mt" href="${links.meituan}" target="_blank">🍜 美团</a>`;
+                                }
+                                if (links.douyin) {
+                                    html += `<a class="btn btn-dy" href="${links.douyin}" target="_blank">🎵 抖音</a>`;
+                                }
+                            } catch (e) {}
+                        }
+                        html += `</div>`;
+                        html += `</div>`;
+                    });
 
                     if (day.rest_note) {
                         html += `<div class="rest-note">☕ ${day.rest_note}</div>`;
@@ -1363,14 +1353,12 @@
 
                 container.innerHTML = html;
 
-                // 初始化折叠状态
                 document.querySelectorAll('.day-group .day-body').forEach(body => {
                     body.style.maxHeight = '0';
                     body.style.opacity = '0';
                     body.style.padding = '0 20px';
                 });
 
-                // 滚动动画
                 setTimeout(setupScrollAnimation, 100);
             }
 
@@ -1418,10 +1406,10 @@
                 const dayData = allDaysData.find(d => d.day === day);
 
                 let html = `<div class="map-wrapper" id="map-wrapper-${day}" style="position:relative;">`;
-                html += `<div id="leaflet-map-${day}" style="width:100%;height:100%;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;"></div>`;
+                html += `<div id="leaflet-map-${day}" style="width:100%;height:100%;border-radius:14px;border:1px solid #e8e4de;background:#f0f0f0;z-index:1;"></div>`;
 
-                // 圆点覆盖层（直接在地图上用绝对定位）
-                html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">`;
+                // 圆点覆盖层（z-index 高于地图）
+                html += `<div id="map-points-container-${day}" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;">`;
 
                 if (dayData && dayData.places) {
                     const nonTransport = dayData.places.filter(p => p.type !== 'transport');
@@ -1429,7 +1417,7 @@
                         const x = place.map_x || (10 + (idx / Math.max(nonTransport.length - 1, 1)) * 80);
                         const y = place.map_y || (20 + (idx % 2) * 40 + 10);
                         html += `<div class="map-point" 
-                                    style="left:${x}%; top:${y}%;pointer-events:auto;position:absolute;" 
+                                    style="left:${x}%; top:${y}%;pointer-events:auto;position:absolute;z-index:20;" 
                                     data-day="${day}" data-place-id="${place.id}"
                                     onmouseenter="onMapPointEnter(${day}, '${place.id}', this)" 
                                     onmouseleave="onMapPointLeave()"
@@ -1444,7 +1432,6 @@
 
                 container.innerHTML = html;
 
-                // 初始化 Leaflet 地图（使用高德瓦片）
                 setTimeout(() => {
                     const mapContainer = document.getElementById('leaflet-map-' + day);
                     if (!mapContainer) return;
@@ -1473,7 +1460,11 @@
             function initLeafletMap(day) {
                 const mapContainer = document.getElementById('leaflet-map-' + day);
                 if (!mapContainer) return;
-                if (mapContainer._leaflet_map) return;
+                if (mapContainer._leaflet_map) {
+                    // 如果地图已存在，更新视图
+                    mapContainer._leaflet_map.invalidateSize();
+                    return;
+                }
 
                 const map = L.map(mapContainer).setView([29.57, 106.55], 12);
                 mapContainer._leaflet_map = map;
@@ -1639,37 +1630,61 @@
                 }
             };
 
-            // ---- 点击时间轴跳转 ----
             window.jumpToPlace = function(day, placeId) {
                 const targetDay = document.getElementById('day-group-' + day);
-                if (targetDay) {
-                    // 确保目标 day 是展开的
-                    targetDay.classList.add('open');
-                    const body = targetDay.querySelector('.day-body');
-                    if (body) {
-                        body.style.maxHeight = '5000px';
-                        body.style.opacity = '1';
-                        body.style.padding = '6px 20px 24px';
-                    }
+                if (!targetDay) {
+                    // 尝试展开所有天
+                    document.querySelectorAll('.day-group').forEach(g => g.classList.add('open'));
                     setTimeout(() => {
-                        // 尝试找景点卡片
-                        let card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
-                        // 如果没找到，找交通卡片
-                        if (!card) {
-                            card = targetDay.querySelector(`.place-card-transport[data-place-id="${placeId}"]`);
+                        const d = document.getElementById('day-group-' + day);
+                        if (d) {
+                            const body = d.querySelector('.day-body');
+                            if (body) {
+                                body.style.maxHeight = '5000px';
+                                body.style.opacity = '1';
+                                body.style.padding = '6px 20px 24px';
+                            }
+                            // 找卡片
+                            let card = d.querySelector(`.place-card[data-place-id="${placeId}"]`);
+                            if (!card) card = d.querySelector(`.place-card-compact[data-place-id="${placeId}"]`);
+                            if (card) {
+                                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                                card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                                card.style.borderColor = '#a0524a';
+                                setTimeout(() => {
+                                    card.style.boxShadow = '';
+                                    card.style.borderColor = '';
+                                }, 3000);
+                            }
                         }
-                        if (card) {
-                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
-                            card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
-                            card.style.borderColor = '#a0524a';
-                            setTimeout(() => {
-                                card.style.boxShadow = '';
-                                card.style.borderColor = '';
-                            }, 3000);
-                        }
-                    }, 400);
+                    }, 300);
+                    return;
                 }
+
+                // 目标天存在，展开它
+                targetDay.classList.add('open');
+                const body = targetDay.querySelector('.day-body');
+                if (body) {
+                    body.style.maxHeight = '5000px';
+                    body.style.opacity = '1';
+                    body.style.padding = '6px 20px 24px';
+                }
+
+                setTimeout(() => {
+                    let card = targetDay.querySelector(`.place-card[data-place-id="${placeId}"]`);
+                    if (!card) card = targetDay.querySelector(`.place-card-compact[data-place-id="${placeId}"]`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+                        card.style.boxShadow = '0 0 0 3px #a0524a, 0 4px 20px rgba(160,82,74,0.2)';
+                        card.style.borderColor = '#a0524a';
+                        setTimeout(() => {
+                            card.style.boxShadow = '';
+                            card.style.borderColor = '';
+                        }, 3000);
+                    }
+                }, 400);
             };
 
             // ============================================================
@@ -1773,7 +1788,7 @@
             }
 
             // ============================================================
-            // 7. 修改模式（仅保留基本功能，避免代码过长）
+            // 7. 修改模式（保留基本功能）
             // ============================================================
 
             function setupAdminMode() {
@@ -1862,7 +1877,7 @@
             }
 
             // ============================================================
-            // 8. API 操作
+            // 8. API 操作（精简）
             // ============================================================
 
             async function apiCall(method, url, data) {
@@ -2011,7 +2026,7 @@
             // ============================================================
 
             function setupScrollAnimation() {
-                const cards = document.querySelectorAll('.place-card, .place-card-transport');
+                const cards = document.querySelectorAll('.place-card, .place-card-compact');
                 if (cards.length === 0) return;
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -2077,7 +2092,7 @@
                 }
             });
 
-        })(); // IIFE 结束
+        })();
     </script>
 
 </body>
